@@ -1,0 +1,20 @@
+.env
+.env.local
+node_modules/
+*.log
+benchmark/audio/*.wav
+benchmark/results/
+
+# Next.js
+.next/
+out/
+
+# Prisma - local dev database file, never committed
+prisma/dev.db
+prisma/dev.db-journal
+
+# Candidate voice recordings - never committed, private user data
+uploads/
+
+# Local Claude Code tool state, not project source
+.claude/scheduled_tasks.lock

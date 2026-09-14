@@ -1,0 +1,340 @@
+// ProActing database schema.
+// Dev datasource is SQLite (zero-cost, file-based). Swapping to Postgres for
+// production later is a one-line datasource change - the models don't move.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  // "CANDIDATE" | "ADMIN" - plain string for the same SQLite-has-no-enums
+  // reason as PracticeQuestion.category; validated in src/lib/auth.ts.
+  role         String   @default("CANDIDATE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile             Profile?
+  practiceAttempts    PracticeAttempt[]
+  practiceRecordings  PracticeRecording[]
+  mockTestSessions    MockTestSession[]
+  conversationSessions ConversationSession[]
+  coachMessages       CoachMessage[]
+}
+
+// Kept separate from User so Phase 3+ (practice/assessment data) can extend
+// the candidate's profile without touching the auth-critical User model.
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetRole String?
+  bio        String?
+
+  updatedAt DateTime @updatedAt
+}
+
+// category/difficulty/type are plain strings, not Prisma enums, because the
+// SQLite connector does not support native enums. Valid values are defined
+// once in src/lib/practice-taxonomy.ts and validated there at the app layer -
+// swapping to Postgres later can upgrade these to real enums without moving
+// any data.
+model PracticeQuestion {
+  id         String @id @default(cuid())
+  category   String
+  difficulty String
+  type       String
+
+  prompt   String
+  passage  String? // reading/listening passage, or the customer's opening message for roleplay scenarios
+  options  String? // JSON-encoded array of choice strings, for multiple choice
+  correctAnswer  String? // matches one of `options`; only for objectively-gradable question types
+  expectedAnswer String? // reference/ideal answer for open-ended or voice prompts (e.g. the exact sentence to read aloud, or a model response) - not auto-graded, shown to a future human/AI reviewer
+  explanation    String? // shown after answering, real educational content
+
+  timeLimitSeconds Int
+  scoringCriteria  String? // human-readable description, used once AI scoring (Phase 8+) is wired in
+
+  // "SEEDED" (hand-authored, prisma/seed*.mjs) | "AI_GENERATED" (Phase 18 -
+  // a candidate requested a fresh scenario on a topic). Once created, an
+  // AI-generated question is a real, permanent, reusable PracticeQuestion
+  // row - identical in every other respect to a seeded one.
+  source           String @default("SEEDED")
+  estimatedCostUsd Float? // only set for source = "AI_GENERATED"
+
+  createdAt DateTime @default(now())
+
+  attempts             PracticeAttempt[]
+  conversationSessions ConversationSession[]
+
+  @@index([category, difficulty])
+}
+
+model PracticeAttempt {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  questionId String
+  question   PracticeQuestion @relation(fields: [questionId], references: [id])
+
+  category   String
+  difficulty String
+
+  responseText     String?
+  recordingId      String?
+  recording        PracticeRecording? @relation(fields: [recordingId], references: [id])
+  isCorrect        Boolean? // null when the question type has no deterministic answer (e.g. interview prompts, voice recordings)
+  score            Int? // 0-100; null until scored - never fabricated
+  timeTakenSeconds Int
+
+  // Set only when this attempt was answered inside a proctored mock test
+  // (Phase 12), so results can be grouped per-session; null for ordinary
+  // solo practice attempts, which use the exact same table and scoring path.
+  mockTestSessionId String?
+  mockTestSession    MockTestSession? @relation(fields: [mockTestSessionId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  analysis SpeechAnalysis?
+
+  @@index([userId, createdAt])
+  @@index([userId, category])
+  @@index([mockTestSessionId])
+}
+
+// Real, on-demand analysis of one voice attempt's recording - triggered only
+// when a candidate views their results, not automatically for every
+// recording, so we never pay for transcription/AI on attempts nobody
+// reviews. Deterministic fields are computed by application code; the AI
+// fields are a separate, clearly-labeled JSON blob.
+model SpeechAnalysis {
+  id        String          @id @default(cuid())
+  attemptId String          @unique
+  attempt   PracticeAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  transcript       String
+  wordCount        Int
+  durationSeconds  Float
+  wpm              Float
+  paceClassification String
+  fillerCount      Int
+  fillerBreakdown  String // JSON: { word: count }
+  repetitionCount  Int
+  repetitionExamples String // JSON array of strings
+  longPauses       String // JSON array of {afterText, beforeText, gapSeconds, atSeconds}
+  // Real per-segment {start, end, text} timestamps from the transcription
+  // provider (Groq's verbose_json gives these for free - already computed
+  // for longPauses above, just never persisted for playback until Phase 9).
+  // Nullable so pre-existing rows analyzed before this field existed don't
+  // need a backfill - the UI falls back to plain text for those.
+  segmentsJson String?
+
+  aiAnalysisJson String // full VoiceAnalysisResult, as JSON
+
+  transcriptionProvider String
+  transcriptionModel    String
+  analysisProvider      String
+  analysisModel         String
+  estimatedCostUsd      Float
+
+  createdAt DateTime @default(now())
+}
+
+// A candidate's own voice recording for a practice attempt. Stored on local
+// disk under uploads/ (gitignored) for this dev stage - swapping to S3/GCS
+// later is a storage-layer change only, not a schema change: filePath
+// becomes a storage key, everything else stays the same.
+model PracticeRecording {
+  id              String @id @default(cuid())
+  userId          String
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filePath        String
+  mimeType        String
+  durationSeconds Int?
+  createdAt       DateTime @default(now())
+
+  attempts         PracticeAttempt[]
+  conversationTurns ConversationTurn[]
+
+  @@index([userId])
+}
+
+// A candidate's run through one MockTestTemplate. Anchors both the
+// live-proctoring events (Phase 7) and every question attempt answered
+// during the test (Phase 12) - real persistence for both.
+model MockTestSession {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateId String?
+  template   MockTestTemplate? @relation(fields: [templateId], references: [id])
+  startedAt  DateTime         @default(now())
+  endedAt    DateTime?
+
+  events      ProctoringEvent[]
+  attempts    PracticeAttempt[]
+  scoreReport ScoreReport?
+  resultsReport ResultsReport?
+
+  @@index([userId, startedAt])
+}
+
+// Rule-based score breakdown for one mock test session (Phase 13). Cheap
+// to (re)compute - pure aggregation of already-persisted data, no AI call
+// of its own - so unlike SpeechAnalysis this is recomputed fresh on every
+// request rather than only-once-cached; the row is kept as an audit trail
+// of what was shown and when.
+model ScoreReport {
+  id                String          @id @default(cuid())
+  mockTestSessionId String          @unique
+  mockTestSession   MockTestSession @relation(fields: [mockTestSessionId], references: [id], onDelete: Cascade)
+
+  overallScore      Int?
+  categoryScoresJson String
+
+  computedAt DateTime @default(now())
+}
+
+// Narrative coaching report for one mock test session (Phase 14). Unlike
+// ScoreReport, this DOES call an AI model (text-only, over the already-
+// computed category scores and per-response notes - never raw audio again),
+// so it is generated only on explicit candidate request and cached forever
+// once created, the same on-demand/idempotent/cached discipline as
+// SpeechAnalysis. The model is asked to synthesize and ground claims in the
+// data it's given, never to invent a new score - overallScore/category
+// numbers it echoes back must match what ScoreReport already computed.
+model ResultsReport {
+  id                String          @id @default(cuid())
+  mockTestSessionId String          @unique
+  mockTestSession   MockTestSession @relation(fields: [mockTestSessionId], references: [id], onDelete: Cascade)
+
+  summary      String
+  strengths    String // JSON array of { point, evidence }
+  improvements String // JSON array of { point, evidence, tip }
+
+  analysisProvider String
+  analysisModel    String
+  estimatedCostUsd Float
+
+  createdAt DateTime @default(now())
+}
+
+// One ongoing text chat thread per candidate with the Personal AI Coach
+// (Phase 15) - not per-session like ConversationSession, since the coach's
+// whole point is to reason across the candidate's real history. Every
+// "coach" row is a real paid AI turn-based reply, grounded in the real
+// aggregate stats from src/lib/coach-profile.ts (computed free, from
+// already-persisted ScoreReport rows) - never a fabricated insight.
+model CoachMessage {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role    String // "user" | "coach"
+  content String
+
+  analysisProvider String?
+  analysisModel    String?
+  estimatedCostUsd Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Configurable assessment structure - "allow the test configuration to
+// change the sections" (Phase 12). Editing sections is a data change here,
+// not a code change; Phase 17's admin UI can manage these rows directly
+// once it exists.
+model MockTestTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  sections MockTestTemplateSection[]
+  sessions MockTestSession[]
+}
+
+model MockTestTemplateSection {
+  id            String            @id @default(cuid())
+  templateId    String
+  template      MockTestTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  order         Int
+  category      String
+  difficulty    String
+  questionCount Int
+
+  @@index([templateId, order])
+}
+
+// A single proctoring flag - a signal requiring human interpretation, never
+// an automatic accusation. eventType is a plain string validated against
+// src/lib/proctoring-events.ts, for the same SQLite-has-no-enums reason as
+// PracticeQuestion.category.
+model ProctoringEvent {
+  id         String          @id @default(cuid())
+  sessionId  String
+  session    MockTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType  String
+  detail     String?
+  occurredAt DateTime        @default(now())
+
+  @@index([sessionId, occurredAt])
+}
+
+// A turn-based (not real-time streaming) AI voice roleplay - the candidate
+// speaks, the AI replies in character, repeat. role picks the persona and
+// which question category seeds the opening scenario. The first AI turn is
+// just the seeded question's own text (no AI call needed); only later AI
+// turns are actually generated live.
+model ConversationSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role       String // CUSTOMER | INTERVIEWER | SUPERVISOR | CONVERSATION_PARTNER
+  questionId String?
+  question   PracticeQuestion? @relation(fields: [questionId], references: [id])
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  overallAnalysisJson String? // null until the candidate ends the conversation and analysis runs
+
+  turns ConversationTurn[]
+
+  @@index([userId, startedAt])
+}
+
+model ConversationTurn {
+  id        String              @id @default(cuid())
+  sessionId String
+  session   ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  turnIndex Int
+  speaker   String // "ai" | "candidate"
+  text      String
+
+  recordingId String? // only set for candidate turns
+  recording   PracticeRecording? @relation(fields: [recordingId], references: [id])
+
+  // Captured from the transcription call at turn-creation time (candidate
+  // turns only) so a later deep analysis (Phase 11) can compute real WPM/
+  // filler/pause metrics without re-transcribing and re-paying for it.
+  durationSeconds Float?
+  segmentsJson    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, turnIndex])
+}
