@@ -59,13 +59,9 @@ export default function AdminCandidatesPage() {
               {users.map((u) => (
                 <tr key={u.id} className="group">
                   <td className="py-2 pr-4 font-medium text-ink-900">
-                    {u.role === "CANDIDATE" ? (
-                      <Link href={`/admin/candidates/${u.id}`} className="hover:text-brand-600 hover:underline">
-                        {u.name}
-                      </Link>
-                    ) : (
-                      u.name
-                    )}
+                    <Link href={`/admin/candidates/${u.id}`} className="hover:text-brand-600 hover:underline">
+                      {u.name}
+                    </Link>
                   </td>
                   <td className="py-2 pr-4 text-slate-600">{u.email}</td>
                   <td className="py-2 pr-4">
