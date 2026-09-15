@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
+import { uploadRecording } from "@/lib/upload-recording-client";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABELS,
@@ -208,16 +209,11 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
     const recordedDurationSeconds = Math.max(1, Math.round((Date.now() - recordStartRef.current) / 1000));
 
     try {
-      const form = new FormData();
-      form.append("file", recordedBlobRef.current, "recording.webm");
-      form.append("questionId", currentQuestion.id);
-      form.append("durationSeconds", String(recordedDurationSeconds));
-
-      const uploadRes = await fetch("/api/practice/recordings", { method: "POST", body: form });
-      const uploadData = await uploadRes.json();
-
-      if (!uploadRes.ok) {
-        setErrorMessage(uploadData.error || "Couldn't save your recording.");
+      let recordingId: string;
+      try {
+        recordingId = await uploadRecording(recordedBlobRef.current, recordedDurationSeconds);
+      } catch (err) {
+        setErrorMessage(err instanceof Error ? err.message : "Couldn't save your recording.");
         setStage("error");
         return;
       }
@@ -229,7 +225,7 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           questionId: currentQuestion.id,
-          recordingId: uploadData.recordingId,
+          recordingId,
           timeTakenSeconds,
         }),
       });

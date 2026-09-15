@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { UPLOADS_ROOT } from "@/lib/uploads";
 
 // Same "key" naming (e.g. "recordings/<userId>/<id>.webm") works as both a
@@ -27,6 +28,39 @@ function r2Client(): S3Client | null {
 }
 
 const BUCKET = process.env.R2_BUCKET_NAME;
+
+// The client only needs to know whether to ask for a direct-upload URL or
+// fall back to uploading through our own server (src/app/api/practice/recordings/presign).
+export function isR2Configured(): boolean {
+  return r2Client() !== null && !!BUCKET;
+}
+
+// A short-lived URL the browser can PUT the recording straight to, so the
+// audio bytes never pass through our own serverless function - avoids the
+// request body size limits a platform like Vercel imposes on Functions,
+// and saves the bandwidth of relaying every recording through our server.
+export async function getPresignedUploadUrl(key: string, mimeType: string): Promise<string> {
+  const client = r2Client();
+  if (!client || !BUCKET) throw new Error("R2 is not configured.");
+
+  const command = new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: mimeType });
+  return getSignedUrl(client, command, { expiresIn: 300 });
+}
+
+// Confirms a direct-to-R2 upload actually landed before the caller trusts
+// it and creates a PracticeRecording row - never take the client's word
+// alone that a presigned PUT succeeded (src/app/api/practice/recordings/complete).
+export async function recordingExists(key: string): Promise<boolean> {
+  const client = r2Client();
+  if (!client || !BUCKET) return false;
+
+  try {
+    await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function writeRecording(key: string, buffer: Buffer, mimeType: string): Promise<void> {
   const client = r2Client();

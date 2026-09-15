@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
+import { uploadRecording } from "@/lib/upload-recording-client";
 
 interface Turn {
   id: string;
@@ -137,18 +138,13 @@ export default function ConversationPage() {
     setRecordingState("uploading");
     setAiThinking(true);
     try {
-      const form = new FormData();
-      form.append("file", blob, "recording.webm");
-      form.append("durationSeconds", String(Math.max(1, Math.round((Date.now() - recordStartRef.current) / 1000))));
-
-      const uploadRes = await fetch("/api/practice/recordings", { method: "POST", body: form });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed.");
+      const durationSeconds = Math.max(1, Math.round((Date.now() - recordStartRef.current) / 1000));
+      const recordingId = await uploadRecording(blob, durationSeconds);
 
       const turnRes = await fetch(`/api/conversations/${params.sessionId}/turns`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recordingId: uploadData.recordingId }),
+        body: JSON.stringify({ recordingId }),
       });
       const turnData = await turnRes.json();
       if (!turnRes.ok) throw new Error(turnData.error || "Couldn't process your turn.");

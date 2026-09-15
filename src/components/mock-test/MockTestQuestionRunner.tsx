@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { getModeByCategory, isVoiceCategory } from "@/lib/practice-taxonomy";
+import { uploadRecording } from "@/lib/upload-recording-client";
 
 interface TemplateSection {
   order: number;
@@ -144,13 +145,8 @@ export function MockTestQuestionRunner({
     try {
       let recordingId: string | undefined;
       if (recordingBlob) {
-        const form = new FormData();
-        form.append("file", recordingBlob, "recording.webm");
-        form.append("durationSeconds", String(Math.max(1, Math.round((Date.now() - recordStartRef.current) / 1000))));
-        const uploadRes = await fetch("/api/practice/recordings", { method: "POST", body: form });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || "Recording upload failed.");
-        recordingId = uploadData.recordingId;
+        const durationSeconds = Math.max(1, Math.round((Date.now() - recordStartRef.current) / 1000));
+        recordingId = await uploadRecording(recordingBlob, durationSeconds);
       }
 
       const attemptRes = await fetch("/api/practice/attempts", {
