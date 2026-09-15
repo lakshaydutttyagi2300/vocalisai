@@ -63,10 +63,19 @@ export const FEATURE_LABELS_PLURAL: Record<Feature, string> = {
 export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
   FREE: {
     PRACTICE_SESSION: 5,
-    VOICE_RECORDING: 0,
-    SPEECH_ANALYSIS: 1,
+    // Was 0, which silently blocked every voice-based practice mode
+    // (Reading, Pronunciation, Fluency, Speaking, Customer-Service
+    // Roleplay all require a recording) and made the "1 free Speech
+    // Analysis" below unreachable - there was never a recording to
+    // analyze. 2 lets a free user actually experience the core "record
+    // your voice, get real AI feedback" pitch once or twice.
+    VOICE_RECORDING: 2,
+    SPEECH_ANALYSIS: 2,
     IMPROVE_ANSWER: 0,
     COACH_MESSAGE: 0,
+    // Deliberately 0, not sampled: the most expensive feature (a full
+    // multi-question proctored assessment) and the strongest reason to
+    // upgrade - giving it away free removes that.
     MOCK_ASSESSMENT: 0,
     INTERVIEW_SIMULATION: 1,
     AI_SCENARIO: 0,

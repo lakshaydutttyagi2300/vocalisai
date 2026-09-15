@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
@@ -39,14 +40,19 @@ interface CandidateDetail {
 }
 
 const PLAN_OPTIONS = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"];
+const ROLE_OPTIONS = ["CANDIDATE", "ADMIN"];
 
 export default function AdminCandidateDetailPage() {
   const params = useParams<{ id: string }>();
+  const { data: session } = useSession();
   const [detail, setDetail] = useState<CandidateDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState("FREE");
   const [savingPlan, setSavingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState("CANDIDATE");
+  const [savingRole, setSavingRole] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   function load() {
     fetch(`/api/admin/candidates/${params.id}`)
@@ -56,6 +62,7 @@ export default function AdminCandidateDetailPage() {
         else {
           setDetail(data);
           setSelectedPlan(data.usage.plan);
+          setSelectedRole(data.role);
         }
       })
       .catch(() => setError("Couldn't load this candidate."));
@@ -84,6 +91,30 @@ export default function AdminCandidateDetailPage() {
       setSavingPlan(false);
     }
   }
+
+  async function saveRole() {
+    setSavingRole(true);
+    setRoleError(null);
+    try {
+      const res = await fetch(`/api/admin/candidates/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selectedRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRoleError(data.error ?? "Couldn't update the role.");
+        return;
+      }
+      setDetail(data);
+    } catch {
+      setRoleError("Couldn't update the role.");
+    } finally {
+      setSavingRole(false);
+    }
+  }
+
+  const isOwnAccount = detail && session?.user?.id === detail.id;
 
   if (error) {
     return (
@@ -119,6 +150,45 @@ export default function AdminCandidateDetailPage() {
         <span className="text-xs text-slate-500">
           Joined {new Date(detail.createdAt).toLocaleDateString()}
         </span>
+      </div>
+
+      <div className="card mt-4 p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</p>
+            <p className="mt-1 font-display text-lg font-bold text-ink-900">{detail.role}</p>
+          </div>
+          {isOwnAccount ? (
+            <p className="text-xs text-slate-400">You can&apos;t change your own role - ask another admin.</p>
+          ) : (
+            <div className="flex items-end gap-2">
+              <label className="flex flex-col text-xs text-slate-600">
+                Assign role
+                <select
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                >
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button onClick={saveRole} disabled={savingRole} className="btn-primary text-sm disabled:opacity-60">
+                {savingRole ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
+        </div>
+        {roleError && (
+          <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{roleError}</p>
+        )}
+        <p className="mt-3 text-xs text-slate-400">
+          Promoting a candidate to ADMIN is how you create additional admin accounts - no
+          database access needed.
+        </p>
       </div>
 
       <div className="card mt-4 p-5">
