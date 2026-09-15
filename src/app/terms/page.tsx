@@ -19,7 +19,8 @@ export default function TermsPage() {
 
       <p className="mt-6 text-sm leading-relaxed text-slate-700">
         These Terms of Service (&quot;Terms&quot;) govern your access to and use of VocalisAi (the
-        &quot;Service&quot;), operated by Lakshay Dutt Tyagi (&quot;we&quot;, &quot;us&quot;, or
+        &quot;Service&quot;), operated by Lakshay Dutt Tyagi, doing business as VocalisAi
+        (&quot;we&quot;, &quot;us&quot;, or
         &quot;our&quot;). By creating an account or using the Service, you agree to these Terms. If
         you do not agree, do not use the Service.
       </p>

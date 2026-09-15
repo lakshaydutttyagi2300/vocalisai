@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
       <p className="mt-6 text-sm leading-relaxed text-slate-700">
         This Privacy Policy explains what data VocalisAi (&quot;we&quot;, &quot;us&quot;) collects
         when you use the Service, why, and what you can do about it. VocalisAi is operated by
-        Lakshay Dutt Tyagi. If you have questions, contact{" "}
+        Lakshay Dutt Tyagi, doing business as VocalisAi. If you have questions, contact{" "}
         <a href="mailto:pcircuit@yahoo.com" className="text-brand-600 hover:underline">
           pcircuit@yahoo.com
         </a>
