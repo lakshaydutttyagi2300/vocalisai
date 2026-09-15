@@ -22,3 +22,6 @@ uploads/
 
 # Wrangler CLI local cache/state, not project source
 .wrangler
+
+.vercel
+.env*

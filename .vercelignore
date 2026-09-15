@@ -1,0 +1,10 @@
+.next
+node_modules
+uploads
+.git
+.wrangler
+.neon
+.env
+.env.local
+prisma/dev.db
+prisma/dev.db-journal
