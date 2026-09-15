@@ -19,3 +19,6 @@ uploads/
 # Local Claude Code tool state, not project source
 .claude/scheduled_tasks.lock
 .neon
+
+# Wrangler CLI local cache/state, not project source
+.wrangler

@@ -116,7 +116,52 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("\nDirect-mode presign/complete safety checks passed.");
+  console.log("\n--- Full happy path: presign a NEW upload, really PUT bytes, then complete and read back ---");
+  const presign2Res = await client.fetch(`${BASE}/api/practice/recordings/presign`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mimeType: "audio/webm" }),
+  });
+  const presign2Data = await presign2Res.json();
+
+  const fakeAudioBytes = new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+  const putRes = await fetch(presign2Data.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": "audio/webm" },
+    body: fakeAudioBytes,
+  });
+  console.log(`PUT to R2 status: ${putRes.status} (expect 200)`);
+  if (!putRes.ok) {
+    console.error("TEST FAILED: the real PUT to the presigned URL should succeed");
+    process.exit(1);
+  }
+
+  const completeRes = await client.fetch(`${BASE}/api/practice/recordings/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      recordingId: presign2Data.recordingId,
+      key: presign2Data.key,
+      mimeType: "audio/webm",
+      durationSeconds: 4,
+    }),
+  });
+  const completeData = await completeRes.json();
+  console.log(`Complete status: ${completeRes.status} (expect 200), recordingId: ${completeData.recordingId}`);
+  if (!completeRes.ok) {
+    console.error("TEST FAILED: completing a real upload should succeed");
+    process.exit(1);
+  }
+
+  const readRes = await client.fetch(`${BASE}/api/practice/recordings/${completeData.recordingId}`);
+  const readBytes = new Uint8Array(await readRes.arrayBuffer());
+  console.log(`Read-back status: ${readRes.status}, bytes: [${readBytes.join(",")}] (expect [${fakeAudioBytes.join(",")}])`);
+  if (readRes.status !== 200 || readBytes.length !== fakeAudioBytes.length || !readBytes.every((b, i) => b === fakeAudioBytes[i])) {
+    console.error("TEST FAILED: read-back bytes should exactly match what was PUT directly to R2");
+    process.exit(1);
+  }
+
+  console.log("\nFull direct-to-R2 upload flow passed end-to-end.");
 }
 
 main().catch((err) => {
