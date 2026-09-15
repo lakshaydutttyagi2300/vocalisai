@@ -376,9 +376,13 @@ export default function MockTestResultsPage() {
       </div>
 
       <p className="mt-6 text-xs text-slate-400">
-        Proctoring flags from this session are signals for review, not proof of anything. Category
-        scores above only use responses that have already been analyzed - open a recording&apos;s
-        analysis link to include it.
+        Proctoring flags from this session are signals for review, not proof of anything.
+        {scoreReport && Object.values(scoreReport.categories).some((c) => c.basis.includes("not yet analyzed")) && (
+          <>
+            {" "}Some categories are still missing analyzed responses and are excluded from the score
+            above until analysis finishes - reload this page in a moment.
+          </>
+        )}
       </p>
 
       <Link href="/dashboard" className="btn-primary mt-6 inline-block">
