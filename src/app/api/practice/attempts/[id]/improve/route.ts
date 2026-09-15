@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createGeminiImproveProvider } from "@/lib/providers/gemini-improve-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
+import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 
 // Same on-demand/idempotent/cached discipline as the analysis and results
 // report features: this is a paid AI call, so it only ever runs when the
@@ -42,6 +43,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   if (attempt.analysis.improvedAnswerJson) {
     return NextResponse.json({ generated: true, result: JSON.parse(attempt.analysis.improvedAnswerJson) });
+  }
+
+  const usage = await checkAndRecordUsage(session.user.id, "IMPROVE_ANSWER");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "IMPROVE_ANSWER") }, { status: 403 });
   }
 
   const geminiKey = process.env.GEMINI_API_KEY;

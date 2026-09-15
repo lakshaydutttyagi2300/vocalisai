@@ -4,6 +4,8 @@
 // AI call happened (Phase 8/14/15), just summed here.
 
 import { db } from "@/lib/db";
+import { computeCoachProfile } from "@/lib/coach-profile";
+import { getUsageSummary, type UsageSummary } from "@/lib/entitlements";
 
 export interface AdminOverview {
   totalUsers: number;
@@ -108,4 +110,56 @@ export async function getAdminUsers(): Promise<AdminUserRow[]> {
       totalPracticeAttempts: attemptCountByUser.get(u.id) ?? 0,
     };
   });
+}
+
+export interface AdminCandidateDetail {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  targetRole: string | null;
+  // Reuses the exact same real cross-session aggregation the candidate's
+  // own Coach/Dashboard pages use (Phase 15) - an admin sees the same
+  // real numbers, never a separately computed "admin view" of the truth.
+  coachProfile: Awaited<ReturnType<typeof computeCoachProfile>>;
+  usage: UsageSummary;
+  recentSessions: { id: string; startedAt: string; endedAt: string | null; overallScore: number | null; templateName: string | null }[];
+}
+
+export async function getAdminCandidateDetail(userId: string): Promise<AdminCandidateDetail | null> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: { profile: true },
+  });
+  if (!user) return null;
+
+  const [coachProfile, usage, sessions] = await Promise.all([
+    computeCoachProfile(userId),
+    getUsageSummary(userId),
+    db.mockTestSession.findMany({
+      where: { userId },
+      orderBy: { startedAt: "desc" },
+      take: 10,
+      include: { scoreReport: { select: { overallScore: true } }, template: { select: { name: true } } },
+    }),
+  ]);
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdAt: user.createdAt.toISOString(),
+    targetRole: user.profile?.targetRole ?? null,
+    coachProfile,
+    usage,
+    recentSessions: sessions.map((s) => ({
+      id: s.id,
+      startedAt: s.startedAt.toISOString(),
+      endedAt: s.endedAt?.toISOString() ?? null,
+      overallScore: s.scoreReport?.overallScore ?? null,
+      templateName: s.template?.name ?? null,
+    })),
+  };
 }

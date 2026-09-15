@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { createGeminiScenarioProvider, type ScenarioCategory, type ScenarioResult } from "@/lib/providers/gemini-scenario-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
+import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 
 // Only SHORT_ANSWER voice categories - no fixed "correctAnswer" for the AI
 // to invent or get wrong (see gemini-scenario-provider.ts for why this
@@ -77,6 +78,18 @@ export async function POST(req: Request) {
   }
   if (rawTopic.length > MAX_TOPIC_LENGTH) {
     return NextResponse.json({ error: `Topic is too long (max ${MAX_TOPIC_LENGTH} characters).` }, { status: 400 });
+  }
+
+  const hasDifficultyAccess = await checkDifficultyAccess(session.user.id, difficulty);
+  if (!hasDifficultyAccess) {
+    return NextResponse.json(
+      { error: "This difficulty level isn't included on your current plan. Upgrade to unlock it." },
+      { status: 403 }
+    );
+  }
+  const usage = await checkAndRecordUsage(session.user.id, "AI_SCENARIO");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "AI_SCENARIO") }, { status: 403 });
   }
 
   const geminiKey = process.env.GEMINI_API_KEY;

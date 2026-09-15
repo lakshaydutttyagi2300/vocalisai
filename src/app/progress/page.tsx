@@ -24,11 +24,11 @@ function TrendChart({ points }: { points: OverallTrendPoint[] }) {
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="none">
-      <line x1={padding} y1={toY(0)} x2={width - padding} y2={toY(0)} stroke="#e2e8f0" strokeWidth={1} />
-      <line x1={padding} y1={toY(100)} x2={width - padding} y2={toY(100)} stroke="#e2e8f0" strokeWidth={1} />
-      <path d={pathD} fill="none" stroke="#4f46e5" strokeWidth={2} />
+      <line x1={padding} y1={toY(0)} x2={width - padding} y2={toY(0)} stroke="#e2ded3" strokeWidth={1} />
+      <line x1={padding} y1={toY(100)} x2={width - padding} y2={toY(100)} stroke="#e2ded3" strokeWidth={1} />
+      <path d={pathD} fill="none" stroke="#106e64" strokeWidth={2} />
       {scored.map((p, i) => (
-        <circle key={p.sessionId} cx={padding + i * stepX} cy={toY(p.overallScore)} r={3} fill="#4f46e5" />
+        <circle key={p.sessionId} cx={padding + i * stepX} cy={toY(p.overallScore)} r={3} fill="#106e64" />
       ))}
     </svg>
   );

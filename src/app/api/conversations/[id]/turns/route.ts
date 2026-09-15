@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UPLOADS_ROOT } from "@/lib/uploads";
+import { readRecording } from "@/lib/storage";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
+import { getEffectivePlan, FREE_INTERVIEW_SIMULATION_MAX_TURNS } from "@/lib/entitlements";
 
 const MAX_CANDIDATE_TURNS = 4;
 
@@ -27,6 +26,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "This conversation has already ended." }, { status: 400 });
   }
 
+  const existingCandidateTurns = convoSession.turns.filter((t) => t.speaker === "candidate").length;
+  const plan = await getEffectivePlan(session.user.id);
+  if (plan === "FREE" && existingCandidateTurns >= FREE_INTERVIEW_SIMULATION_MAX_TURNS) {
+    return NextResponse.json(
+      { error: "You've reached the end of your free sample conversation. Upgrade to continue practicing interview simulations." },
+      { status: 403 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const recordingId = body?.recordingId;
   if (!recordingId) return NextResponse.json({ error: "recordingId is required." }, { status: 400 });
@@ -42,10 +50,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "AI is not configured on this server." }, { status: 503 });
   }
 
-  const absolutePath = path.join(UPLOADS_ROOT, recording.filePath);
   let audioBuffer: Buffer;
   try {
-    audioBuffer = await fs.readFile(absolutePath);
+    audioBuffer = await readRecording(recording.filePath);
   } catch {
     return NextResponse.json({ error: "Recording file is missing." }, { status: 404 });
   }
@@ -83,9 +90,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const candidateTurnCount = convoSession.turns.filter((t) => t.speaker === "candidate").length + 1;
   const roleDef = getRoleDef(convoSession.role);
   const scenario = convoSession.question?.passage ?? convoSession.question?.prompt ?? "";
+  const effectiveMaxTurns = plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : MAX_CANDIDATE_TURNS;
 
   let aiTurn = null;
-  if (roleDef && candidateTurnCount < MAX_CANDIDATE_TURNS) {
+  if (roleDef && candidateTurnCount < effectiveMaxTurns) {
     const conversationProvider = createGeminiConversationProvider(geminiKey);
     try {
       const history = [...convoSession.turns, candidateTurn].map((t) => ({
@@ -111,6 +119,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   return NextResponse.json({
     candidateTurn,
     aiTurn,
-    reachedMaxTurns: candidateTurnCount >= MAX_CANDIDATE_TURNS,
+    reachedMaxTurns: candidateTurnCount >= effectiveMaxTurns,
   });
 }

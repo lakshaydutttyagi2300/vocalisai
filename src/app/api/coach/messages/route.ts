@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { computeCoachProfile, describeCoachProfile } from "@/lib/coach-profile";
 import { createGeminiCoachProvider, type CoachChatTurn } from "@/lib/providers/gemini-coach-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
+import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 
 const MAX_MESSAGE_LENGTH = 1000;
 const HISTORY_TURNS = 10; // bounds prompt size/cost regardless of how long the thread grows
@@ -36,6 +37,11 @@ export async function POST(req: Request) {
   if (!content) return NextResponse.json({ error: "Message cannot be empty." }, { status: 400 });
   if (content.length > MAX_MESSAGE_LENGTH) {
     return NextResponse.json({ error: `Message is too long (max ${MAX_MESSAGE_LENGTH} characters).` }, { status: 400 });
+  }
+
+  const usage = await checkAndRecordUsage(session.user.id, "COACH_MESSAGE");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "COACH_MESSAGE") }, { status: 403 });
   }
 
   const geminiKey = process.env.GEMINI_API_KEY;

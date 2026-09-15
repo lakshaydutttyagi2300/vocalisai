@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UPLOADS_ROOT } from "@/lib/uploads";
+import { readRecording } from "@/lib/storage";
 
 // Serves a recording back only to the user who owns it - never trusts the
 // requested id alone. A recording that exists but belongs to someone else
@@ -22,14 +20,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const absolutePath = path.join(UPLOADS_ROOT, recording.filePath);
-
   try {
-    const buffer = await fs.readFile(absolutePath);
+    const buffer = await readRecording(recording.filePath);
     // Never cacheable: this is one candidate's private voice recording,
     // and a browser-level cache doesn't know about app sessions - on a
     // shared device, a cached response could leak across accounts.
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": recording.mimeType,
         "Cache-Control": "private, no-store",

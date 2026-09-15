@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getRoleDef } from "@/lib/conversation-roles";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
+import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -17,6 +18,18 @@ export async function POST(req: Request) {
   if (!roleDef) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
   if (!difficulty || !isValidDifficulty(difficulty)) {
     return NextResponse.json({ error: "Invalid or missing difficulty." }, { status: 400 });
+  }
+
+  const hasDifficultyAccess = await checkDifficultyAccess(session.user.id, difficulty);
+  if (!hasDifficultyAccess) {
+    return NextResponse.json(
+      { error: "This difficulty level isn't included on your current plan. Upgrade to unlock it." },
+      { status: 403 }
+    );
+  }
+  const usage = await checkAndRecordUsage(session.user.id, "INTERVIEW_SIMULATION");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "INTERVIEW_SIMULATION") }, { status: 403 });
   }
 
   const pool = await db.practiceQuestion.findMany({

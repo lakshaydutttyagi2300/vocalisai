@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UPLOADS_ROOT } from "@/lib/uploads";
+import { readRecording } from "@/lib/storage";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiAnalysisProvider } from "@/lib/providers/gemini-analysis-provider";
 import { estimateTranscriptionCostUsd, estimateAnalysisCostUsd } from "@/lib/providers/pricing";
 import { computeDeterministicMetrics } from "@/lib/speech-metrics";
+import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 
 // Analysis runs ONLY when explicitly requested (viewing results), never
 // automatically on every recorded attempt - so we never pay for
@@ -101,16 +100,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "This attempt has no recording to analyze." }, { status: 400 });
   }
 
+  const usage = await checkAndRecordUsage(session.user.id, "SPEECH_ANALYSIS");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "SPEECH_ANALYSIS") }, { status: 403 });
+  }
+
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!groqKey || !geminiKey) {
     return NextResponse.json({ error: "AI analysis is not configured on this server." }, { status: 503 });
   }
 
-  const absolutePath = path.join(UPLOADS_ROOT, attempt.recording.filePath);
   let audioBuffer: Buffer;
   try {
-    audioBuffer = await fs.readFile(absolutePath);
+    audioBuffer = await readRecording(attempt.recording.filePath);
   } catch {
     return NextResponse.json({ error: "Recording file is missing on the server." }, { status: 404 });
   }

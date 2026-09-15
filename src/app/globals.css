@@ -26,7 +26,12 @@
   --color-amber-100: #f6e8d2;
   --color-amber-500: #d99b3e;
   --color-amber-600: #c98a2e;
-  --color-amber-700: #a06f22;
+  /* Darkened from the design system's original #a06f22 - that value only
+     hit ~4.4:1 contrast on white (fails WCAG AA's 4.5:1 for normal text),
+     since this shade is used as small semibold text on white cards
+     throughout (results/coach/admin pages), not just as a fill. #8f5f1c
+     clears ~5:1. */
+  --color-amber-700: #8f5f1c;
 
   /* Ink = warm near-black, replacing the old cool navy scale. */
   --color-ink-950: #0d1113;

@@ -11,11 +11,14 @@ const NAV_LINKS = [
   { href: "/mock-tests", label: "Mock Tests" },
   { href: "/progress", label: "Progress" },
   { href: "/coach", label: "Coach" },
+  { href: "/billing", label: "Billing" },
   { href: "/profile", label: "Profile" },
 ];
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Overview" },
+  { href: "/admin/candidates", label: "Candidates" },
+  { href: "/admin/templates", label: "Templates" },
   { href: "/dashboard", label: "Candidate view" },
 ];
 

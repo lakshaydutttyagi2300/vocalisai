@@ -18,3 +18,4 @@ uploads/
 
 # Local Claude Code tool state, not project source
 .claude/scheduled_tasks.lock
+.neon

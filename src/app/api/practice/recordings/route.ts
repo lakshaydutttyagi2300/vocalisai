@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import fs from "node:fs/promises";
-import path from "node:path";
 import crypto from "node:crypto";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UPLOADS_ROOT, extensionForMimeType } from "@/lib/uploads";
+import { extensionForMimeType } from "@/lib/uploads";
+import { writeRecording } from "@/lib/storage";
 
 // Stores a candidate's own voice recording. Written under
 // uploads/recordings/<userId>/ and the DB row is scoped to that same
@@ -35,12 +34,13 @@ export async function POST(req: Request) {
   const mimeType = file.type || "audio/webm";
   const recordingId = crypto.randomUUID();
   const ext = extensionForMimeType(mimeType);
-  const relativePath = path.join("recordings", session.user.id, `${recordingId}.${ext}`);
-  const absolutePath = path.join(UPLOADS_ROOT, relativePath);
+  // Forward slashes, not path.join's platform separator - this key is
+  // also used as an S3/R2 object key (src/lib/storage.ts), which is
+  // always "/"-delimited regardless of the server's OS.
+  const relativePath = `recordings/${session.user.id}/${recordingId}.${ext}`;
 
-  await fs.mkdir(path.dirname(absolutePath), { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(absolutePath, buffer);
+  await writeRecording(relativePath, buffer, mimeType);
 
   const durationSeconds = durationRaw ? Math.round(Number(durationRaw)) : null;
 

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UPLOADS_ROOT } from "@/lib/uploads";
+import { readRecording } from "@/lib/storage";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
 import { combineDeterministicMetrics } from "@/lib/speech-metrics";
@@ -53,9 +51,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const metricsInputs = [];
       for (const t of candidateTurns) {
         if (!t.recording) continue;
-        const absolutePath = path.join(UPLOADS_ROOT, t.recording.filePath);
         try {
-          const buffer = await fs.readFile(absolutePath);
+          const buffer = await readRecording(t.recording.filePath);
           audioClips.push({ mimeType: t.recording.mimeType, base64: buffer.toString("base64") });
         } catch {
           continue; // missing file - skip this clip rather than fail the whole analysis

@@ -1,0 +1,56 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { UPLOADS_ROOT } from "@/lib/uploads";
+
+// Same "key" naming (e.g. "recordings/<userId>/<id>.webm") works as both a
+// relative filesystem path and an S3/R2 object key, so PracticeRecording.filePath
+// never needed to change shape when this moved off local disk - only where
+// the bytes actually live did.
+//
+// Local disk remains the fallback when R2 isn't configured (no R2_* env
+// vars set) - fine for local dev, but local disk does NOT persist across
+// deploys on Vercel, so production MUST have R2 configured before real
+// recordings are at stake.
+
+function r2Client(): S3Client | null {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+}
+
+const BUCKET = process.env.R2_BUCKET_NAME;
+
+export async function writeRecording(key: string, buffer: Buffer, mimeType: string): Promise<void> {
+  const client = r2Client();
+  if (client && BUCKET) {
+    await client.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: buffer, ContentType: mimeType }));
+    return;
+  }
+
+  const absolutePath = path.join(UPLOADS_ROOT, key);
+  await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+  await fs.writeFile(absolutePath, buffer);
+}
+
+// Throws if the object/file doesn't exist - callers already handle that
+// (a missing recording is reported as 404, never fabricated).
+export async function readRecording(key: string): Promise<Buffer> {
+  const client = r2Client();
+  if (client && BUCKET) {
+    const result = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+    const bytes = await result.Body?.transformToByteArray();
+    if (!bytes) throw new Error("Empty object body");
+    return Buffer.from(bytes);
+  }
+
+  const absolutePath = path.join(UPLOADS_ROOT, key);
+  return fs.readFile(absolutePath);
+}

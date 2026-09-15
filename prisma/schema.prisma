@@ -1,13 +1,13 @@
 // ProActing database schema.
-// Dev datasource is SQLite (zero-cost, file-based). Swapping to Postgres for
-// production later is a one-line datasource change - the models don't move.
+// Postgres, hosted on Neon - the models never moved when this switched
+// over from the original SQLite dev datasource, exactly as planned.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,6 +28,9 @@ model User {
   mockTestSessions    MockTestSession[]
   conversationSessions ConversationSession[]
   coachMessages       CoachMessage[]
+  subscription        Subscription?
+  usageEvents         UsageEvent[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 // Kept separate from User so Phase 3+ (practice/assessment data) can extend
@@ -343,4 +346,72 @@ model ConversationTurn {
   createdAt DateTime @default(now())
 
   @@index([sessionId, turnIndex])
+}
+
+// One row per candidate - their commercial plan. Every user gets a FREE
+// subscription lazily (src/lib/entitlements.ts creates one on first check
+// if missing), so there's exactly one code path for "what plan is this
+// user on" regardless of whether they signed up before or after paid
+// plans existed. currentPeriodEnd is null for FREE (its limits are
+// lifetime, not monthly) and set for paid plans; a paid plan whose period
+// has lapsed is treated as FREE by the entitlements layer, not deleted -
+// this keeps their lifetime FREE usage history intact and correct.
+// Assigned manually by an admin for now (no payment processor is wired up
+// yet) - the same field a future billing webhook will write to.
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan   String @default("FREE") // FREE | STARTER | PROFESSIONAL | PREMIUM
+  status String @default("ACTIVE") // ACTIVE | EXPIRED | CANCELED
+
+  currentPeriodStart DateTime  @default(now())
+  currentPeriodEnd   DateTime?
+
+  // Set once a real Paddle checkout completes (src/app/api/webhooks/paddle) -
+  // null for every FREE user and every plan an admin assigned manually
+  // before payments existed. paddleSubscriptionId is how renewal/cancel
+  // webhooks for an existing subscription are matched back to this row.
+  paddleCustomerId     String?
+  paddleSubscriptionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A real, append-only log of one gated action - never a mutable counter,
+// so "how much has this user used" is always a real count of real rows,
+// the same discipline as every score in this app. Limits are enforced by
+// counting rows in the current billing window (or all-time for FREE) -
+// see src/lib/entitlements.ts. feature is a plain string validated there,
+// for the same SQLite-has-no-enums reason used throughout this schema.
+model UsageEvent {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, feature, createdAt])
+}
+
+// A single-use, expiring token for the forgot-password flow. tokenHash
+// stores a SHA-256 hash of the token, never the raw value - the same
+// reason passwords are hashed, since anyone with DB read access should
+// not be able to reset an account just by reading this table. usedAt is
+// set the moment a token is redeemed so it can never be replayed, even
+// within its expiry window.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }
