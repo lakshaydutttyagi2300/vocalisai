@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { overallResponseRating } from "@/lib/scoring-engine";
+import type { VoiceAnalysisResult } from "@/lib/providers/gemini-analysis-provider";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -11,7 +13,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const mockTestSession = await db.mockTestSession.findUnique({
     where: { id },
     include: {
-      attempts: { orderBy: { createdAt: "asc" }, include: { question: true } },
+      attempts: { orderBy: { createdAt: "asc" }, include: { question: true, analysis: true } },
       events: true,
       template: { include: { sections: { orderBy: { order: "asc" } } } },
     },
@@ -36,6 +38,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         isCorrect: a.isCorrect,
         score: a.score,
         hasRecording: !!a.recordingId,
+        voiceRating: a.analysis ? overallResponseRating(JSON.parse(a.analysis.aiAnalysisJson) as VoiceAnalysisResult) : null,
       })),
     };
   });

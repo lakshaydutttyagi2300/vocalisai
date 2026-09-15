@@ -103,6 +103,28 @@ function issueRateScore(issueCount: number, wordCount: number): number {
   return 35;
 }
 
+// A single strong/adequate/weak verdict for one analyzed voice response,
+// for surfacing right in a results list (never buried a click away behind
+// "View analysis" with no visible signal that a response was actually
+// weak). Customer-service responses are judged primarily on customer
+// handling - the dimension that actually matters for that scenario -
+// falling back to a blend of every other rated dimension otherwise.
+export function overallResponseRating(ai: VoiceAnalysisResult): Rating {
+  if (ai.customerHandling?.applicable) {
+    const parts = [ai.customerHandling.empathyRating, ai.customerHandling.relevanceRating, ai.customerHandling.problemSolvingRating]
+      .filter((r): r is Rating => r === "strong" || r === "adequate" || r === "weak")
+      .map((r) => RATING_SCORE[r]);
+    const score = avg(parts);
+    if (score !== null) return score >= 75 ? "strong" : score >= 50 ? "adequate" : "weak";
+  }
+
+  const parts = [ai.pronunciation?.rating, ai.fluency?.rating, ai.grammar?.rating, ai.vocabulary?.rating, ai.voiceClarity?.rating, ai.delivery?.rating]
+    .filter((r): r is Rating => r === "strong" || r === "adequate" || r === "weak")
+    .map((r) => RATING_SCORE[r]);
+  const score = avg(parts) ?? 65;
+  return score >= 75 ? "strong" : score >= 50 ? "adequate" : "weak";
+}
+
 function avg(nums: number[]): number | null {
   const valid = nums.filter((n) => Number.isFinite(n));
   if (valid.length === 0) return null;

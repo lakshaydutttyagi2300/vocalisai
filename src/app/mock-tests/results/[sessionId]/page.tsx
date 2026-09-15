@@ -14,7 +14,14 @@ interface SectionSummary {
   answeredCount: number;
   correctCount: number;
   scoredCount: number;
-  attempts: { attemptId: string; prompt: string; isCorrect: boolean | null; score: number | null; hasRecording: boolean }[];
+  attempts: {
+    attemptId: string;
+    prompt: string;
+    isCorrect: boolean | null;
+    score: number | null;
+    hasRecording: boolean;
+    voiceRating: "strong" | "adequate" | "weak" | null;
+  }[];
 }
 
 interface Summary {
@@ -57,6 +64,18 @@ const CATEGORY_TO_PRACTICE: Partial<Record<ScoreCategory, string>> = {
   COMPREHENSION: "READING_COMPREHENSION",
   CUSTOMER_HANDLING: "CUSTOMER_SERVICE",
   RESPONSE_QUALITY: "SPEAKING",
+};
+
+const VOICE_RATING_STYLE: Record<"strong" | "adequate" | "weak", string> = {
+  strong: "bg-green-50 text-green-700",
+  adequate: "bg-amber-50 text-amber-700",
+  weak: "bg-red-50 text-red-700",
+};
+
+const VOICE_RATING_LABEL: Record<"strong" | "adequate" | "weak", string> = {
+  strong: "Strong",
+  adequate: "Adequate",
+  weak: "Weak",
 };
 
 function readinessLine(score: number | null): string {
@@ -357,9 +376,16 @@ export default function MockTestResultsPage() {
                   <li key={a.attemptId} className="flex items-center justify-between text-sm">
                     <span className="text-slate-600">{a.prompt}</span>
                     {a.hasRecording ? (
-                      <Link href={`/practice/results/${a.attemptId}`} className="text-brand-600 hover:underline">
-                        View analysis &rarr;
-                      </Link>
+                      <span className="flex items-center gap-2">
+                        {a.voiceRating && (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${VOICE_RATING_STYLE[a.voiceRating]}`}>
+                            {VOICE_RATING_LABEL[a.voiceRating]}
+                          </span>
+                        )}
+                        <Link href={`/practice/results/${a.attemptId}`} className="text-brand-600 hover:underline">
+                          View analysis &rarr;
+                        </Link>
+                      </span>
                     ) : a.score !== null ? (
                       <span className={a.isCorrect ? "font-medium text-green-700" : "font-medium text-red-700"}>
                         {a.isCorrect ? "Correct" : "Incorrect"}
