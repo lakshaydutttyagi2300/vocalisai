@@ -2,6 +2,15 @@
 
 import { useState } from "react";
 
+const TIPS = [
+  "Stay visible on camera for the full assessment",
+  "Use a quiet environment with minimal background noise",
+  "Keep your microphone enabled throughout",
+  "Answer naturally, in your own words - there's no single \"correct\" delivery",
+  "Complete every section; you can't go back once you move on",
+  "Your performance will be analyzed after the test, not while you're taking it",
+];
+
 const RULES = [
   "Your camera must remain enabled and visible throughout the test.",
   "You must remain visible in the camera frame at all times.",
@@ -17,10 +26,24 @@ export function CandidateRules({ onConfirm }: { onConfirm: () => void }) {
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
-      <h1 className="text-2xl font-semibold text-ink-950">Candidate rules</h1>
-      <p className="mt-1 text-sm text-slate-600">Please read carefully before starting.</p>
+      <h1 className="font-display text-2xl font-bold text-ink-950">Before you begin</h1>
+      <p className="mt-1 text-sm text-slate-600">A quick checklist, then the formal candidate rules.</p>
 
       <ul className="card mt-6 space-y-3 p-6">
+        {TIPS.map((tip) => (
+          <li key={tip} className="flex gap-3 text-sm text-ink-700">
+            <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
+            </svg>
+            {tip}
+          </li>
+        ))}
+      </ul>
+
+      <h2 className="mt-8 font-display text-base font-bold text-ink-950">Candidate rules</h2>
+      <p className="mt-1 text-sm text-slate-600">Please read carefully before starting.</p>
+
+      <ul className="card mt-3 space-y-3 p-6">
         {RULES.map((rule) => (
           <li key={rule} className="flex gap-3 text-sm text-slate-700">
             <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-500" />

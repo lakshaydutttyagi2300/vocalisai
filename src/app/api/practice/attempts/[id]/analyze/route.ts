@@ -39,12 +39,16 @@ function serializeAnalysis(
     segmentsJson: string | null;
     aiAnalysisJson: string;
     estimatedCostUsd: number;
+    improvedAnswerJson: string | null;
   },
-  recordingId: string | null
+  recordingId: string | null,
+  category: string
 ) {
   return {
     transcript: analysis.transcript,
     recordingId,
+    category,
+    hasImprovedAnswer: !!analysis.improvedAnswerJson,
     deterministic: {
       wordCount: analysis.wordCount,
       durationSeconds: analysis.durationSeconds,
@@ -74,7 +78,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
   return NextResponse.json({
     analyzed: true,
-    result: serializeAnalysis(attempt.analysis, attempt.recording?.id ?? null),
+    result: serializeAnalysis(attempt.analysis, attempt.recording?.id ?? null, attempt.category),
   });
 }
 
@@ -89,7 +93,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (attempt.analysis) {
     return NextResponse.json({
       analyzed: true,
-      result: serializeAnalysis(attempt.analysis, attempt.recording?.id ?? null),
+      result: serializeAnalysis(attempt.analysis, attempt.recording?.id ?? null, attempt.category),
     });
   }
 
@@ -181,5 +185,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     },
   });
 
-  return NextResponse.json({ analyzed: true, result: serializeAnalysis(saved, attempt.recording.id) });
+  return NextResponse.json({ analyzed: true, result: serializeAnalysis(saved, attempt.recording.id, attempt.category) });
 }

@@ -55,9 +55,13 @@ export interface ScoreReportResult {
 
 // --- Fixed lookup tables (the "structured scoring rules") ---
 
-const RATING_SCORE: Record<Rating, number> = { strong: 90, adequate: 65, weak: 35 };
+// Exported so a single attempt's own results page (Phase 6) can show a
+// real per-category number for that one response, using the exact same
+// deterministic mapping the session-level scoring engine uses below -
+// never a separately invented number.
+export const RATING_SCORE: Record<Rating, number> = { strong: 90, adequate: 65, weak: 35 };
 
-const PACE_SCORE: Record<PaceClassification, number> = {
+export const PACE_SCORE: Record<PaceClassification, number> = {
   balanced: 100,
   fast: 75,
   too_slow: 70,

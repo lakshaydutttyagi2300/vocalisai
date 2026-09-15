@@ -1,103 +1,184 @@
 @import "tailwindcss";
 
+/* ============================================================
+   VocalisAi design tokens.
+   Tailwind v4 generates utility classes (bg-brand-600, text-ink-900,
+   text-slate-500, ...) directly from these --color-* variable names.
+   Redefining the values here - including overriding Tailwind's own
+   built-in "slate" scale - recolors every page that already uses these
+   utility classes, without editing that page's JSX. This is a visual
+   token swap only; no component logic changes.
+   ============================================================ */
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
+  /* Brand = teal ("voice clarity"), replacing the old indigo scale. */
+  --color-brand-50: #eaf4f1;
+  --color-brand-100: #d3e9e3;
+  --color-brand-200: #a9d3c7;
+  --color-brand-300: #7dbbac;
+  --color-brand-400: #4fa08d;
+  --color-brand-500: #2c8879;
+  --color-brand-600: #106e64;
+  --color-brand-700: #0b4f48;
+  --color-brand-900: #06302b;
 
-  --color-ink-950: #05070f;
-  --color-ink-900: #0b1120;
-  --color-ink-800: #111827;
-  --color-ink-700: #1f2937;
+  /* Accent = amber ("readiness / achievement"), used sparingly. */
+  --color-amber-50: #f9f1e3;
+  --color-amber-100: #f6e8d2;
+  --color-amber-500: #d99b3e;
+  --color-amber-600: #c98a2e;
+  --color-amber-700: #a06f22;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Ink = warm near-black, replacing the old cool navy scale. */
+  --color-ink-950: #0d1113;
+  --color-ink-900: #13191c;
+  --color-ink-800: #232a2d;
+  --color-ink-700: #3a4247;
+
+  /* Slate override = warm neutral gray, replacing Tailwind's default
+     (cool blue-gray) slate scale used everywhere for secondary text,
+     borders and muted surfaces. */
+  --color-slate-50: #f6f4ee;
+  --color-slate-100: #ece8dc;
+  --color-slate-200: #e2ded3;
+  --color-slate-300: #cec8b8;
+  --color-slate-400: #a39d8c;
+  --color-slate-500: #83806f;
+  --color-slate-600: #6b6d68;
+  --color-slate-700: #52564f;
 }
+/* --font-sans, --font-display and --font-mono are injected by next/font
+   (see layout.tsx) directly onto <html> - not redeclared here, so there
+   is exactly one source of truth for each font stack. */
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: #f8fafc;
+  background-color: var(--color-slate-50);
   color: var(--color-ink-900);
   font-family: var(--font-sans);
 }
 
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
 /* Shared surfaces - kept as plain classes rather than a component library,
-   since this is styling, not behavior. */
-.card {
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03);
-}
+   since this is styling, not behavior. Wrapped in Tailwind's "components"
+   cascade layer, which sits BELOW the "utilities" layer Tailwind's own
+   generated classes (bg-ink-950, text-white, ...) live in. Without this,
+   these plain unlayered rules would win the cascade over any Tailwind
+   utility of equal specificity regardless of class order in the JSX - e.g.
+   `className="card bg-ink-950"` would silently stay white. */
+@layer components {
+  .card {
+    background-color: white;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px 0 rgb(19 25 28 / 0.05);
+  }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.5rem;
-  background-color: var(--color-brand-600);
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  transition: background-color 150ms ease;
-}
-.btn-primary:hover {
-  background-color: var(--color-brand-700);
-}
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.625rem;
+    background-color: var(--color-brand-600);
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-brand-700);
+    box-shadow: 0 6px 20px -8px rgb(16 110 100 / 0.45);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink-700);
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-.btn-secondary:hover {
-  background-color: #f8fafc;
-  border-color: #94a3b8;
-}
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--color-slate-300);
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ink-700);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-slate-50);
+    border-color: var(--color-brand-500);
+    color: var(--color-brand-700);
+  }
 
-.input-field {
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
-}
-.input-field:focus {
-  outline: none;
-  border-color: var(--color-brand-500);
-  box-shadow: 0 0 0 3px var(--color-brand-100);
-}
-.input-field:disabled {
-  background-color: #f8fafc;
-  color: #64748b;
-}
+  .input-field {
+    width: 100%;
+    border-radius: 0.625rem;
+    border: 1px solid var(--color-slate-300);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: white;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px var(--color-brand-100);
+  }
+  .input-field:disabled {
+    background-color: var(--color-slate-50);
+    color: var(--color-slate-600);
+  }
 
-.hero-gradient {
-  background: radial-gradient(
-      60% 50% at 50% 0%,
-      color-mix(in srgb, var(--color-brand-100) 60%, transparent) 0%,
-      transparent 70%
-    ),
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  .hero-gradient {
+    background: radial-gradient(
+        60% 50% at 50% 0%,
+        color-mix(in srgb, var(--color-brand-100) 55%, transparent) 0%,
+        transparent 70%
+      ),
+      linear-gradient(180deg, #ffffff 0%, var(--color-slate-50) 100%);
+  }
+
+  /* Badges - small labeled pills used across practice/results/admin. */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .badge-skill {
+    background-color: var(--color-brand-50);
+    color: var(--color-brand-700);
+  }
+  .badge-ai {
+    background-color: var(--color-amber-100);
+    color: var(--color-amber-700);
+  }
+  .badge-neutral {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-600);
+  }
+
+  /* Focus Mode - the dark, distraction-free surface for proctored
+     assessments. Intentionally fixed/dark regardless of the rest of the
+     app's light theme, since a proctored exam should feel different from
+     ordinary browsing. */
+  .focus-surface {
+    background-color: var(--color-ink-950);
+    color: #e7ede9;
+  }
 }

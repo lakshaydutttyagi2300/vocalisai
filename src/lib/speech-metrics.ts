@@ -8,7 +8,9 @@ import type { TranscriptionSegment } from "@/lib/providers/groq-whisper-provider
 
 export type PaceClassification = "too_slow" | "balanced" | "fast" | "very_fast";
 
-const FILLER_WORDS = ["um", "umm", "uh", "uhh", "you know", "like", "actually", "basically"];
+// Exported so the transcript UI (Phase 6) can highlight the exact same
+// fillers this deterministic detector counts - never a separate guess.
+export const FILLER_WORDS = ["um", "umm", "uh", "uhh", "you know", "like", "actually", "basically"];
 const LONG_PAUSE_THRESHOLD_SECONDS = 2.0;
 
 export function countWords(transcript: string): number {

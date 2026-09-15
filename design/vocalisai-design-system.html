@@ -1,0 +1,507 @@
+<title>VocalisAi Design System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --ink:#13191c;
+    --ink-soft:#3a4247;
+    --paper:#f6f4ee;
+    --surface:#ffffff;
+    --teal:#106e64;
+    --teal-strong:#0b4f48;
+    --teal-tint:#e2efec;
+    --amber:#c98a2e;
+    --amber-tint:#f6e8d2;
+    --slate:#6b7278;
+    --line:#e2ded3;
+    --line-soft:#ebe8de;
+    --danger:#b3452f;
+    --danger-tint:#f5e3dd;
+    --good:#3f7a4f;
+    --good-tint:#e3efe2;
+    --shadow-sm: 0 1px 2px rgba(19,25,28,.05);
+    --shadow-md: 0 6px 20px -8px rgba(19,25,28,.16);
+    --shadow-lg: 0 20px 48px -16px rgba(19,25,28,.28);
+    --radius-s:8px;
+    --radius-m:12px;
+    --radius-l:20px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#f2efe6;
+      --ink-soft:#c7c2b6;
+      --paper:#15191a;
+      --surface:#1d2224;
+      --teal:#4bb3a5;
+      --teal-strong:#7fd0c4;
+      --teal-tint:#1c3430;
+      --amber:#e5ab52;
+      --amber-tint:#3a2c15;
+      --slate:#9aa0a0;
+      --line:#30363a;
+      --line-soft:#272c2e;
+      --danger:#e08a70;
+      --danger-tint:#3a2420;
+      --good:#7fc290;
+      --good-tint:#1f3324;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+      --shadow-md: 0 6px 20px -8px rgba(0,0,0,.5);
+      --shadow-lg: 0 20px 48px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#f2efe6;
+    --ink-soft:#c7c2b6;
+    --paper:#15191a;
+    --surface:#1d2224;
+    --teal:#4bb3a5;
+    --teal-strong:#7fd0c4;
+    --teal-tint:#1c3430;
+    --amber:#e5ab52;
+    --amber-tint:#3a2c15;
+    --slate:#9aa0a0;
+    --line:#30363a;
+    --line-soft:#272c2e;
+    --danger:#e08a70;
+    --danger-tint:#3a2420;
+    --good:#7fc290;
+    --good-tint:#1f3324;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --shadow-md: 0 6px 20px -8px rgba(0,0,0,.5);
+    --shadow-lg: 0 20px 48px -16px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Public Sans',ui-sans-serif,system-ui,sans-serif;
+    padding-inline:24px; padding-block:48px 96px;
+  }
+  h1,h2,h3,h4{font-family:'Sora',ui-sans-serif,system-ui,sans-serif; text-wrap:balance; margin:0;}
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  .wrap{max-width:1080px; margin:0 auto;}
+  .eyebrow{font-size:12px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--teal);}
+  .lede{max-width:640px; color:var(--ink-soft); font-size:16px; line-height:1.6;}
+  section{margin-top:72px;}
+  section > .shead{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
+  section > .shead h2{font-size:22px; font-weight:700;}
+  section > .shead .snote{font-size:13px; color:var(--slate);}
+
+  /* ---------- Header ---------- */
+  .brandmark{display:flex; align-items:center; gap:10px;}
+  .brandmark .glyph{width:34px; height:34px; border-radius:10px; background:linear-gradient(155deg,var(--teal),var(--teal-strong)); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);}
+  .brandmark .glyph svg{width:18px;height:18px;}
+  .brandmark .word{font-family:'Sora'; font-weight:700; font-size:19px; letter-spacing:-.01em;}
+  .brandmark .word span{color:var(--teal);}
+  header.top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;}
+  header.top .tagline{font-size:13px; color:var(--slate); text-align:right; max-width:220px;}
+
+  h1.title{font-size:44px; font-weight:800; line-height:1.08; margin-top:28px; letter-spacing:-.015em;}
+  h1.title em{font-style:normal; color:var(--teal);}
+
+  /* ---------- Color swatches ---------- */
+  .swatchgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;}
+  .swatch{border-radius:var(--radius-m); overflow:hidden; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow-sm);}
+  .swatch .fill{height:64px;}
+  .swatch .meta{padding:10px 12px; }
+  .swatch .meta .name{font-size:13px; font-weight:600;}
+  .swatch .meta .hex{font-family:'IBM Plex Mono'; font-size:11px; color:var(--slate); margin-top:2px;}
+  .swatch .meta .role{font-size:11.5px; color:var(--slate); margin-top:6px; line-height:1.4;}
+
+  /* ---------- Type ---------- */
+  .typespecs{display:flex; flex-direction:column; gap:22px;}
+  .typerow{display:grid; grid-template-columns:110px 1fr; gap:20px; align-items:baseline; border-top:1px solid var(--line-soft); padding-top:16px;}
+  .typerow:first-child{border-top:none; padding-top:0;}
+  .typerow .tag{font-size:11px; color:var(--slate); font-family:'IBM Plex Mono';}
+  .display-xl{font-family:'Sora'; font-weight:800; font-size:40px; letter-spacing:-.02em;}
+  .display-l{font-family:'Sora'; font-weight:700; font-size:28px; letter-spacing:-.015em;}
+  .display-m{font-family:'Sora'; font-weight:600; font-size:20px;}
+  .body-l{font-family:'Public Sans'; font-weight:400; font-size:16px; line-height:1.6; max-width:60ch; color:var(--ink-soft);}
+  .body-m{font-family:'Public Sans'; font-weight:500; font-size:14px; color:var(--ink-soft);}
+  .caption{font-family:'Public Sans'; font-weight:600; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--slate);}
+  .mono-demo{font-family:'IBM Plex Mono'; font-size:15px; font-weight:600;}
+
+  /* ---------- Buttons ---------- */
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  .btn{font-family:'Public Sans'; font-weight:600; font-size:14px; border-radius:var(--radius-s); padding:10px 18px; border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .12s ease, box-shadow .12s ease, background .15s ease;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--teal); color:#fff; box-shadow:var(--shadow-sm);}
+  .btn-primary:hover{background:var(--teal-strong); box-shadow:var(--shadow-md);}
+  .btn-secondary{background:transparent; border-color:var(--line); color:var(--ink);}
+  .btn-secondary:hover{border-color:var(--teal); color:var(--teal-strong);}
+  .btn-ghost{background:transparent; color:var(--ink-soft);}
+  .btn-ghost:hover{background:var(--line-soft);}
+  .btn-danger{background:transparent; border-color:var(--danger); color:var(--danger);}
+  .btn[disabled]{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none;}
+  .btn-sm{padding:7px 13px; font-size:13px;}
+
+  /* ---------- Inputs ---------- */
+  .field{display:flex; flex-direction:column; gap:6px; max-width:280px;}
+  .field label{font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .field input, .field select, .field textarea{
+    font-family:'Public Sans'; font-size:14px; padding:9px 12px; border-radius:var(--radius-s);
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-tint);}
+  .field .hint{font-size:11.5px; color:var(--slate);}
+  .field.has-error input{border-color:var(--danger);}
+  .field.has-error .hint{color:var(--danger);}
+
+  /* ---------- Cards / badges ---------- */
+  .cardgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:18px; box-shadow:var(--shadow-sm);}
+  .card h4{font-size:14px; font-weight:700;}
+  .card p{font-size:13px; color:var(--slate); margin:6px 0 0; line-height:1.5;}
+  .card.lift{box-shadow:var(--shadow-md); border-color:transparent;}
+  .stat{display:flex; flex-direction:column; gap:2px;}
+  .stat .v{font-family:'Sora'; font-size:30px; font-weight:800;}
+  .stat .l{font-size:12px; color:var(--slate);}
+
+  .badge{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; letter-spacing:.02em; padding:4px 9px; border-radius:999px;}
+  .badge-skill{background:var(--teal-tint); color:var(--teal-strong);}
+  .badge-ai{background:var(--amber-tint); color:var(--amber);}
+  .badge-diff-b{background:var(--good-tint); color:var(--good);}
+  .badge-diff-e{background:var(--danger-tint); color:var(--danger);}
+  .badge-neutral{background:var(--line-soft); color:var(--ink-soft);}
+
+  /* ---------- Score ring & bars ---------- */
+  .scorewrap{display:flex; gap:32px; flex-wrap:wrap; align-items:center;}
+  .ring{position:relative; width:132px; height:132px;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .rv{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .ring .rv .n{font-family:'Sora'; font-size:30px; font-weight:800;}
+  .ring .rv .u{font-size:10.5px; color:var(--slate); letter-spacing:.06em; text-transform:uppercase; margin-top:-2px;}
+
+  .barlist{display:flex; flex-direction:column; gap:14px; max-width:360px;}
+  .barrow .bl{display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;}
+  .barrow .bl .n{font-weight:600;}
+  .barrow .bl .v{font-family:'IBM Plex Mono'; font-weight:600; color:var(--slate);}
+  .track{height:7px; border-radius:99px; background:var(--line-soft); overflow:hidden;}
+  .track > i{display:block; height:100%; border-radius:99px; background:var(--teal);}
+  .track > i.amber{background:var(--amber);}
+  .track > i.danger{background:var(--danger);}
+
+  /* ---------- chart ---------- */
+  .chartcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:20px; box-shadow:var(--shadow-sm);}
+  .chartcard .chead{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;}
+  .chartcard .chead .v{font-family:'Sora'; font-size:22px; font-weight:800;}
+  .chartcard .chead .d{font-size:12px; color:var(--good); font-weight:600;}
+
+  /* ---------- modal ---------- */
+  .modaldemo{position:relative; background:var(--line-soft); border-radius:var(--radius-m); padding:36px 20px; display:flex; justify-content:center;}
+  .modalcard{width:100%; max-width:360px; background:var(--surface); border-radius:var(--radius-l); box-shadow:var(--shadow-lg); padding:22px; border:1px solid var(--line);}
+  .modalcard h4{font-size:16px; font-weight:700;}
+  .modalcard p{font-size:13px; color:var(--slate); margin:8px 0 18px; line-height:1.55;}
+
+  /* ---------- nav specimens ---------- */
+  .navdemo{border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden; box-shadow:var(--shadow-sm);}
+  .navbar{display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:var(--surface); border-bottom:1px solid var(--line);}
+  .navlinks{display:flex; gap:22px; font-size:13.5px; font-weight:600; color:var(--slate);}
+  .navlinks .on{color:var(--teal-strong); position:relative;}
+  .navlinks .on::after{content:""; position:absolute; left:0; right:0; bottom:-15px; height:2px; background:var(--teal);}
+  .navdemo.admin .navbar{background:var(--ink); }
+  .navdemo.admin .navlinks{color:#9aa39f;}
+  .navdemo.admin .navlinks .on{color:var(--amber);}
+  .navdemo.admin .navlinks .on::after{background:var(--amber);}
+  .navdemo.admin .brandmark .word{color:#f2efe6;}
+  .navpad{padding:26px 18px; background:var(--paper); font-size:12.5px; color:var(--slate); text-align:center;}
+
+  /* ---------- tooltip ---------- */
+  .tipdemo{display:flex; justify-content:center; padding:40px 0 54px;}
+  .tip-target{position:relative; display:inline-flex;}
+  .tip{position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); font-size:12px; padding:7px 11px; border-radius:8px; white-space:nowrap; box-shadow:var(--shadow-md);}
+  .tip::after{content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--ink);}
+
+  /* ---------- state cards ---------- */
+  .stategrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px;}
+  .statecard{border-radius:var(--radius-m); padding:22px; border:1px solid var(--line); background:var(--surface);}
+  .statecard .ic{width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:14px;}
+  .statecard h4{font-size:14.5px; font-weight:700;}
+  .statecard p{font-size:12.8px; color:var(--slate); line-height:1.55; margin:6px 0 14px;}
+  .statecard.empty .ic{background:var(--teal-tint); color:var(--teal-strong);}
+  .statecard.err .ic{background:var(--danger-tint); color:var(--danger);}
+  .statecard.load .ic{background:var(--amber-tint); color:var(--amber);}
+  .checklist{display:flex; flex-direction:column; gap:8px; font-size:12.8px;}
+  .checklist .ci{display:flex; align-items:center; gap:8px; color:var(--slate);}
+  .checklist .ci.done{color:var(--ink);}
+  .checklist .ci.active{color:var(--teal-strong); font-weight:600;}
+  .dot{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); flex:none;}
+  .dot.done{background:var(--teal); border-color:var(--teal);}
+  .dot.active{border-color:var(--teal);}
+
+  /* ---------- focus mode ---------- */
+  .focuscard{background:#0e1416; border-radius:var(--radius-m); padding:26px; color:#e7ede9; box-shadow:var(--shadow-lg);}
+  .focuscard .frow{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+  .focuscard .rec{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:#ef8a72;}
+  .focuscard .rec .rd{width:8px;height:8px;border-radius:50%;background:#ef8a72; animation:pulse 1.6s infinite;}
+  .focuscard .timer{font-family:'IBM Plex Mono'; font-size:13px; color:#9fb0aa;}
+  .focuscard .q{font-family:'Sora'; font-size:17px; font-weight:600; line-height:1.45; max-width:520px;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  footer.foot{margin-top:88px; border-top:1px solid var(--line); padding-top:22px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--slate);}
+
+  @media (max-width:640px){
+    h1.title{font-size:32px;}
+    .typerow{grid-template-columns:1fr;}
+    header.top .tagline{text-align:left; max-width:none;}
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brandmark">
+      <span class="glyph">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" fill="white" fill-opacity=".95"/>
+          <path d="M6 11v1a6 6 0 0 0 12 0v-1" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12 19v3" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="word">Vocalis<span>Ai</span></span>
+    </div>
+    <div class="tagline">Design system &amp; component reference &mdash; v1.0</div>
+  </header>
+
+  <h1 class="title">Practice smarter.<br>Speak <em>clearer</em>. Get interview ready.</h1>
+  <p class="lede" style="margin-top:14px;">
+    The visual language for VocalisAi's Voice &amp; Accent coaching platform. Built around
+    two ideas the product is actually for: <strong>clarity</strong> (teal, calm and legible)
+    and <strong>readiness</strong> (amber, the color of a score you've earned). Every token
+    below is real CSS, not a mockup.
+  </p>
+
+  <!-- COLOR -->
+  <section>
+    <div class="shead"><h2>Color</h2><span class="snote">6 core tokens + 3 semantic pairs</span></div>
+    <div class="swatchgrid">
+      <div class="swatch"><div class="fill" style="background:var(--teal)"></div><div class="meta"><div class="name">Teal</div><div class="hex">#106E64</div><div class="role">Primary brand. CTAs, links, active nav, focus rings.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--amber)"></div><div class="meta"><div class="name">Amber</div><div class="hex">#C98A2E</div><div class="role">Readiness &amp; achievement. Scores, streaks, premium accents &mdash; used sparingly.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink)"></div><div class="meta"><div class="name">Ink</div><div class="hex">#13191C</div><div class="role">Primary text. Also the Focus Mode exam surface.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--slate)"></div><div class="meta"><div class="name">Slate</div><div class="hex">#6B7278</div><div class="role">Secondary text, captions, metadata.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--paper)"></div><div class="meta"><div class="name">Paper</div><div class="hex">#F6F4EE</div><div class="role">Page background. Warm, not clinical white.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--line)"></div><div class="meta"><div class="name">Line</div><div class="hex">#E2DED3</div><div class="role">Borders &amp; hairlines.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--good)"></div><div class="meta"><div class="name">Good</div><div class="hex">#3F7A4F</div><div class="role">Strengths, correct answers, success states.</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--danger)"></div><div class="meta"><div class="name">Danger</div><div class="hex">#B3452F</div><div class="role">Errors, flagged issues &mdash; never alarming red.</div></div></div>
+    </div>
+  </section>
+
+  <!-- TYPE -->
+  <section>
+    <div class="shead"><h2>Typography</h2><span class="snote">Sora &middot; Public Sans &middot; IBM Plex Mono</span></div>
+    <div class="typespecs">
+      <div class="typerow"><span class="tag">display / 40</span><div class="display-xl">Interview Readiness</div></div>
+      <div class="typerow"><span class="tag">heading / 28</span><div class="display-l">Your Speaking Analysis</div></div>
+      <div class="typerow"><span class="tag">subhead / 20</span><div class="display-m">Pronunciation Improvement</div></div>
+      <div class="typerow"><span class="tag">body / 16</span><div class="body-l">Practice real interview situations, analyze your speaking performance, and build the confidence to clear your next Voice &amp; Accent round.</div></div>
+      <div class="typerow"><span class="tag">caption</span><div class="caption">Skill &middot; Difficulty &middot; Duration</div></div>
+      <div class="typerow"><span class="tag">numeric</span><div class="mono-demo">82<span style="color:var(--slate)">/100</span> &nbsp; 02:47 &nbsp; +6% this week</div></div>
+    </div>
+  </section>
+
+  <!-- BUTTONS -->
+  <section>
+    <div class="shead"><h2>Buttons</h2></div>
+    <div class="row">
+      <button class="btn btn-primary">Start Practicing</button>
+      <button class="btn btn-secondary">See How It Works</button>
+      <button class="btn btn-ghost">Skip for now</button>
+      <button class="btn btn-danger">End Assessment</button>
+      <button class="btn btn-primary" disabled>Analyzing&hellip;</button>
+      <button class="btn btn-primary btn-sm">Try Again</button>
+    </div>
+  </section>
+
+  <!-- INPUTS -->
+  <section>
+    <div class="shead"><h2>Inputs</h2></div>
+    <div class="row" style="gap:24px;">
+      <div class="field">
+        <label for="ds-email">Email</label>
+        <input id="ds-email" type="email" placeholder="you@example.com">
+        <span class="hint">We'll never share this.</span>
+      </div>
+      <div class="field has-error">
+        <label for="ds-pass">Password</label>
+        <input id="ds-pass" type="password" value="•••••">
+        <span class="hint">Password must be at least 8 characters.</span>
+      </div>
+      <div class="field">
+        <label for="ds-diff">Difficulty</label>
+        <select id="ds-diff"><option>Intermediate</option></select>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARDS + BADGES -->
+  <section>
+    <div class="shead"><h2>Cards &amp; badges</h2></div>
+    <div class="cardgrid">
+      <div class="card">
+        <span class="badge badge-skill">Pronunciation</span>
+        <h4 style="margin-top:12px;">Difficult Consonant Clusters</h4>
+        <p>10-minute drill &middot; Intermediate</p>
+      </div>
+      <div class="card lift">
+        <span class="badge badge-ai">AI-generated scenario</span>
+        <h4 style="margin-top:12px;">Airline Baggage Complaint</h4>
+        <p>A fresh customer-service roleplay built for you just now.</p>
+      </div>
+      <div class="card">
+        <div class="stat"><span class="v">78%</span><span class="l">Interview Readiness</span></div>
+        <div class="row" style="margin-top:12px; gap:6px;">
+          <span class="badge badge-diff-b">Nearly ready</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCORE + PROGRESS -->
+  <section>
+    <div class="shead"><h2>Score &amp; progress</h2><span class="snote">Real data only &mdash; never estimated</span></div>
+    <div class="scorewrap">
+      <div class="ring">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="56" fill="none" stroke="var(--line-soft)" stroke-width="12"/>
+          <circle cx="66" cy="66" r="56" fill="none" stroke="var(--teal)" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="88" />
+        </svg>
+        <div class="rv"><span class="n">82</span><span class="u">/ 100</span></div>
+      </div>
+      <div class="barlist">
+        <div class="barrow"><div class="bl"><span class="n">Pronunciation</span><span class="v">86</span></div><div class="track"><i style="width:86%"></i></div></div>
+        <div class="barrow"><div class="bl"><span class="n">Fluency</span><span class="v">79</span></div><div class="track"><i class="amber" style="width:79%"></i></div></div>
+        <div class="barrow"><div class="bl"><span class="n">Grammar</span><span class="v">84</span></div><div class="track"><i style="width:84%"></i></div></div>
+        <div class="barrow"><div class="bl"><span class="n">Pace</span><span class="v">41</span></div><div class="track"><i class="danger" style="width:41%"></i></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHART -->
+  <section>
+    <div class="shead"><h2>Progress chart</h2></div>
+    <div class="chartcard" style="max-width:520px;">
+      <div class="chead"><span class="display-m">Overall score</span><span class="v">74</span><span class="d">&#8599; +6 vs last session</span></div>
+      <svg viewBox="0 0 460 130" width="100%" height="130">
+        <line x1="0" y1="16" x2="460" y2="16" stroke="var(--line)" stroke-width="1"/>
+        <line x1="0" y1="65" x2="460" y2="65" stroke="var(--line)" stroke-width="1"/>
+        <line x1="0" y1="114" x2="460" y2="114" stroke="var(--line)" stroke-width="1"/>
+        <text x="0" y="12" font-size="10" fill="var(--slate)" font-family="IBM Plex Mono">100</text>
+        <text x="0" y="61" font-size="10" fill="var(--slate)" font-family="IBM Plex Mono">50</text>
+        <text x="0" y="110" font-size="10" fill="var(--slate)" font-family="IBM Plex Mono">0</text>
+        <polyline points="30,60 160,68 290,45 460,53" fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="30" cy="60" r="4" fill="var(--teal)"/>
+        <circle cx="160" cy="68" r="4" fill="var(--teal)"/>
+        <circle cx="290" cy="45" r="4" fill="var(--teal)"/>
+        <circle cx="460" cy="53" r="5" fill="var(--surface)" stroke="var(--teal)" stroke-width="3"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- MODAL -->
+  <section>
+    <div class="shead"><h2>Modal</h2></div>
+    <div class="modaldemo">
+      <div class="modalcard">
+        <span class="badge badge-ai" style="margin-bottom:10px;">Premium</span>
+        <h4>Unlock your complete Voice &amp; Accent report</h4>
+        <p>Detailed pronunciation breakdowns, unlimited practice, and a personalized improvement plan.</p>
+        <div class="row"><button class="btn btn-primary">Start Premium Practice</button><button class="btn btn-ghost">Not now</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAV -->
+  <section>
+    <div class="shead"><h2>Navigation</h2><span class="snote">Candidate vs. Admin should never look like the same app</span></div>
+    <div class="navdemo" style="margin-bottom:14px;">
+      <div class="navbar">
+        <div class="brandmark"><span class="glyph" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" fill="white"/></svg></span><span class="word" style="font-size:15px;">Vocalis<span>Ai</span></span></div>
+        <div class="navlinks"><span class="on">Dashboard</span><span>Practice</span><span>Mock Tests</span><span>Progress</span><span>Coach</span></div>
+        <span class="badge badge-neutral">Rahul V.</span>
+      </div>
+      <div class="navpad">Candidate shell &mdash; warm paper ground, teal active state</div>
+    </div>
+    <div class="navdemo admin">
+      <div class="navbar">
+        <div class="brandmark"><span class="glyph" style="width:26px;height:26px;background:var(--amber);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" fill="#13191c"/></svg></span><span class="word" style="font-size:15px;">Vocalis<span style="color:var(--amber)">Ai</span> Admin</span></div>
+        <div class="navlinks"><span class="on">Overview</span><span>Candidates</span><span>Question Bank</span><span>Templates</span></div>
+        <span class="badge" style="background:var(--amber-tint); color:var(--amber);">Admin</span>
+      </div>
+      <div class="navpad">Admin shell &mdash; ink ground, amber active state. Unmistakably a different mode.</div>
+    </div>
+  </section>
+
+  <!-- TOOLTIP -->
+  <section>
+    <div class="shead"><h2>Tooltip</h2></div>
+    <div class="tipdemo">
+      <span class="tip-target">
+        <span class="tip">Jump to 2.3s in your recording</span>
+        <button class="btn btn-secondary btn-sm">comfortable</button>
+      </span>
+    </div>
+  </section>
+
+  <!-- STATES -->
+  <section>
+    <div class="shead"><h2>Empty, error &amp; loading states</h2></div>
+    <div class="stategrid">
+      <div class="statecard empty">
+        <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h4>Your progress starts here</h4>
+        <p>Complete your first Voice &amp; Accent assessment to discover your strengths and improvement areas.</p>
+        <button class="btn btn-primary btn-sm">Start Assessment</button>
+      </div>
+      <div class="statecard err">
+        <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h4>We couldn't analyze your recording</h4>
+        <p>Your recording was saved successfully, but the analysis service didn't respond in time.</p>
+        <button class="btn btn-secondary btn-sm">Try Analysis Again</button>
+      </div>
+      <div class="statecard load">
+        <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.5-6.5-2.8 2.8M8.3 15.7l-2.8 2.8m0-12.6 2.8 2.8m9.4 9.4-2.8-2.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h4>Analyzing your speech&hellip;</h4>
+        <div class="checklist">
+          <div class="ci done"><span class="dot done"></span>Processing transcript</div>
+          <div class="ci done"><span class="dot done"></span>Checking fluency</div>
+          <div class="ci active"><span class="dot active"></span>Analyzing pronunciation</div>
+          <div class="ci"><span class="dot"></span>Preparing recommendations</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOCUS MODE -->
+  <section>
+    <div class="shead"><h2>Focus Mode <span style="font-weight:400; color:var(--slate); font-size:14px;">(proctored assessment surface)</span></h2><span class="snote">Fixed dark surface, independent of viewer theme</span></div>
+    <div class="focuscard">
+      <div class="frow">
+        <span class="rec"><span class="rd"></span>Recording &mdash; Section 4 of 9</span>
+        <span class="timer">00:47 remaining</span>
+      </div>
+      <div class="q">"Describe a time you had to stay calm while a customer was upset. What did you do?"</div>
+      <div class="row" style="margin-top:22px;">
+        <button class="btn" style="background:#e7ede9; color:#0e1416;">Stop recording</button>
+        <button class="btn btn-ghost" style="color:#9fb0aa;">End assessment</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>VocalisAi Design System &middot; v1.0</span>
+    <span>Tokens are CSS variables &mdash; ready to port into globals.css</span>
+  </footer>
+
+</div>
+
+<script>
+  const ring = document.querySelector('.ring .n');
+  if (ring) {
+    let v = 0; const target = 82;
+    const iv = setInterval(() => {
+      v += 4; if (v >= target) { v = target; clearInterval(iv); }
+      ring.textContent = v;
+    }, 28);
+  }
+</script>

@@ -206,12 +206,12 @@ export function MockTestQuestionRunner({
     const modeDef = getModeByCategory(section.category);
     return (
       <div className="text-center text-white">
-        <p className="text-xs uppercase tracking-wide text-slate-400">
+        <span className="badge" style={{ backgroundColor: "rgba(255,255,255,.1)", color: "#cbd5cf" }}>
           Section {sectionIndex + 1} of {sections.length}
-        </p>
-        <h2 className="mt-2 text-xl font-semibold">{modeDef?.label ?? section.category}</h2>
+        </span>
+        <h2 className="mt-3 font-display text-xl font-bold">{modeDef?.label ?? section.category}</h2>
         <p className="mt-2 text-sm text-slate-300">{modeDef?.description}</p>
-        <p className="mt-1 text-xs text-slate-400">{section.questionCount} questions</p>
+        <p className="mt-1 text-xs text-slate-400">{section.questionCount} question{section.questionCount === 1 ? "" : "s"}</p>
         <button onClick={startSection} className="btn-primary mt-6">
           Start section
         </button>
@@ -230,25 +230,40 @@ export function MockTestQuestionRunner({
   const voice = isVoiceCategory(currentQuestion.category);
   const isChoice = currentQuestion.options && currentQuestion.options.length > 0;
 
+  const modeDef = getModeByCategory(currentQuestion.category);
+
   return (
     <div className="w-full max-w-xl">
       <div className="flex items-center justify-between text-xs text-slate-400">
+        <span className="font-semibold text-slate-200">{modeDef?.label ?? section.category}</span>
+        <span
+          className={`font-mono text-sm font-semibold ${secondsLeft <= 10 ? "text-red-400" : "text-slate-300"}`}
+        >
+          {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-brand-500 transition-all duration-300"
+          style={{ width: `${(answeredCount / Math.max(1, totalQuestions)) * 100}%` }}
+        />
+      </div>
+      <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
         <span>
-          Section {sectionIndex + 1}/{sections.length} - Question {questionIndex + 1}/{questions.length}
+          Question {questionIndex + 1} of {questions.length} in this section
         </span>
         <span>
-          Overall: {answeredCount}/{totalQuestions}
+          {answeredCount}/{totalQuestions} overall
         </span>
-        <span className={secondsLeft <= 10 ? "font-semibold text-red-400" : ""}>{secondsLeft}s</span>
       </div>
 
-      <div className="mt-3 rounded-lg bg-white p-6 text-ink-900">
+      <div className="mt-4 rounded-lg bg-white p-6 text-ink-900">
         {currentQuestion.passage && (
           <p className="mb-4 rounded-md bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
             {currentQuestion.passage}
           </p>
         )}
-        <h3 className="font-medium">{currentQuestion.prompt}</h3>
+        <h3 className="font-display font-bold">{currentQuestion.prompt}</h3>
 
         {!voice ? (
           isChoice ? (

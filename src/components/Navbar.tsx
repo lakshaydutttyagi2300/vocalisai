@@ -14,18 +14,96 @@ const NAV_LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
+const ADMIN_LINKS = [
+  { href: "/admin", label: "Overview" },
+  { href: "/dashboard", label: "Candidate view" },
+];
+
+function BrandGlyph({ tone }: { tone: "teal" | "amber" }) {
+  return (
+    <span
+      className={`flex h-8 w-8 items-center justify-center rounded-[10px] ${
+        tone === "teal" ? "bg-gradient-to-br from-brand-500 to-brand-700" : "bg-amber-500"
+      }`}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z"
+          fill={tone === "teal" ? "white" : "#13191c"}
+          fillOpacity={tone === "teal" ? 0.95 : 1}
+        />
+        <path
+          d="M6 11v1a6 6 0 0 0 12 0v-1"
+          stroke={tone === "teal" ? "white" : "#13191c"}
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+        <path d="M12 19v3" stroke={tone === "teal" ? "white" : "#13191c"} strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navLinks =
-    session?.user.role === "ADMIN" ? [...NAV_LINKS, { href: "/admin", label: "Admin" }] : NAV_LINKS;
+  const isAdmin = session?.user.role === "ADMIN" && pathname.startsWith("/admin");
+  const navLinks = isAdmin ? ADMIN_LINKS : NAV_LINKS;
+
+  if (isAdmin) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-ink-800 bg-ink-950">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <BrandGlyph tone="amber" />
+            <span className="text-lg font-bold tracking-tight text-white">
+              VocalisAi <span className="text-amber-500">Admin</span>
+            </span>
+          </Link>
+
+          <nav className="hidden gap-7 md:flex">
+            {navLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative py-1 text-sm font-medium transition-colors ${
+                    active ? "text-amber-500" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {link.label}
+                  {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-amber-500" />}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <span className="badge" style={{ backgroundColor: "#3a2c15", color: "#e5ab52" }}>
+              Admin
+            </span>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="rounded-md border border-ink-700 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-ink-800"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-bold tracking-tight text-ink-950">
-          Pro<span className="text-brand-600">Acting</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <BrandGlyph tone="teal" />
+          <span className="font-display text-lg font-bold tracking-tight text-ink-950">
+            Vocalis<span className="text-brand-600">Ai</span>
+          </span>
         </Link>
 
         {status === "authenticated" && (
@@ -55,6 +133,11 @@ export function Navbar() {
             <div className="h-9 w-20 animate-pulse rounded-md bg-slate-200" />
           ) : session ? (
             <>
+              {session.user.role === "ADMIN" && (
+                <Link href="/admin" className="badge badge-ai hidden sm:inline-flex">
+                  Admin
+                </Link>
+              )}
               <span className="hidden text-sm text-slate-500 sm:inline">
                 {session.user.name}
               </span>

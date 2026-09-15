@@ -3,12 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { PACE_LABELS, type PaceClassification } from "@/lib/speech-metrics";
+import { PACE_LABELS, FILLER_WORDS, type PaceClassification } from "@/lib/speech-metrics";
+import { RATING_SCORE, PACE_SCORE } from "@/lib/scoring-engine";
+import { getModeByCategory } from "@/lib/practice-taxonomy";
 import { SyncedTranscript, type TranscriptSegment } from "@/components/practice/SyncedTranscript";
+import { ScoreRing } from "@/components/ui/ScoreRing";
+
+type Rating = "strong" | "adequate" | "weak";
 
 interface AnalysisResult {
   transcript: string;
   recordingId: string | null;
+  category: string;
+  hasImprovedAnswer: boolean;
   deterministic: {
     wordCount: number;
     durationSeconds: number;
@@ -22,16 +29,30 @@ interface AnalysisResult {
     segments: TranscriptSegment[];
   };
   ai: {
-    pronunciation: { mispronouncedWords: { word: string; note: string }[]; articulation: string; difficultSounds: string[]; intelligibility: string };
-    fluency: { hesitations: string; fillers: string; repetitions: string; longPauses: string; smoothness: string };
-    grammar: { issues: { excerpt: string; problem: string; correction: string }[]; overallComment: string };
-    vocabulary: { assessment: string; professionalTermsUsed: string[]; repetitiveWords: string[] };
-    voiceClarity: { articulation: string; volumeComment: string; clarity: string; intelligibility: string };
-    delivery: { confidenceIndicators: string; vocalVariation: string; engagement: string; responseCompleteness: string };
+    pronunciation: { rating: Rating; mispronouncedWords: { word: string; note: string; phoneticHint?: string }[]; articulation: string; difficultSounds: string[]; intelligibility: string };
+    fluency: { rating: Rating; hesitations: string; fillers: string; repetitions: string; longPauses: string; smoothness: string };
+    grammar: { rating: Rating; issues: { excerpt: string; problem: string; correction: string }[]; overallComment: string };
+    vocabulary: { rating: Rating; assessment: string; professionalTermsUsed: string[]; repetitiveWords: string[] };
+    voiceClarity: { rating: Rating; articulation: string; volumeComment: string; clarity: string; intelligibility: string };
+    delivery: { rating: Rating; confidenceIndicators: string; vocalVariation: string; engagement: string; responseCompleteness: string };
   };
 }
 
+interface ImprovedAnswer {
+  improvedAnswer: string;
+  improvements: { grammar: boolean; sentenceStructure: boolean; vocabulary: boolean; professionalTone: boolean; clarity: boolean };
+  summary: string;
+}
+
 type Stage = "loading" | "not-analyzed" | "analyzing" | "ready" | "error";
+
+const IMPROVEMENT_LABELS: Record<keyof ImprovedAnswer["improvements"], string> = {
+  grammar: "Grammar",
+  sentenceStructure: "Sentence structure",
+  vocabulary: "Vocabulary",
+  professionalTone: "Professional tone",
+  clarity: "Clarity",
+};
 
 export default function AttemptResultsPage() {
   const params = useParams<{ attemptId: string }>();
@@ -60,14 +81,14 @@ export default function AttemptResultsPage() {
       const res = await fetch(`/api/practice/attempts/${params.attemptId}/analyze`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Analysis failed.");
+        setError(data.error || "We couldn't analyze your recording.");
         setStage("error");
         return;
       }
       setResult(data.result);
       setStage("ready");
     } catch {
-      setError("Network error while analyzing.");
+      setError("We couldn't analyze your recording.");
       setStage("error");
     }
   }
@@ -84,10 +105,11 @@ export default function AttemptResultsPage() {
   if (stage === "not-analyzed" || stage === "analyzing") {
     return (
       <div className="mx-auto max-w-lg px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-ink-950">Recording ready to analyze</h1>
-        <p className="mt-3 text-sm text-slate-600">
-          This sends your recording for real transcription and AI analysis. It only runs when you ask -
-          nothing is analyzed automatically.
+        <span className="badge badge-skill">Speech Analysis</span>
+        <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">Recording ready to analyze</h1>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          Find out exactly how your pronunciation, fluency, grammar and delivery came across - from
+          real transcription and AI analysis of your actual recording. It only runs when you ask.
         </p>
         <button onClick={runAnalysis} disabled={stage === "analyzing"} className="btn-primary mt-6">
           {stage === "analyzing" ? "Analyzing... this can take a moment" : "Analyze this recording"}
@@ -99,11 +121,13 @@ export default function AttemptResultsPage() {
   if (stage === "error") {
     return (
       <div className="mx-auto max-w-lg px-6 py-16 text-center">
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error || "Something went wrong."}
+        <h1 className="font-display text-xl font-bold text-ink-950">We couldn&apos;t analyze your recording</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Your recording was saved successfully, but the analysis service didn&apos;t respond.
+          {error && error !== "We couldn't analyze your recording." ? ` (${error})` : ""}
         </p>
         <button onClick={runAnalysis} className="btn-secondary mt-4">
-          Try again
+          Try Analysis Again
         </button>
       </div>
     );
@@ -111,26 +135,72 @@ export default function AttemptResultsPage() {
 
   if (!result) return null;
   const { deterministic: d, ai } = result;
+  const modeDef = getModeByCategory(result.category);
+
+  const categoryScores = [
+    { label: "Pronunciation", score: RATING_SCORE[ai.pronunciation.rating] },
+    { label: "Fluency", score: RATING_SCORE[ai.fluency.rating] },
+    { label: "Grammar", score: RATING_SCORE[ai.grammar.rating] },
+    { label: "Vocabulary", score: RATING_SCORE[ai.vocabulary.rating] },
+    { label: "Pace", score: PACE_SCORE[d.pace] },
+    { label: "Clarity", score: RATING_SCORE[ai.voiceClarity.rating] },
+  ];
+  const overallScore = Math.round(categoryScores.reduce((sum, c) => sum + c.score, 0) / categoryScores.length);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
       <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
         &larr; Back to Practice
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-950">Recording analysis</h1>
+      <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">Your Speaking Analysis</h1>
       <p className="mt-1 text-sm text-slate-600">
-        Deterministic measurements are calculated directly from your recording. AI sections are
+        Deterministic measurements are calculated directly from your recording. AI ratings are real
         indicators for you to review, not certainties.
       </p>
 
-      <Section title="Transcript">
-        <SyncedTranscript recordingId={result.recordingId} segments={d.segments} fallbackText={result.transcript} />
+      <div className="card mt-6 grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
+        <div className="flex justify-center">
+          <ScoreRing value={overallScore} label="Overall" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {categoryScores.map((c) => (
+            <div key={c.label}>
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-medium text-ink-900">{c.label}</span>
+                <span className="font-mono text-sm font-semibold text-slate-600">{c.score}</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={`h-full rounded-full ${c.score >= 75 ? "bg-brand-500" : c.score >= 55 ? "bg-amber-500" : "bg-red-500"}`}
+                  style={{ width: `${c.score}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Section title="Your Response">
+        <SyncedTranscript
+          recordingId={result.recordingId}
+          segments={d.segments}
+          fallbackText={result.transcript}
+          fillerWords={FILLER_WORDS}
+          issueExcerpts={ai.grammar.issues.map((i) => i.excerpt)}
+        />
         {d.segments.length > 0 && (
           <p className="mt-2 text-xs text-slate-400">Click any word to jump the audio there.</p>
         )}
       </Section>
 
-      <Section title="Rate of Speech" badge="Calculated">
+      <ImproveAnswerSection
+        attemptId={params.attemptId}
+        transcript={result.transcript}
+        hasImprovedAnswer={result.hasImprovedAnswer}
+        practiceSlug={modeDef?.slug}
+      />
+
+      <Section title="Rate of Speech" badge={`Calculated - ${PACE_SCORE[d.pace]}`}>
         <div className="flex flex-wrap gap-6">
           <Stat label="Duration" value={`${d.durationSeconds.toFixed(1)}s`} />
           <Stat label="Words" value={String(d.wordCount)} />
@@ -139,7 +209,7 @@ export default function AttemptResultsPage() {
         </div>
       </Section>
 
-      <Section title="Fluency">
+      <Section title="Fluency" badge={`AI rating: ${ai.fluency.rating} - ${RATING_SCORE[ai.fluency.rating]}`}>
         <div className="mb-3 flex flex-wrap gap-6">
           <Stat label="Filler words" value={String(d.fillerCount)} sub={Object.entries(d.fillerBreakdown).map(([w, c]) => `${w} (${c})`).join(", ") || "none detected"} />
           <Stat label="Word repetitions" value={String(d.repetitionCount)} sub={d.repetitionExamples.join(", ") || "none detected"} />
@@ -149,26 +219,26 @@ export default function AttemptResultsPage() {
         <AiText label="Smoothness" text={ai.fluency.smoothness} />
       </Section>
 
-      <Section title="Pronunciation" badge="AI-assessed from audio">
-        {ai.pronunciation.mispronouncedWords.length > 0 && (
-          <ul className="mb-3 space-y-1 text-sm">
+      <Section title="Pronunciation Improvement" badge={`AI rating: ${ai.pronunciation.rating} - ${RATING_SCORE[ai.pronunciation.rating]}`}>
+        {ai.pronunciation.mispronouncedWords.length > 0 ? (
+          <div className="mb-4 space-y-3">
             {ai.pronunciation.mispronouncedWords.map((w, i) => (
-              <li key={i}>
-                <span className="font-medium text-ink-900">{w.word}:</span> <span className="text-slate-600">{w.note}</span>
-              </li>
+              <MispronouncedWordCard key={i} word={w} practiceSlug="pronunciation" />
             ))}
-          </ul>
+          </div>
+        ) : (
+          <p className="mb-3 text-sm text-slate-600">No specific pronunciation issues flagged.</p>
         )}
         <AiText label="Articulation" text={ai.pronunciation.articulation} />
         <AiText label="Difficult sounds" text={ai.pronunciation.difficultSounds.join(", ") || "None noted"} />
         <AiText label="Intelligibility" text={ai.pronunciation.intelligibility} />
       </Section>
 
-      <Section title="Grammar" badge="AI-assessed from transcript">
+      <Section title="Grammar" badge={`AI rating: ${ai.grammar.rating} - ${RATING_SCORE[ai.grammar.rating]}`}>
         {ai.grammar.issues.length > 0 ? (
           <ul className="mb-3 space-y-2 text-sm">
             {ai.grammar.issues.map((issue, i) => (
-              <li key={i} className="rounded-md bg-slate-50 p-3">
+              <li key={i} className="rounded-md bg-red-50 p-3">
                 <p className="text-slate-700">
                   <span className="font-medium">&quot;{issue.excerpt}&quot;</span> - {issue.problem}
                 </p>
@@ -182,19 +252,19 @@ export default function AttemptResultsPage() {
         <AiText label="Overall" text={ai.grammar.overallComment} />
       </Section>
 
-      <Section title="Vocabulary" badge="AI-assessed from transcript">
+      <Section title="Vocabulary" badge={`AI rating: ${ai.vocabulary.rating} - ${RATING_SCORE[ai.vocabulary.rating]}`}>
         <AiText label="Assessment" text={ai.vocabulary.assessment} />
         <AiText label="Professional terms used" text={ai.vocabulary.professionalTermsUsed.join(", ") || "None noted"} />
         <AiText label="Repetitive words" text={ai.vocabulary.repetitiveWords.join(", ") || "None noted"} />
       </Section>
 
-      <Section title="Voice Clarity" badge="AI-assessed from audio">
+      <Section title="Voice Clarity" badge={`AI rating: ${ai.voiceClarity.rating} - ${RATING_SCORE[ai.voiceClarity.rating]}`}>
         <AiText label="Articulation" text={ai.voiceClarity.articulation} />
         <AiText label="Volume" text={ai.voiceClarity.volumeComment} />
         <AiText label="Clarity" text={ai.voiceClarity.clarity} />
       </Section>
 
-      <Section title="Delivery" badge="AI-derived indicators, not facts">
+      <Section title="Delivery" badge={`AI rating: ${ai.delivery.rating} - ${RATING_SCORE[ai.delivery.rating]}`}>
         <AiText label="Confidence indicators" text={ai.delivery.confidenceIndicators} />
         <AiText label="Vocal variation" text={ai.delivery.vocalVariation} />
         <AiText label="Engagement" text={ai.delivery.engagement} />
@@ -208,13 +278,161 @@ export default function AttemptResultsPage() {
   );
 }
 
-function Section({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
+function MispronouncedWordCard({
+  word,
+  practiceSlug,
+}: {
+  word: { word: string; note: string; phoneticHint?: string };
+  practiceSlug?: string;
+}) {
+  function speak() {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const utterance = new SpeechSynthesisUtterance(word.word);
+    utterance.rate = 0.85;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  return (
+    <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="font-display font-bold text-ink-900">&quot;{word.word}&quot;</span>
+        {word.phoneticHint && <span className="font-mono text-sm text-amber-700">{word.phoneticHint}</span>}
+      </div>
+      <p className="mt-1 text-sm text-slate-700">{word.note}</p>
+      <div className="mt-3 flex gap-2">
+        <button onClick={speak} className="btn-secondary btn-sm text-xs">
+          Listen
+        </button>
+        {practiceSlug && (
+          <Link href={`/practice/${practiceSlug}`} className="btn-primary text-xs" style={{ padding: "0.4rem 0.9rem" }}>
+            Try again
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ImproveAnswerSection({
+  attemptId,
+  transcript,
+  hasImprovedAnswer,
+  practiceSlug,
+}: {
+  attemptId: string;
+  transcript: string;
+  hasImprovedAnswer: boolean;
+  practiceSlug?: string;
+}) {
+  const [improved, setImproved] = useState<ImprovedAnswer | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    if (!hasImprovedAnswer) {
+      setChecked(true);
+      return;
+    }
+    fetch(`/api/practice/attempts/${attemptId}/improve`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.generated) setImproved(data.result);
+      })
+      .catch(() => {})
+      .finally(() => setChecked(true));
+  }, [attemptId, hasImprovedAnswer]);
+
+  async function generate() {
+    setStatus("loading");
+    setError(null);
+    try {
+      const res = await fetch(`/api/practice/attempts/${attemptId}/improve`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Couldn't improve your answer.");
+        setStatus("error");
+        return;
+      }
+      setImproved(data.result);
+      setStatus("idle");
+    } catch {
+      setError("Couldn't improve your answer.");
+      setStatus("error");
+    }
+  }
+
+  const activeImprovements = improved
+    ? (Object.entries(improved.improvements) as [keyof ImprovedAnswer["improvements"], boolean][]).filter(([, v]) => v)
+    : [];
+
   return (
     <div className="card mt-4 p-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-ink-900">{title}</h2>
+        <h2 className="font-display font-bold text-ink-900">Improve My Answer</h2>
+        {!improved && checked && (
+          <button onClick={generate} disabled={status === "loading"} className="btn-primary btn-sm text-xs disabled:opacity-60">
+            {status === "loading" ? "Rewriting..." : "Improve My Answer"}
+          </button>
+        )}
+      </div>
+
+      {!checked && <div className="mt-3 h-4 w-40 animate-pulse rounded bg-slate-200" />}
+
+      {checked && !improved && status !== "error" && (
+        <p className="mt-2 text-sm text-slate-500">
+          See a stronger version of your own answer - same content, better grammar, vocabulary and
+          tone. This calls a paid AI model, so it only runs when you ask.
+        </p>
+      )}
+
+      {status === "error" && (
+        <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      {improved && (
+        <div className="mt-3 space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Your Original Answer</p>
+            <p className="mt-1 rounded-md bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">{transcript}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Improved Answer</p>
+            <p className="mt-1 rounded-md bg-brand-50 p-3 text-sm leading-relaxed text-ink-900">{improved.improvedAnswer}</p>
+          </div>
+          {activeImprovements.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-ink-900">What improved?</p>
+              <ul className="mt-1.5 flex flex-wrap gap-2">
+                {activeImprovements.map(([key]) => (
+                  <li key={key} className="badge badge-skill">
+                    {IMPROVEMENT_LABELS[key]}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-sm text-slate-600">{improved.summary}</p>
+            </div>
+          )}
+          {practiceSlug && (
+            <Link href={`/practice/${practiceSlug}`} className="btn-secondary text-sm">
+              Practice the improved answer &rarr;
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
+  return (
+    <div className="card mt-4 p-6">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-display font-bold text-ink-900">{title}</h2>
         {badge && (
-          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">{badge}</span>
+          <span className="whitespace-nowrap rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">{badge}</span>
         )}
       </div>
       <div className="mt-3">{children}</div>

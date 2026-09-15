@@ -1,21 +1,21 @@
 import type { ReactNode } from "react";
 
 const BRAND_POINTS = [
-  "Realistic proctored mock assessments",
-  "Real transcription and speech analysis - not guesses",
-  "Practice pronunciation, grammar, fluency and customer handling",
+  "Realistic, proctored mock Voice & Accent assessments",
+  "Real transcription and AI speech analysis - never a guess",
+  "Practice pronunciation, fluency, grammar and customer handling",
 ];
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-[calc(100vh-65px)] lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-ink-950 p-12 text-white lg:flex">
-        <div className="text-lg font-bold">
-          Pro<span className="text-brand-400">Acting</span>
+        <div className="font-display text-lg font-bold">
+          Vocalis<span className="text-brand-500">Ai</span>
         </div>
         <div>
-          <h2 className="text-2xl font-semibold leading-snug">
-            Practice with purpose. Walk into the real assessment prepared.
+          <h2 className="font-display text-2xl font-semibold leading-snug">
+            Practice smarter. Speak clearer. Walk into your next interview ready.
           </h2>
           <ul className="mt-8 space-y-4">
             {BRAND_POINTS.map((point) => (

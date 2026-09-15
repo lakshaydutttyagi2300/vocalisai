@@ -91,15 +91,15 @@ export function MockTestSessionShell({
   const ss = String(elapsedSeconds % 60).padStart(2, "0");
 
   return (
-    <div className="min-h-screen bg-ink-950 text-white">
+    <div className="focus-surface min-h-screen">
       <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-red-400">
+        <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
           <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
           Recording
         </div>
-        <div className="font-mono text-sm text-slate-300">{mm}:{ss}</div>
-        <button onClick={endTest} className="rounded-md border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10">
-          End test
+        <div className="font-mono text-sm text-slate-300">{mm}:{ss} elapsed</div>
+        <button onClick={endTest} className="rounded-md border border-white/20 px-3 py-1.5 text-sm font-medium hover:bg-white/10">
+          End assessment
         </button>
       </div>
 

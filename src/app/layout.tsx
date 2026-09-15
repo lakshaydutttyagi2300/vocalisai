@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
+import { Sora, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/Navbar";
 import "./globals.css";
 
+// Self-hosted by Next.js at build time (no external request at runtime,
+// no new dependency - next/font is part of the "next" package itself).
+const sora = Sora({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display" });
+const publicSans = Public_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-mono" });
+
 export const metadata: Metadata = {
-  title: "ProActing - BPO Voice & Accent Practice Platform",
+  title: "VocalisAi - AI Voice & Accent Coach",
   description:
-    "Practice your BPO Voice & Accent assessment before the real interview.",
+    "Practice real BPO interview situations, get AI-powered speech analysis, and build the confidence to clear your next Voice & Accent round.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" className={`${sora.variable} ${publicSans.variable} ${plexMono.variable}`}>
       <body className="min-h-screen antialiased">
         <Providers>
           <Navbar />

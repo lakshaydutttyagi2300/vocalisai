@@ -147,6 +147,12 @@ model SpeechAnalysis {
   analysisModel         String
   estimatedCostUsd      Float
 
+  // "Improve My Answer" (Phase 6) - a separate, explicitly-requested AI
+  // call, cached the same on-demand way as the analysis itself: null until
+  // asked for, generated once, never re-paid on a later view.
+  improvedAnswerJson    String?
+  improvedAnswerCostUsd Float?
+
   createdAt DateTime @default(now())
 }
 

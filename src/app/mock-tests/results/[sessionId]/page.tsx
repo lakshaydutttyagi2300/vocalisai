@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getModeByCategory } from "@/lib/practice-taxonomy";
 import { SCORE_CATEGORIES, CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
+import { ScoreRing } from "@/components/ui/ScoreRing";
 
 interface SectionSummary {
   category: string;
@@ -40,6 +41,29 @@ interface ResultsReport {
   summary: string;
   strengths: { point: string; evidence: string }[];
   improvements: { point: string; evidence: string; tip: string }[];
+}
+
+// Maps a scoring category to the closest practice mode a candidate could
+// actually go drill - real, existing modes only. PROCTORING_INTEGRITY has
+// no mapping since it's a rules-compliance signal, not a practicable skill.
+const CATEGORY_TO_PRACTICE: Partial<Record<ScoreCategory, string>> = {
+  PRONUNCIATION: "PRONUNCIATION",
+  FLUENCY: "FLUENCY",
+  RATE_OF_SPEECH: "SPEAKING",
+  GRAMMAR: "GRAMMAR",
+  VOCABULARY: "VOCABULARY",
+  VOICE_CLARITY: "PRONUNCIATION",
+  LISTENING: "LISTENING",
+  COMPREHENSION: "READING_COMPREHENSION",
+  CUSTOMER_HANDLING: "CUSTOMER_SERVICE",
+  RESPONSE_QUALITY: "SPEAKING",
+};
+
+function readinessLine(score: number | null): string {
+  if (score === null) return "Analyze more responses to see your readiness.";
+  if (score >= 80) return "You're interview ready.";
+  if (score >= 60) return "You're nearly ready.";
+  return "Keep practicing - you're building toward ready.";
 }
 
 export default function MockTestResultsPage() {
@@ -122,9 +146,20 @@ export default function MockTestResultsPage() {
   const totalScored = summary.sections.reduce((sum, s) => sum + s.scoredCount, 0);
   const totalCorrect = summary.sections.reduce((sum, s) => sum + s.correctCount, 0);
 
+  const scoredCategories = scoreReport
+    ? SCORE_CATEGORIES.map((cat) => ({ cat, score: scoreReport.categories[cat].score })).filter(
+        (c): c is { cat: ScoreCategory; score: number } => c.score !== null
+      )
+    : [];
+  const strongAreas = scoredCategories.filter((c) => c.score >= 75).sort((a, b) => b.score - a.score);
+  const weakAreas = scoredCategories.filter((c) => c.score < 60).sort((a, b) => a.score - b.score);
+  const recommended = weakAreas[0] ?? null;
+  const recommendedPracticeCategory = recommended ? CATEGORY_TO_PRACTICE[recommended.cat] : null;
+  const recommendedSlug = recommendedPracticeCategory ? getModeByCategory(recommendedPracticeCategory)?.slug : undefined;
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-2xl font-semibold text-ink-950">Mock test results</h1>
+      <h1 className="font-display text-2xl font-bold text-ink-950">Interview Performance</h1>
       <p className="mt-1 text-sm text-slate-600">{summary.templateName ?? "Assessment"}</p>
 
       {scoreReportError && !scoreReport && (
@@ -134,43 +169,97 @@ export default function MockTestResultsPage() {
       )}
 
       {scoreReport && (
-        <div className="card mt-6 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-ink-900">Overall Score</h2>
-            <span className="text-2xl font-bold text-brand-600">
-              {scoreReport.overallScore !== null ? scoreReport.overallScore : "N/A"}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Average of every category below with data. Each category is computed from real
-            measurements and structured AI ratings, never a single AI-invented number.
-          </p>
+        <>
+          <div className="card mt-6 grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
+            <div className="flex justify-center">
+              <ScoreRing value={scoreReport.overallScore} label="Readiness" />
+            </div>
+            <div>
+              <p className="font-display text-lg font-bold text-ink-900">{readinessLine(scoreReport.overallScore)}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Average of every category below with data. Each category is computed from real
+                measurements and structured AI ratings, never a single AI-invented number.
+              </p>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {SCORE_CATEGORIES.map((cat) => {
-              const c = scoreReport.categories[cat];
-              return (
-                <div key={cat} className="rounded-md border border-slate-200 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-ink-900">{CATEGORY_LABELS[cat]}</span>
-                    <span className="text-sm font-semibold text-ink-900">{c.score ?? "N/A"}</span>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {strongAreas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-green-700">Strong areas</p>
+                    <ul className="mt-1.5 space-y-1 text-sm text-ink-900">
+                      {strongAreas.map((c) => (
+                        <li key={c.cat} className="flex items-center gap-1.5">
+                          <svg className="h-3.5 w-3.5 flex-none text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
+                          </svg>
+                          {CATEGORY_LABELS[c.cat]}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  {c.score !== null && (
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full bg-brand-500" style={{ width: `${c.score}%` }} />
-                    </div>
-                  )}
-                  <p className="mt-1 text-xs text-slate-500">{c.basis}</p>
-                </div>
-              );
-            })}
+                )}
+                {weakAreas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                      Improve before your next interview
+                    </p>
+                    <ul className="mt-1.5 space-y-1 text-sm text-ink-900">
+                      {weakAreas.map((c) => (
+                        <li key={c.cat}>&bull; {CATEGORY_LABELS[c.cat]}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+
+          {recommended && recommendedSlug && (
+            <div className="card mt-4 flex items-center justify-between gap-4 p-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recommended next practice</p>
+                <p className="mt-1 font-display font-bold text-ink-900">
+                  {getModeByCategory(recommendedPracticeCategory!)?.label} Drill
+                </p>
+                <p className="mt-0.5 text-sm text-slate-600">
+                  Your {CATEGORY_LABELS[recommended.cat]} score was {recommended.score} this session.
+                </p>
+              </div>
+              <Link href={`/practice/${recommendedSlug}`} className="btn-primary flex-none">
+                Start Recommended Practice
+              </Link>
+            </div>
+          )}
+
+          <details className="card mt-4 p-6">
+            <summary className="cursor-pointer font-display font-bold text-ink-900">
+              Full category breakdown
+            </summary>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {SCORE_CATEGORIES.map((cat) => {
+                const c = scoreReport.categories[cat];
+                return (
+                  <div key={cat} className="rounded-md border border-slate-200 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-ink-900">{CATEGORY_LABELS[cat]}</span>
+                      <span className="text-sm font-semibold text-ink-900">{c.score ?? "N/A"}</span>
+                    </div>
+                    {c.score !== null && (
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full bg-brand-500" style={{ width: `${c.score}%` }} />
+                      </div>
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">{c.basis}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        </>
       )}
 
       <div className="card mt-6 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-ink-900">AI Coaching Report</h2>
+          <h2 className="font-display font-bold text-ink-900">AI Coaching Report</h2>
           {reportChecked && !resultsReport && (
             <button
               type="button"

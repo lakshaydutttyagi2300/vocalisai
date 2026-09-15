@@ -23,7 +23,11 @@ export type Rating = "strong" | "adequate" | "weak";
 export interface VoiceAnalysisResult {
   pronunciation: {
     rating: Rating;
-    mispronouncedWords: { word: string; note: string }[];
+    // phoneticHint is a simple, real AI-generated syllable respelling
+    // (e.g. "comfortable" -> "KUMF-ter-bul") - never invented by app code.
+    // Optional because rows analyzed before this field existed won't have
+    // it; the UI falls back gracefully for those.
+    mispronouncedWords: { word: string; note: string; phoneticHint?: string }[];
     articulation: string;
     difficultSounds: string[];
     intelligibility: string;
@@ -81,11 +85,13 @@ Use the AUDIO for pronunciation, voiceClarity and delivery sections - genuinely 
 
 Ground every claim in something you actually heard or read - quote exact excerpts for grammar issues. Never invent an issue that isn't there. For delivery and confidence, use hedged, non-clinical language ("appears to", "sounds") - these are indicators for a human reviewer, not psychological facts or diagnoses.
 
+For each word in "mispronouncedWords", also include "phoneticHint": a simple syllable-by-syllable respelling showing correct stress (e.g. "comfortable" -> "KUMF-ter-bul"), not formal IPA - written so a non-linguist can read it aloud.
+
 For each section below, also set "rating" to exactly one of "strong", "adequate" or "weak" - a plain classification consistent with your own comments, not a numeric score. This is the ONLY numeric-adjacent judgment we ask of you; the actual scores are computed separately from these ratings combined with real measured data (word count, timing, filler counts). Only mark "customerHandling.applicable": true if this response was actually a customer-service scenario - otherwise set it false and use "not_applicable" for its three ratings.
 
 Return ONLY valid JSON matching exactly this shape:
 {
-  "pronunciation": { "rating": "strong"|"adequate"|"weak", "mispronouncedWords": [{"word": string, "note": string}], "articulation": string, "difficultSounds": [string], "intelligibility": string },
+  "pronunciation": { "rating": "strong"|"adequate"|"weak", "mispronouncedWords": [{"word": string, "note": string, "phoneticHint": string}], "articulation": string, "difficultSounds": [string], "intelligibility": string },
   "fluency": { "rating": "strong"|"adequate"|"weak", "hesitations": string, "fillers": string, "repetitions": string, "longPauses": string, "smoothness": string },
   "grammar": { "rating": "strong"|"adequate"|"weak", "issues": [{"excerpt": string, "problem": string, "correction": string}], "overallComment": string },
   "vocabulary": { "rating": "strong"|"adequate"|"weak", "assessment": string, "professionalTermsUsed": [string], "repetitiveWords": [string] },

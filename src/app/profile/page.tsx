@@ -95,7 +95,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="text-2xl font-semibold text-ink-950">Your profile</h1>
+      <h1 className="font-display text-2xl font-bold text-ink-950">Your profile</h1>
       <p className="mt-1 text-sm text-slate-600">
         This information is private to your account.
       </p>

@@ -14,6 +14,7 @@ interface Overview {
     resultsReports: number;
     coachChat: number;
     generatedScenarios: number;
+    improvedAnswers: number;
     total: number;
   };
 }
@@ -214,7 +215,8 @@ export default function AdminPage() {
               <p className="text-xs text-slate-500">
                 Analysis {fmtUsd(overview.estimatedCostUsd.transcriptionAndAnalysis)} - Reports{" "}
                 {fmtUsd(overview.estimatedCostUsd.resultsReports)} - Coach {fmtUsd(overview.estimatedCostUsd.coachChat)} - Scenarios{" "}
-                {fmtUsd(overview.estimatedCostUsd.generatedScenarios)}
+                {fmtUsd(overview.estimatedCostUsd.generatedScenarios)} - Rewrites{" "}
+                {fmtUsd(overview.estimatedCostUsd.improvedAnswers)}
               </p>
             </div>
           </div>

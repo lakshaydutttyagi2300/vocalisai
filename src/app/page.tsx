@@ -28,19 +28,18 @@ export default async function LandingPage() {
       <section className="hero-gradient">
         <div className="mx-auto max-w-4xl px-6 py-24 text-center sm:py-32">
           <span className="inline-block rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
-            BPO Voice &amp; Accent Practice
+            AI Voice &amp; Accent Coach
           </span>
 
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-ink-950 sm:text-5xl">
-            Practice your BPO Voice &amp; Accent assessment
-            <span className="block text-brand-600">before the real interview.</span>
+          <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink-950 sm:text-5xl">
+            Practice smarter. Speak clearer.
+            <span className="block text-brand-600">Get interview ready.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-            ProActing gives job seekers a realistic, proctored practice environment for
-            BPO voice-process and customer-service hiring assessments - pronunciation,
-            grammar, fluency, rate of speech, and customer handling, analyzed on real
-            recordings, not guesses.
+            Practice real interview situations, analyze your speaking performance, and
+            build the confidence to clear your next Voice &amp; Accent round - on real
+            recordings, with real AI feedback, never a guess.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -51,10 +50,10 @@ export default async function LandingPage() {
             ) : (
               <>
                 <Link href="/signup" className="btn-primary px-6 py-3 text-base">
-                  Create free account
+                  Start Practicing
                 </Link>
-                <Link href="/login" className="btn-secondary px-6 py-3 text-base">
-                  Log in
+                <Link href="#how-it-works" className="btn-secondary px-6 py-3 text-base">
+                  See How It Works
                 </Link>
               </>
             )}
@@ -62,9 +61,9 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-20">
-        <h2 className="text-center text-2xl font-semibold text-ink-950">
-          How practicing on ProActing works
+      <section id="how-it-works" className="mx-auto max-w-5xl px-6 py-20">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink-950">
+          Practice the skills recruiters actually evaluate
         </h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {STEPS.map((step, i) => (
@@ -81,7 +80,7 @@ export default async function LandingPage() {
 
       <footer className="border-t border-slate-200 py-8">
         <p className="text-center text-sm text-slate-500">
-          Pro<span className="font-semibold text-ink-900">Acting</span> - practice with
+          Vocalis<span className="font-semibold text-ink-900">Ai</span> - practice with
           purpose.
         </p>
       </footer>

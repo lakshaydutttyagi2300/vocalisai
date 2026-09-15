@@ -16,6 +16,7 @@ export interface AdminOverview {
     resultsReports: number; // ResultsReport rows
     coachChat: number; // CoachMessage rows (coach turns only)
     generatedScenarios: number; // PracticeQuestion rows with source = AI_GENERATED
+    improvedAnswers: number; // SpeechAnalysis rows with improvedAnswerJson set
     total: number;
   };
 }
@@ -30,6 +31,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     resultsReportCost,
     coachChatCost,
     generatedScenarioCost,
+    improvedAnswerCost,
   ] = await Promise.all([
     db.user.count(),
     db.user.count({ where: { role: "ADMIN" } }),
@@ -39,12 +41,14 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     db.resultsReport.aggregate({ _sum: { estimatedCostUsd: true } }),
     db.coachMessage.aggregate({ where: { role: "coach" }, _sum: { estimatedCostUsd: true } }),
     db.practiceQuestion.aggregate({ where: { source: "AI_GENERATED" }, _sum: { estimatedCostUsd: true } }),
+    db.speechAnalysis.aggregate({ where: { improvedAnswerJson: { not: null } }, _sum: { improvedAnswerCostUsd: true } }),
   ]);
 
   const transcriptionAndAnalysis = speechAnalysisCost._sum.estimatedCostUsd ?? 0;
   const resultsReports = resultsReportCost._sum.estimatedCostUsd ?? 0;
   const coachChat = coachChatCost._sum.estimatedCostUsd ?? 0;
   const generatedScenarios = generatedScenarioCost._sum.estimatedCostUsd ?? 0;
+  const improvedAnswers = improvedAnswerCost._sum.improvedAnswerCostUsd ?? 0;
 
   return {
     totalUsers,
@@ -57,7 +61,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       resultsReports,
       coachChat,
       generatedScenarios,
-      total: transcriptionAndAnalysis + resultsReports + coachChat + generatedScenarios,
+      improvedAnswers,
+      total: transcriptionAndAnalysis + resultsReports + coachChat + generatedScenarios + improvedAnswers,
     },
   };
 }
