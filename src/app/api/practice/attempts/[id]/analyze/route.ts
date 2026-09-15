@@ -2,12 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { readRecording } from "@/lib/storage";
-import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
-import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
-import { createGeminiAnalysisProvider } from "@/lib/providers/gemini-analysis-provider";
-import { estimateTranscriptionCostUsd, estimateAnalysisCostUsd } from "@/lib/providers/pricing";
-import { computeDeterministicMetrics } from "@/lib/speech-metrics";
+import { analyzeAttempt } from "@/lib/analyze-attempt";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 
 // Analysis runs ONLY when explicitly requested (viewing results), never
@@ -106,88 +101,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: upgradeMessage(usage, "SPEECH_ANALYSIS") }, { status: 403 });
   }
 
-  const groqKey = process.env.GROQ_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!groqKey || !geminiKey) {
-    return NextResponse.json({ error: "AI analysis is not configured on this server." }, { status: 503 });
+  const result = await analyzeAttempt(attempt);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  let audioBuffer: Buffer;
-  try {
-    audioBuffer = await readRecording(attempt.recording.filePath);
-  } catch {
-    return NextResponse.json({ error: "Recording file is missing on the server." }, { status: 404 });
+  const saved = await db.speechAnalysis.findUnique({ where: { attemptId: attempt.id } });
+  if (!saved) {
+    return NextResponse.json({ error: "Analysis didn't save correctly. Please try again." }, { status: 500 });
   }
-
-  const speechProvider = createGroqWhisperProvider(groqKey);
-  const analysisProvider = createGeminiAnalysisProvider(geminiKey);
-
-  let transcription;
-  try {
-    transcription = await speechProvider.transcribe({
-      audioBuffer,
-      filename: `recording.${extensionForMimeType(attempt.recording.mimeType)}`,
-      mimeType: canonicalAudioMimeType(attempt.recording.mimeType),
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { error: `Transcription failed: ${err instanceof Error ? err.message : "unknown error"}` },
-      { status: 502 }
-    );
-  }
-
-  if (!transcription.transcript) {
-    return NextResponse.json(
-      { error: "Transcription returned no speech. The recording may be silent or too short." },
-      { status: 422 }
-    );
-  }
-
-  const durationSeconds = transcription.durationSeconds ?? attempt.recording.durationSeconds ?? 0;
-  const metrics = computeDeterministicMetrics(transcription.transcript, durationSeconds, transcription.segments);
-
-  let aiResult;
-  try {
-    aiResult = await analysisProvider.analyzeVoiceResponse({
-      audioBuffer,
-      audioMimeType: canonicalAudioMimeType(attempt.recording.mimeType),
-      transcript: transcription.transcript,
-      context: `${attempt.category} practice, ${attempt.difficulty} difficulty. Prompt: "${attempt.question.prompt}"`,
-      scoringCriteria: attempt.question.scoringCriteria,
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { error: `AI analysis failed: ${err instanceof Error ? err.message : "unknown error"}` },
-      { status: 502 }
-    );
-  }
-
-  const estimatedCostUsd =
-    estimateTranscriptionCostUsd(durationSeconds) +
-    estimateAnalysisCostUsd(aiResult.tokenUsage.textInput, aiResult.tokenUsage.output, aiResult.tokenUsage.audioInput);
-
-  const saved = await db.speechAnalysis.create({
-    data: {
-      attemptId: attempt.id,
-      transcript: transcription.transcript,
-      wordCount: metrics.wordCount,
-      durationSeconds: metrics.durationSeconds,
-      wpm: metrics.wpm,
-      paceClassification: metrics.pace,
-      fillerCount: metrics.fillers.total,
-      fillerBreakdown: JSON.stringify(metrics.fillers.byWord),
-      repetitionCount: metrics.repetitions.count,
-      repetitionExamples: JSON.stringify(metrics.repetitions.examples),
-      longPauses: JSON.stringify(metrics.longPauses),
-      segmentsJson: JSON.stringify(transcription.segments),
-      aiAnalysisJson: JSON.stringify(aiResult.result),
-      transcriptionProvider: transcription.providerName,
-      transcriptionModel: transcription.model,
-      analysisProvider: aiResult.providerName,
-      analysisModel: aiResult.model,
-      estimatedCostUsd,
-    },
-  });
 
   return NextResponse.json({ analyzed: true, result: serializeAnalysis(saved, attempt.recording.id, attempt.category) });
 }

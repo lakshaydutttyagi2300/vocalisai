@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { computeScoreReport, type AnalyzedVoiceAttempt, type ScoredMcqAttempt } from "@/lib/scoring-engine";
+import { analyzeAttempt } from "@/lib/analyze-attempt";
 import type { PaceClassification } from "@/lib/speech-metrics";
 import type { VoiceAnalysisResult } from "@/lib/providers/gemini-analysis-provider";
 
@@ -14,12 +15,31 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const mockTestSession = await db.mockTestSession.findUnique({
     where: { id },
     include: {
-      attempts: { include: { analysis: true } },
+      attempts: { include: { analysis: true, recording: true, question: true } },
       events: true,
     },
   });
   if (!mockTestSession || mockTestSession.userId !== session.user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // A mock assessment's Readiness score is meant to be a final, complete
+  // result, not a partial one that quietly excludes every voice category
+  // nobody happened to click "Analyze" on - unlike solo practice, where
+  // analysis stays on-demand to avoid paying for recordings nobody
+  // reviews, here the candidate is actively asking for their real result,
+  // so running the real analysis now IS the deliverable, not wasted spend.
+  const unanalyzed = mockTestSession.attempts.filter((a) => a.recordingId && !a.analysis);
+  if (unanalyzed.length > 0) {
+    const results = await Promise.allSettled(unanalyzed.map((a) => analyzeAttempt(a)));
+    if (results.some((r) => r.status === "fulfilled" && r.value.ok)) {
+      // Re-load so the report below sees the analyses just written.
+      const refreshed = await db.mockTestSession.findUnique({
+        where: { id },
+        include: { attempts: { include: { analysis: true, recording: true, question: true } }, events: true },
+      });
+      if (refreshed) Object.assign(mockTestSession, refreshed);
+    }
   }
 
   const mcqAttempts: ScoredMcqAttempt[] = [];
