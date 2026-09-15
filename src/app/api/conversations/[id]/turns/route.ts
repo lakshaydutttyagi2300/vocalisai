@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readRecording } from "@/lib/storage";
+import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
@@ -62,8 +63,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     transcription = await speechProvider.transcribe({
       audioBuffer,
-      filename: `recording.${recording.mimeType.split("/")[1] || "webm"}`,
-      mimeType: recording.mimeType,
+      filename: `recording.${extensionForMimeType(recording.mimeType)}`,
+      mimeType: canonicalAudioMimeType(recording.mimeType),
     });
   } catch (err) {
     return NextResponse.json(

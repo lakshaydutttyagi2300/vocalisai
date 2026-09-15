@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readRecording } from "@/lib/storage";
+import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiAnalysisProvider } from "@/lib/providers/gemini-analysis-provider";
 import { estimateTranscriptionCostUsd, estimateAnalysisCostUsd } from "@/lib/providers/pricing";
@@ -125,8 +126,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     transcription = await speechProvider.transcribe({
       audioBuffer,
-      filename: `recording.${attempt.recording.mimeType.split("/")[1] || "webm"}`,
-      mimeType: attempt.recording.mimeType,
+      filename: `recording.${extensionForMimeType(attempt.recording.mimeType)}`,
+      mimeType: canonicalAudioMimeType(attempt.recording.mimeType),
     });
   } catch (err) {
     return NextResponse.json(
@@ -149,7 +150,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     aiResult = await analysisProvider.analyzeVoiceResponse({
       audioBuffer,
-      audioMimeType: attempt.recording.mimeType,
+      audioMimeType: canonicalAudioMimeType(attempt.recording.mimeType),
       transcript: transcription.transcript,
       context: `${attempt.category} practice, ${attempt.difficulty} difficulty. Prompt: "${attempt.question.prompt}"`,
       scoringCriteria: attempt.question.scoringCriteria,

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readRecording } from "@/lib/storage";
+import { canonicalAudioMimeType } from "@/lib/uploads";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
 import { combineDeterministicMetrics } from "@/lib/speech-metrics";
@@ -53,7 +54,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         if (!t.recording) continue;
         try {
           const buffer = await readRecording(t.recording.filePath);
-          audioClips.push({ mimeType: t.recording.mimeType, base64: buffer.toString("base64") });
+          audioClips.push({ mimeType: canonicalAudioMimeType(t.recording.mimeType), base64: buffer.toString("base64") });
         } catch {
           continue; // missing file - skip this clip rather than fail the whole analysis
         }
