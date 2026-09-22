@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   }
 
   const pool = await db.practiceQuestion.findMany({
-    where: { category: roleDef.category, difficulty },
+    where: { category: roleDef.category, difficulty, isActive: true },
   });
   if (pool.length === 0) {
     return NextResponse.json({ error: "No scenarios available for this selection yet." }, { status: 404 });

@@ -2,12 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { isValidDifficulty, PRACTICE_MODES } from "@/lib/practice-taxonomy";
+import { validateQuestionFields } from "@/lib/question-validation";
 import { findSimilar, questionSignature } from "@/lib/question-dedup";
 import { logAdminAction } from "@/lib/audit-log";
-
-const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
-const VALID_TYPES = new Set(["MULTIPLE_CHOICE", "READING_COMPREHENSION", "LISTENING_COMPREHENSION", "SHORT_ANSWER"]);
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -19,6 +16,7 @@ export async function GET(req: Request) {
   const category = searchParams.get("category");
   const difficulty = searchParams.get("difficulty");
   const search = searchParams.get("search")?.trim();
+  const active = searchParams.get("active"); // "true" | "false" | absent (all)
   const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
   const pageSize = 25;
 
@@ -26,8 +24,12 @@ export async function GET(req: Request) {
     ...(category ? { category } : {}),
     ...(difficulty ? { difficulty } : {}),
     ...(search ? { prompt: { contains: search, mode: "insensitive" as const } } : {}),
+    ...(active === "true" ? { isActive: true } : active === "false" ? { isActive: false } : {}),
   };
 
+  // Coverage only ever counts active questions - that's what a candidate
+  // can actually be served, which is the number an admin needs to see to
+  // judge "is there enough real content here".
   const [total, questions, categoryCounts] = await Promise.all([
     db.practiceQuestion.count({ where }),
     db.practiceQuestion.findMany({
@@ -35,9 +37,9 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      select: { id: true, category: true, difficulty: true, type: true, prompt: true, source: true, createdAt: true },
+      select: { id: true, category: true, difficulty: true, type: true, prompt: true, source: true, isActive: true, createdAt: true },
     }),
-    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], _count: { _all: true } }),
+    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], where: { isActive: true }, _count: { _all: true } }),
   ]);
 
   return NextResponse.json({
@@ -92,35 +94,10 @@ export async function POST(req: Request) {
       errors.push({ index, error: "Not a valid question object." });
       continue;
     }
-    if (!VALID_CATEGORIES.has(raw.category)) {
-      errors.push({ index, error: `Invalid category "${raw.category}".` });
+    const validationError = validateQuestionFields(raw);
+    if (validationError) {
+      errors.push({ index, error: validationError });
       continue;
-    }
-    if (!isValidDifficulty(raw.difficulty)) {
-      errors.push({ index, error: `Invalid difficulty "${raw.difficulty}".` });
-      continue;
-    }
-    if (!VALID_TYPES.has(raw.type)) {
-      errors.push({ index, error: `Invalid type "${raw.type}".` });
-      continue;
-    }
-    if (!raw.prompt || typeof raw.prompt !== "string" || raw.prompt.trim().length < 3) {
-      errors.push({ index, error: "Prompt is missing or too short." });
-      continue;
-    }
-    if (!Number.isFinite(raw.timeLimitSeconds) || raw.timeLimitSeconds < 5 || raw.timeLimitSeconds > 300) {
-      errors.push({ index, error: "timeLimitSeconds must be between 5 and 300." });
-      continue;
-    }
-    if (raw.type === "MULTIPLE_CHOICE" || raw.type === "READING_COMPREHENSION" || raw.type === "LISTENING_COMPREHENSION") {
-      if (!Array.isArray(raw.options) || raw.options.length < 2) {
-        errors.push({ index, error: "This type needs at least 2 options." });
-        continue;
-      }
-      if (!raw.correctAnswer || !raw.options.includes(raw.correctAnswer)) {
-        errors.push({ index, error: "correctAnswer must exactly match one of the options." });
-        continue;
-      }
     }
 
     if (!existingByCategory.has(raw.category)) {

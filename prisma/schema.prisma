@@ -74,12 +74,21 @@ model PracticeQuestion {
   source           String @default("SEEDED")
   estimatedCostUsd Float? // only set for source = "AI_GENERATED"
 
+  // Soft-disable, not deletion - a question with existing attempts can't
+  // be hard-deleted (see the FK-protected admin DELETE route), so this is
+  // the only way to pull a bad question out of rotation. Every question-
+  // selection query (practice, mock tests, interview simulation) filters
+  // on this; an inactive question simply stops being served, permanently
+  // or temporarily, without losing its attempt history.
+  isActive Boolean @default(true)
+
   createdAt DateTime @default(now())
 
   attempts             PracticeAttempt[]
   conversationSessions ConversationSession[]
 
   @@index([category, difficulty])
+  @@index([category, difficulty, isActive])
 }
 
 model PracticeAttempt {

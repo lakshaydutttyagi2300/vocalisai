@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { PRACTICE_MODES, DIFFICULTIES, DIFFICULTY_LABELS } from "@/lib/practice-taxonomy";
 
+const QUESTION_TYPES = ["MULTIPLE_CHOICE", "READING_COMPREHENSION", "LISTENING_COMPREHENSION", "SHORT_ANSWER"] as const;
+
 interface QuestionRow {
   id: string;
   category: string;
@@ -10,7 +12,24 @@ interface QuestionRow {
   type: string;
   prompt: string;
   source: string;
+  isActive: boolean;
   createdAt: string;
+}
+
+interface QuestionDetail {
+  id: string;
+  category: string;
+  difficulty: string;
+  type: string;
+  prompt: string;
+  passage: string | null;
+  options: string[] | null;
+  correctAnswer: string | null;
+  expectedAnswer: string | null;
+  explanation: string | null;
+  scoringCriteria: string | null;
+  timeLimitSeconds: number;
+  isActive: boolean;
 }
 
 interface Coverage {
@@ -31,16 +50,21 @@ export default function AdminQuestionsPage() {
   const [category, setCategory] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState(""); // "" | "true" | "false"
   const [questions, setQuestions] = useState<QuestionRow[] | null>(null);
   const [total, setTotal] = useState(0);
   const [coverage, setCoverage] = useState<Coverage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const [importText, setImportText] = useState("");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+
+  const [editing, setEditing] = useState<QuestionDetail | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   function load() {
     setError(null);
@@ -48,6 +72,7 @@ export default function AdminQuestionsPage() {
     if (category) params.set("category", category);
     if (difficulty) params.set("difficulty", difficulty);
     if (search) params.set("search", search);
+    if (activeFilter) params.set("active", activeFilter);
     fetch(`/api/admin/questions?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
@@ -61,10 +86,10 @@ export default function AdminQuestionsPage() {
       .catch(() => setError("Couldn't load questions."));
   }
 
-  useEffect(load, [category, difficulty, search]);
+  useEffect(load, [category, difficulty, search, activeFilter]);
 
   async function deleteQuestion(id: string) {
-    setDeletingId(id);
+    setBusyId(id);
     setError(null);
     try {
       const res = await fetch(`/api/admin/questions/${id}`, { method: "DELETE" });
@@ -77,7 +102,83 @@ export default function AdminQuestionsPage() {
     } catch {
       setError("Couldn't delete the question.");
     } finally {
-      setDeletingId(null);
+      setBusyId(null);
+    }
+  }
+
+  async function toggleActive(q: QuestionRow) {
+    setBusyId(q.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/questions/${q.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !q.isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't update the question.");
+        return;
+      }
+      load();
+    } catch {
+      setError("Couldn't update the question.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function duplicateQuestion(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/questions/${id}/duplicate`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't duplicate the question.");
+        return;
+      }
+      load();
+    } catch {
+      setError("Couldn't duplicate the question.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function openEdit(id: string) {
+    setEditError(null);
+    setEditing(null);
+    const res = await fetch(`/api/admin/questions/${id}`);
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Couldn't load this question.");
+      return;
+    }
+    setEditing(data);
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    setSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`/api/admin/questions/${editing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editing),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error ?? "Couldn't save changes.");
+        return;
+      }
+      setEditing(null);
+      load();
+    } catch {
+      setEditError("Couldn't save changes.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -121,11 +222,13 @@ export default function AdminQuestionsPage() {
     return coverage.find((c) => c.category === cat && c.difficulty === diff)?.count ?? 0;
   }
 
+  const needsOptions = editing && (editing.type === "MULTIPLE_CHOICE" || editing.type === "READING_COMPREHENSION" || editing.type === "LISTENING_COMPREHENSION");
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <h1 className="font-display text-2xl font-bold text-ink-950">Question Bank</h1>
       <p className="mt-1 text-sm text-slate-600">
-        Browse, filter, delete, and bulk-import practice questions. {total} question{total === 1 ? "" : "s"} match the current filters.
+        Browse, filter, edit, duplicate, enable/disable, and bulk-import practice questions. {total} question{total === 1 ? "" : "s"} match the current filters.
       </p>
 
       {error && (
@@ -135,8 +238,8 @@ export default function AdminQuestionsPage() {
       <div className="card mt-6 p-5">
         <h2 className="font-display font-bold text-ink-900">Coverage by category &amp; difficulty</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Low numbers mean candidates will see the same questions repeated often - that's the actual cause of
-          repetition, not a randomization bug.
+          Active questions only. Low numbers mean candidates will see the same questions repeated often - that's the
+          actual cause of repetition, not a randomization bug.
         </p>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -213,6 +316,159 @@ export default function AdminQuestionsPage() {
         )}
       </div>
 
+      {editing && (
+        <div className="card mt-6 p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold text-ink-900">Edit question</h2>
+            <button onClick={() => setEditing(null)} className="text-xs font-medium text-slate-500 hover:text-ink-900">
+              Close
+            </button>
+          </div>
+
+          {editError && (
+            <p role="alert" className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{editError}</p>
+          )}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <label className="flex flex-col text-xs text-slate-600">
+              Category
+              <select
+                value={editing.category}
+                onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              >
+                {PRACTICE_MODES.map((m) => (
+                  <option key={m.category} value={m.category}>{m.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col text-xs text-slate-600">
+              Difficulty
+              <select
+                value={editing.difficulty}
+                onChange={(e) => setEditing({ ...editing, difficulty: e.target.value })}
+                className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              >
+                {DIFFICULTIES.map((d) => (
+                  <option key={d} value={d}>{DIFFICULTY_LABELS[d]}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col text-xs text-slate-600">
+              Type
+              <select
+                value={editing.type}
+                onChange={(e) => setEditing({ ...editing, type: e.target.value })}
+                className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              >
+                {QUESTION_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="mt-3 flex flex-col text-xs text-slate-600">
+            Prompt
+            <textarea
+              value={editing.prompt}
+              onChange={(e) => setEditing({ ...editing, prompt: e.target.value })}
+              rows={2}
+              className="input-field mt-1"
+            />
+          </label>
+
+          <label className="mt-3 flex flex-col text-xs text-slate-600">
+            Passage / instructions (optional)
+            <textarea
+              value={editing.passage ?? ""}
+              onChange={(e) => setEditing({ ...editing, passage: e.target.value || null })}
+              rows={3}
+              className="input-field mt-1"
+            />
+          </label>
+
+          {needsOptions && (
+            <>
+              <label className="mt-3 flex flex-col text-xs text-slate-600">
+                Options (one per line)
+                <textarea
+                  value={(editing.options ?? []).join("\n")}
+                  onChange={(e) => setEditing({ ...editing, options: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                  rows={4}
+                  className="input-field mt-1 font-mono"
+                />
+              </label>
+              <label className="mt-3 flex flex-col text-xs text-slate-600">
+                Correct answer (must match one option exactly)
+                <input
+                  type="text"
+                  value={editing.correctAnswer ?? ""}
+                  onChange={(e) => setEditing({ ...editing, correctAnswer: e.target.value || null })}
+                  className="input-field mt-1"
+                />
+              </label>
+            </>
+          )}
+
+          <label className="mt-3 flex flex-col text-xs text-slate-600">
+            Expected / reference answer (optional)
+            <textarea
+              value={editing.expectedAnswer ?? ""}
+              onChange={(e) => setEditing({ ...editing, expectedAnswer: e.target.value || null })}
+              rows={2}
+              className="input-field mt-1"
+            />
+          </label>
+
+          <label className="mt-3 flex flex-col text-xs text-slate-600">
+            Explanation shown after answering (optional)
+            <textarea
+              value={editing.explanation ?? ""}
+              onChange={(e) => setEditing({ ...editing, explanation: e.target.value || null })}
+              rows={2}
+              className="input-field mt-1"
+            />
+          </label>
+
+          <label className="mt-3 flex flex-col text-xs text-slate-600">
+            Scoring criteria (optional)
+            <textarea
+              value={editing.scoringCriteria ?? ""}
+              onChange={(e) => setEditing({ ...editing, scoringCriteria: e.target.value || null })}
+              rows={2}
+              className="input-field mt-1"
+            />
+          </label>
+
+          <div className="mt-3 flex items-end gap-4">
+            <label className="flex flex-col text-xs text-slate-600">
+              Time limit (seconds)
+              <input
+                type="number"
+                min={5}
+                max={300}
+                value={editing.timeLimitSeconds}
+                onChange={(e) => setEditing({ ...editing, timeLimitSeconds: Number(e.target.value) })}
+                className="input-field mt-1 w-28"
+              />
+            </label>
+            <label className="flex items-center gap-2 pb-2 text-sm text-ink-900">
+              <input
+                type="checkbox"
+                checked={editing.isActive}
+                onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })}
+              />
+              Active (servable to candidates)
+            </label>
+          </div>
+
+          <button onClick={saveEdit} disabled={saving} className="btn-primary mt-4 disabled:opacity-60">
+            {saving ? "Saving..." : "Save changes"}
+          </button>
+        </div>
+      )}
+
       <div className="card mt-6 p-5">
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col text-xs text-slate-600">
@@ -231,6 +487,14 @@ export default function AdminQuestionsPage() {
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d}>{DIFFICULTY_LABELS[d]}</option>
               ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-xs text-slate-600">
+            Status
+            <select value={activeFilter} onChange={(e) => setActiveFilter(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+              <option value="">All</option>
+              <option value="true">Active</option>
+              <option value="false">Disabled</option>
             </select>
           </label>
           <label className="flex flex-col text-xs text-slate-600">
@@ -253,30 +517,43 @@ export default function AdminQuestionsPage() {
                 <th className="pb-2 pr-4">Category</th>
                 <th className="pb-2 pr-4">Difficulty</th>
                 <th className="pb-2 pr-4">Type</th>
+                <th className="pb-2 pr-4">Status</th>
                 <th className="pb-2"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {questions?.map((q) => (
-                <tr key={q.id}>
-                  <td className="py-2 pr-4 text-ink-900">{q.prompt.slice(0, 90)}{q.prompt.length > 90 ? "..." : ""}</td>
+                <tr key={q.id} className={q.isActive ? "" : "opacity-60"}>
+                  <td className="py-2 pr-4 text-ink-900">{q.prompt.slice(0, 70)}{q.prompt.length > 70 ? "..." : ""}</td>
                   <td className="py-2 pr-4 text-slate-600">{q.category}</td>
                   <td className="py-2 pr-4 text-slate-600">{q.difficulty}</td>
                   <td className="py-2 pr-4 text-slate-600">{q.type}</td>
+                  <td className="py-2 pr-4">
+                    <span className={`badge ${q.isActive ? "badge-skill" : "badge-neutral"}`}>
+                      {q.isActive ? "Active" : "Disabled"}
+                    </span>
+                  </td>
                   <td className="py-2">
-                    <button
-                      onClick={() => deleteQuestion(q.id)}
-                      disabled={deletingId === q.id}
-                      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-60"
-                    >
-                      {deletingId === q.id ? "Deleting..." : "Delete"}
-                    </button>
+                    <div className="flex flex-wrap gap-2.5 text-xs font-medium">
+                      <button onClick={() => openEdit(q.id)} className="text-brand-600 hover:underline">
+                        Edit
+                      </button>
+                      <button onClick={() => duplicateQuestion(q.id)} disabled={busyId === q.id} className="text-slate-600 hover:underline disabled:opacity-60">
+                        Duplicate
+                      </button>
+                      <button onClick={() => toggleActive(q)} disabled={busyId === q.id} className="text-amber-700 hover:underline disabled:opacity-60">
+                        {q.isActive ? "Disable" : "Enable"}
+                      </button>
+                      <button onClick={() => deleteQuestion(q.id)} disabled={busyId === q.id} className="text-red-600 hover:underline disabled:opacity-60">
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {questions?.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-sm text-slate-500">No questions match these filters.</td>
+                  <td colSpan={6} className="py-6 text-center text-sm text-slate-500">No questions match these filters.</td>
                 </tr>
               )}
             </tbody>

@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   }
 
   const pool = await db.practiceQuestion.findMany({
-    where: { category, difficulty },
+    where: { category, difficulty, isActive: true },
     select: {
       id: true,
       category: true,
