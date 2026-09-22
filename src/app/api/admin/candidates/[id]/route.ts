@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getAdminCandidateDetail } from "@/lib/admin-stats";
 import { PLANS, setPlan, type Plan } from "@/lib/entitlements";
+import { logAdminAction } from "@/lib/audit-log";
 
 // Role-gated, not ownership-gated: an admin legitimately needs to view any
 // candidate's real data here, unlike every other route in this app.
@@ -49,7 +50,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!PLANS.includes(plan as Plan)) {
       return NextResponse.json({ error: "Invalid plan." }, { status: 400 });
     }
+    const previousSub = await db.subscription.findUnique({ where: { userId: id } });
     await setPlan(id, plan as Plan);
+    await logAdminAction({
+      adminId: session.user.id,
+      adminEmail: session.user.email ?? "unknown",
+      action: "USER_PLAN_CHANGED",
+      targetType: "User",
+      targetId: id,
+      before: { plan: previousSub?.plan ?? "FREE" },
+      after: { plan },
+    });
   }
 
   if (role !== undefined) {
@@ -64,6 +75,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: "You can't change your own role. Ask another admin to do it." }, { status: 400 });
     }
     await db.user.update({ where: { id }, data: { role } });
+    await logAdminAction({
+      adminId: session.user.id,
+      adminEmail: session.user.email ?? "unknown",
+      action: "USER_ROLE_CHANGED",
+      targetType: "User",
+      targetId: id,
+      before: { role: target.role },
+      after: { role },
+    });
   }
 
   const detail = await getAdminCandidateDetail(id);

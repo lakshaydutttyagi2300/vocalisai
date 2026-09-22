@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAdminAction } from "@/lib/audit-log";
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -26,5 +27,15 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
 
   await db.practiceQuestion.delete({ where: { id } });
+
+  await logAdminAction({
+    adminId: session.user.id,
+    adminEmail: session.user.email ?? "unknown",
+    action: "QUESTION_DELETED",
+    targetType: "PracticeQuestion",
+    targetId: id,
+    before: { category: existing.category, difficulty: existing.difficulty, prompt: existing.prompt },
+  });
+
   return NextResponse.json({ deleted: true });
 }

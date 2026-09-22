@@ -6,6 +6,7 @@ import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { createGeminiScenarioProvider, type ScenarioCategory, type ScenarioResult } from "@/lib/providers/gemini-scenario-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 // Only SHORT_ANSWER voice categories - no fixed "correctAnswer" for the AI
 // to invent or get wrong (see gemini-scenario-provider.ts for why this
@@ -78,6 +79,10 @@ export async function POST(req: Request) {
   }
   if (rawTopic.length > MAX_TOPIC_LENGTH) {
     return NextResponse.json({ error: `Topic is too long (max ${MAX_TOPIC_LENGTH} characters).` }, { status: 400 });
+  }
+
+  if (!(await isFeatureEnabled(category))) {
+    return NextResponse.json({ error: "This practice category is currently unavailable." }, { status: 403 });
   }
 
   const hasDifficultyAccess = await checkDifficultyAccess(session.user.id, difficulty);

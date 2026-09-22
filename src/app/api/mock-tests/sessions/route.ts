@@ -3,11 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function POST() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!(await isFeatureEnabled("MOCK_TEST"))) {
+    return NextResponse.json({ error: "Mock tests are currently unavailable." }, { status: 403 });
   }
 
   const usage = await checkAndRecordUsage(session.user.id, "MOCK_ASSESSMENT");

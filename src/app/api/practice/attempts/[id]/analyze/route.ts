@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { analyzeAttempt } from "@/lib/analyze-attempt";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 // Analysis runs ONLY when explicitly requested (viewing results), never
 // automatically on every recorded attempt - so we never pay for
@@ -94,6 +95,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (!attempt.recording) {
     return NextResponse.json({ error: "This attempt has no recording to analyze." }, { status: 400 });
+  }
+
+  if (!(await isFeatureEnabled("AI_SPEECH_ANALYSIS"))) {
+    return NextResponse.json({ error: "AI Speech Analysis is currently unavailable." }, { status: 403 });
   }
 
   const usage = await checkAndRecordUsage(session.user.id, "SPEECH_ANALYSIS");

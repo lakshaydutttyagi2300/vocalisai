@@ -20,6 +20,8 @@ const ADMIN_LINKS = [
   { href: "/admin/candidates", label: "Candidates" },
   { href: "/admin/templates", label: "Templates" },
   { href: "/admin/questions", label: "Questions" },
+  { href: "/admin/features", label: "Features" },
+  { href: "/admin/audit-log", label: "Activity Log" },
   { href: "/dashboard", label: "Candidate view" },
 ];
 

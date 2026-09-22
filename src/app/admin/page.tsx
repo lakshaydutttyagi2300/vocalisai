@@ -112,6 +112,14 @@ export default function AdminOverviewPage() {
           <h2 className="font-display font-bold text-ink-900">Question Bank</h2>
           <p className="mt-1 text-sm text-slate-600">Browse coverage, delete bad questions, and bulk-import new ones.</p>
         </Link>
+        <Link href="/admin/features" className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
+          <h2 className="font-display font-bold text-ink-900">Features</h2>
+          <p className="mt-1 text-sm text-slate-600">Turn features on/off, enforced server-side for every candidate.</p>
+        </Link>
+        <Link href="/admin/audit-log" className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
+          <h2 className="font-display font-bold text-ink-900">Activity Log</h2>
+          <p className="mt-1 text-sm text-slate-600">Who changed what, and when - every administrative action.</p>
+        </Link>
       </div>
     </div>
   );

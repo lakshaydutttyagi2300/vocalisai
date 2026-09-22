@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 // Returns a random set of questions for a category/difficulty. The correct
 // answer is never included here - it's only checked server-side when the
@@ -23,6 +24,10 @@ export async function GET(req: Request) {
   }
   if (!difficulty || !isValidDifficulty(difficulty)) {
     return NextResponse.json({ error: "Invalid or missing difficulty" }, { status: 400 });
+  }
+
+  if (!(await isFeatureEnabled(category))) {
+    return NextResponse.json({ error: "This practice category is currently unavailable." }, { status: 403 });
   }
 
   const pool = await db.practiceQuestion.findMany({

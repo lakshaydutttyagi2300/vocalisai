@@ -3,6 +3,7 @@ import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { getProgressData, type OverallTrendPoint } from "@/lib/progress";
 import { SCORE_CATEGORIES, CATEGORY_LABELS } from "@/lib/scoring-engine";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 function TrendChart({ points }: { points: OverallTrendPoint[] }) {
   const scored = points.filter((p) => p.overallScore !== null) as { sessionId: string; date: string; overallScore: number }[];
@@ -37,6 +38,16 @@ function TrendChart({ points }: { points: OverallTrendPoint[] }) {
 export default async function ProgressPage() {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
+
+  if (!(await isFeatureEnabled("PROGRESS_DASHBOARD"))) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-10">
+        <h1 className="text-2xl font-semibold text-ink-950">Progress</h1>
+        <p className="mt-4 text-sm text-slate-600">The Progress dashboard is currently unavailable.</p>
+      </div>
+    );
+  }
+
   const data = await getProgressData(userId);
 
   return (

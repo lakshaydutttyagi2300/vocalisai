@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isValidDifficulty, PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import { findSimilar, questionSignature } from "@/lib/question-dedup";
+import { logAdminAction } from "@/lib/audit-log";
 
 const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
 const VALID_TYPES = new Set(["MULTIPLE_CHOICE", "READING_COMPREHENSION", "LISTENING_COMPREHENSION", "SHORT_ANSWER"]);
@@ -167,6 +168,16 @@ export async function POST(req: Request) {
         timeLimitSeconds: q.timeLimitSeconds,
         source: "SEEDED",
       })),
+    });
+  }
+
+  if (toInsert.length > 0) {
+    await logAdminAction({
+      adminId: session.user.id,
+      adminEmail: session.user.email ?? "unknown",
+      action: "QUESTIONS_IMPORTED",
+      targetType: "PracticeQuestion",
+      after: { inserted: toInsert.length, duplicateCount: duplicates.length, errorCount: errors.length },
     });
   }
 

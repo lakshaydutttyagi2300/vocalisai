@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
+import { logAdminAction } from "@/lib/audit-log";
 
 const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
 
@@ -71,6 +72,15 @@ export async function POST(req: Request) {
   const template = await db.mockTestTemplate.create({
     data: { name, sections: { create: result.sections } },
     include: { sections: { orderBy: { order: "asc" } } },
+  });
+
+  await logAdminAction({
+    adminId: session.user.id,
+    adminEmail: session.user.email ?? "unknown",
+    action: "TEMPLATE_CREATED",
+    targetType: "MockTestTemplate",
+    targetId: template.id,
+    after: { name: template.name, sections: result.sections },
   });
 
   return NextResponse.json({ id: template.id, name: template.name, sections: template.sections }, { status: 201 });

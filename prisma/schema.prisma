@@ -398,6 +398,47 @@ model UsageEvent {
   @@index([userId, feature, createdAt])
 }
 
+// Master on/off switch for one feature (a practice category, or a named
+// subsystem like MOCK_TEST) - enforced server-side in the API routes that
+// serve that feature (src/lib/feature-flags.ts), never just hidden in the
+// UI. `key` is validated against a fixed catalog at the app layer (same
+// plain-string-not-enum reason as PracticeQuestion.category) so a typo in
+// an admin request can't silently create an unenforced flag. A row that
+// doesn't exist yet means "enabled" (fail-open) - a feature works normally
+// until an admin explicitly touches it.
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  description String?
+  enabled     Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+// Append-only record of administrative actions - question/feature/template/
+// user/settings changes. Deliberately NOT related to User by a foreign key:
+// an audit trail must survive even if the admin account that made the
+// change is later deleted, so adminId/adminEmail are a plain snapshot, not
+// a live relation. before/afterJson are optional since not every action
+// has a meaningful before/after state (e.g. "question deleted" only needs
+// beforeJson).
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  adminEmail String
+  action     String
+  targetType String?
+  targetId   String?
+  beforeJson String?
+  afterJson  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+}
+
 // A single-use, expiring token for the forgot-password flow. tokenHash
 // stores a SHA-256 hash of the token, never the raw value - the same
 // reason passwords are hashed, since anyone with DB read access should

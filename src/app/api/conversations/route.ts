@@ -5,10 +5,15 @@ import { db } from "@/lib/db";
 import { getRoleDef } from "@/lib/conversation-roles";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!(await isFeatureEnabled("INTERVIEW_SIMULATION"))) {
+    return NextResponse.json({ error: "Interview Simulation is currently unavailable." }, { status: 403 });
+  }
 
   const body = await req.json().catch(() => null);
   const role = body?.role;
