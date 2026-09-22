@@ -131,6 +131,19 @@ function avg(nums: number[]): number | null {
   return Math.round(valid.reduce((a, b) => a + b, 0) / valid.length);
 }
 
+// A category with weight 0 is excluded entirely (not just down-weighted
+// to near-nothing), same as it already being null - the admin can turn a
+// category fully off in the overall calculation this way. Every category
+// at weight 1 (the default) reduces to the exact same plain average as
+// before this feature existed.
+function weightedAvg(parts: { score: number | null; weight: number }[]): number | null {
+  const valid = parts.filter((p): p is { score: number; weight: number } => p.score !== null && p.weight > 0);
+  const totalWeight = valid.reduce((sum, p) => sum + p.weight, 0);
+  if (totalWeight === 0) return null;
+  const weightedSum = valid.reduce((sum, p) => sum + p.score * p.weight, 0);
+  return Math.round(weightedSum / totalWeight);
+}
+
 export interface AnalyzedVoiceAttempt {
   category: string;
   wordCount: number;
@@ -153,11 +166,17 @@ export function computeScoreReport({
   mcqAttempts,
   unanalyzedVoiceCount,
   proctoringEvents,
+  categoryWeights,
 }: {
   analyzedVoiceAttempts: AnalyzedVoiceAttempt[];
   mcqAttempts: ScoredMcqAttempt[];
   unanalyzedVoiceCount: number;
   proctoringEvents: ProctoringEventInput[];
+  // Admin-configurable (src/lib/scoring-config.ts) - the caller fetches
+  // current weights and passes them in, so this function stays a pure,
+  // easily-testable calculation with no DB access of its own. Omitted or
+  // missing entries default to 1, i.e. today's plain average.
+  categoryWeights?: Partial<Record<ScoreCategory, number>>;
 }): ScoreReportResult {
   const mcqAvgFor = (category: string) => {
     const scores = mcqAttempts.filter((a) => a.category === category).map((a) => a.score);
@@ -341,8 +360,8 @@ export function computeScoreReport({
     PROCTORING_INTEGRITY: proctoringIntegrity,
   };
 
-  const overallScore = avg(
-    SCORE_CATEGORIES.map((c) => categories[c].score).filter((s): s is number => s !== null)
+  const overallScore = weightedAvg(
+    SCORE_CATEGORIES.map((c) => ({ score: categories[c].score, weight: categoryWeights?.[c] ?? 1 }))
   );
 
   return { overallScore, categories };

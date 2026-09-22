@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { computeScoreReport, CATEGORY_LABELS, SCORE_CATEGORIES, type AnalyzedVoiceAttempt, type ScoredMcqAttempt } from "@/lib/scoring-engine";
+import { getCategoryWeights } from "@/lib/scoring-config";
 import { createGeminiReportProvider, type ReportEvidenceItem } from "@/lib/providers/gemini-report-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
 import type { PaceClassification } from "@/lib/speech-metrics";
@@ -124,11 +125,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
+  const categoryWeights = await getCategoryWeights(SCORE_CATEGORIES);
   const scoreReport = computeScoreReport({
     analyzedVoiceAttempts,
     mcqAttempts,
     unanalyzedVoiceCount,
     proctoringEvents: mockTestSession.events.map((e) => ({ eventType: e.eventType })),
+    categoryWeights,
   });
 
   const evidence = buildEvidence(analyzedVoiceAttempts);

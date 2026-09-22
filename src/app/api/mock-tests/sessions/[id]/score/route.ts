@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { computeScoreReport, type AnalyzedVoiceAttempt, type ScoredMcqAttempt } from "@/lib/scoring-engine";
+import { computeScoreReport, SCORE_CATEGORIES, type AnalyzedVoiceAttempt, type ScoredMcqAttempt } from "@/lib/scoring-engine";
+import { getCategoryWeights } from "@/lib/scoring-config";
 import { analyzeAttempt } from "@/lib/analyze-attempt";
 import type { PaceClassification } from "@/lib/speech-metrics";
 import type { VoiceAnalysisResult } from "@/lib/providers/gemini-analysis-provider";
@@ -64,11 +65,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
   }
 
+  const categoryWeights = await getCategoryWeights(SCORE_CATEGORIES);
   const report = computeScoreReport({
     analyzedVoiceAttempts,
     mcqAttempts,
     unanalyzedVoiceCount,
     proctoringEvents: mockTestSession.events.map((e) => ({ eventType: e.eventType })),
+    categoryWeights,
   });
 
   await db.scoreReport.upsert({

@@ -463,6 +463,21 @@ model AdminAuditLog {
   @@index([targetType, targetId])
 }
 
+// Admin-tunable weight for one scoring category's contribution to a mock
+// test's overall Readiness score (src/lib/scoring-engine.ts). A missing
+// row means weight 1 (today's plain-average behavior) - same fail-open
+// pattern as FeatureFlag, so nothing changes until an admin actually
+// adjusts a weight. `category` is validated against SCORE_CATEGORIES at
+// the app layer (src/lib/scoring-config.ts), the same plain-string
+// discipline used throughout this schema.
+model ScoringCategoryWeight {
+  id        String   @id @default(cuid())
+  category  String   @unique
+  weight    Float    @default(1)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 // A single-use, expiring token for the forgot-password flow. tokenHash
 // stores a SHA-256 hash of the token, never the raw value - the same
 // reason passwords are hashed, since anyone with DB read access should
