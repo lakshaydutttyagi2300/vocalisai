@@ -19,6 +19,13 @@ model User {
   // "CANDIDATE" | "ADMIN" - plain string for the same SQLite-has-no-enums
   // reason as PracticeQuestion.category; validated in src/lib/auth.ts.
   role         String   @default("CANDIDATE")
+  // Account-level kill switch, separate from plan/role - an admin can
+  // restrict access without touching what plan the candidate is on or
+  // deleting their data. Enforced in src/lib/auth.ts (blocks new logins)
+  // and src/proxy.ts (blocks an already-issued session's further use,
+  // checked fresh from the database on every matched request rather than
+  // trusting anything baked into the JWT).
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

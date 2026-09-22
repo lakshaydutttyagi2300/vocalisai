@@ -41,8 +41,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json().catch(() => null);
   const plan = body?.plan as string | undefined;
   const role = body?.role as string | undefined;
+  const isActive = body?.isActive as boolean | undefined;
 
-  if (plan === undefined && role === undefined) {
+  if (plan === undefined && role === undefined && isActive === undefined) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
   }
 
@@ -83,6 +84,28 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       targetId: id,
       before: { role: target.role },
       after: { role },
+    });
+  }
+
+  if (isActive !== undefined) {
+    if (typeof isActive !== "boolean") {
+      return NextResponse.json({ error: "isActive must be true or false." }, { status: 400 });
+    }
+    // Same self-action guard as role changes - an admin session reaching
+    // this route already implies the account is active, so a self-suspend
+    // would only ever be a mistake, never a legitimate use of this action.
+    if (id === session.user.id) {
+      return NextResponse.json({ error: "You can't suspend your own account. Ask another admin to do it." }, { status: 400 });
+    }
+    await db.user.update({ where: { id }, data: { isActive } });
+    await logAdminAction({
+      adminId: session.user.id,
+      adminEmail: session.user.email ?? "unknown",
+      action: isActive ? "USER_REACTIVATED" : "USER_SUSPENDED",
+      targetType: "User",
+      targetId: id,
+      before: { isActive: target.isActive },
+      after: { isActive },
     });
   }
 

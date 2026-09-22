@@ -26,6 +26,12 @@ export const authOptions: NextAuthOptions = {
         const passwordValid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!passwordValid) return null;
 
+        // A suspended account can't start a new session, regardless of a
+        // correct password - src/proxy.ts is the other half of this: it
+        // blocks a session issued *before* a suspension from continuing to
+        // be used.
+        if (!user.isActive) return null;
+
         return { id: user.id, email: user.email, name: user.name, role: user.role };
       },
     }),

@@ -25,6 +25,7 @@ interface CandidateDetail {
   name: string;
   email: string;
   role: string;
+  isActive: boolean;
   createdAt: string;
   targetRole: string | null;
   coachProfile: {
@@ -53,6 +54,8 @@ export default function AdminCandidateDetailPage() {
   const [selectedRole, setSelectedRole] = useState("CANDIDATE");
   const [savingRole, setSavingRole] = useState(false);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [savingActive, setSavingActive] = useState(false);
+  const [activeError, setActiveError] = useState<string | null>(null);
 
   function load() {
     fetch(`/api/admin/candidates/${params.id}`)
@@ -114,6 +117,29 @@ export default function AdminCandidateDetailPage() {
     }
   }
 
+  async function toggleActive() {
+    if (!detail) return;
+    setSavingActive(true);
+    setActiveError(null);
+    try {
+      const res = await fetch(`/api/admin/candidates/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !detail.isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setActiveError(data.error ?? "Couldn't update account status.");
+        return;
+      }
+      setDetail(data);
+    } catch {
+      setActiveError("Couldn't update account status.");
+    } finally {
+      setSavingActive(false);
+    }
+  }
+
   const isOwnAccount = detail && session?.user?.id === detail.id;
 
   if (error) {
@@ -150,6 +176,37 @@ export default function AdminCandidateDetailPage() {
         <span className="text-xs text-slate-500">
           Joined {new Date(detail.createdAt).toLocaleDateString()}
         </span>
+      </div>
+
+      <div className="card mt-4 p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account status</p>
+            <p className={`mt-1 font-display text-lg font-bold ${detail.isActive ? "text-ink-900" : "text-red-600"}`}>
+              {detail.isActive ? "Active" : "Suspended"}
+            </p>
+          </div>
+          {isOwnAccount ? (
+            <p className="text-xs text-slate-400">You can&apos;t suspend your own account - ask another admin.</p>
+          ) : (
+            <button
+              onClick={toggleActive}
+              disabled={savingActive}
+              className={detail.isActive ? "rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60" : "btn-primary text-sm disabled:opacity-60"}
+            >
+              {savingActive ? "Saving..." : detail.isActive ? "Suspend account" : "Reactivate account"}
+            </button>
+          )}
+        </div>
+        {activeError && (
+          <p role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{activeError}</p>
+        )}
+        {!detail.isActive && (
+          <p className="mt-3 text-xs text-slate-400">
+            A suspended account can&apos;t log in, and any session they&apos;re already using stops working on their
+            next request - pages redirect to login, API calls return 403.
+          </p>
+        )}
       </div>
 
       <div className="card mt-4 p-5">

@@ -74,15 +74,30 @@ export interface AdminUserRow {
   name: string;
   email: string;
   role: string;
+  isActive: boolean;
   createdAt: string;
   mockSessionsCompleted: number;
   averageOverallScore: number | null;
   totalPracticeAttempts: number;
 }
 
-export async function getAdminUsers(): Promise<AdminUserRow[]> {
+export interface AdminUsersFilter {
+  search?: string;
+  role?: string;
+  status?: "active" | "suspended";
+}
+
+export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<AdminUserRow[]> {
+  const where = {
+    ...(filter.search
+      ? { OR: [{ name: { contains: filter.search, mode: "insensitive" as const } }, { email: { contains: filter.search, mode: "insensitive" as const } }] }
+      : {}),
+    ...(filter.role ? { role: filter.role } : {}),
+    ...(filter.status === "active" ? { isActive: true } : filter.status === "suspended" ? { isActive: false } : {}),
+  };
+
   const [users, reports, attemptCounts] = await Promise.all([
-    db.user.findMany({ orderBy: { createdAt: "desc" }, select: { id: true, name: true, email: true, role: true, createdAt: true } }),
+    db.user.findMany({ where, orderBy: { createdAt: "desc" }, select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true } }),
     db.scoreReport.findMany({ select: { overallScore: true, mockTestSession: { select: { userId: true } } } }),
     db.practiceAttempt.groupBy({ by: ["userId"], _count: { _all: true } }),
   ]);
@@ -104,6 +119,7 @@ export async function getAdminUsers(): Promise<AdminUserRow[]> {
       name: u.name,
       email: u.email,
       role: u.role,
+      isActive: u.isActive,
       createdAt: u.createdAt.toISOString(),
       mockSessionsCompleted: scores.length,
       averageOverallScore: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
@@ -117,6 +133,7 @@ export interface AdminCandidateDetail {
   name: string;
   email: string;
   role: string;
+  isActive: boolean;
   createdAt: string;
   targetRole: string | null;
   // Reuses the exact same real cross-session aggregation the candidate's
@@ -150,6 +167,7 @@ export async function getAdminCandidateDetail(userId: string): Promise<AdminCand
     name: user.name,
     email: user.email,
     role: user.role,
+    isActive: user.isActive,
     createdAt: user.createdAt.toISOString(),
     targetRole: user.profile?.targetRole ?? null,
     coachProfile,
