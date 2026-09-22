@@ -135,6 +135,19 @@ export function MockTestQuestionRunner({
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
   }
 
+  // Mirrors PracticeSession's playAudio - mock-test Listening Comprehension
+  // questions were rendering the passage as silent text with no way to
+  // actually hear it, since this component never got the same "Play audio"
+  // button the regular practice flow has.
+  function playAudio() {
+    if (!currentQuestion?.passage) return;
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(currentQuestion.passage);
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  }
+
   async function submitAnswer(timedOut: boolean, recordingBlob?: Blob) {
     if (!currentQuestion) return;
     setPhase("submitting");
@@ -258,6 +271,11 @@ export function MockTestQuestionRunner({
           <p className="mb-4 rounded-md bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
             {currentQuestion.passage}
           </p>
+        )}
+        {currentQuestion.type === "LISTENING_COMPREHENSION" && (
+          <button onClick={playAudio} className="btn-secondary mb-4">
+            Play audio
+          </button>
         )}
         <h3 className="font-display font-bold">{currentQuestion.prompt}</h3>
 
