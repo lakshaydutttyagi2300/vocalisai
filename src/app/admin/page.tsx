@@ -108,6 +108,10 @@ export default function AdminOverviewPage() {
           <h2 className="font-display font-bold text-ink-900">Mock Test Templates</h2>
           <p className="mt-1 text-sm text-slate-600">Manage the sections and difficulty of proctored assessments.</p>
         </Link>
+        <Link href="/admin/questions" className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
+          <h2 className="font-display font-bold text-ink-900">Question Bank</h2>
+          <p className="mt-1 text-sm text-slate-600">Browse coverage, delete bad questions, and bulk-import new ones.</p>
+        </Link>
       </div>
     </div>
   );
