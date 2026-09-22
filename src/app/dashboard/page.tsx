@@ -38,16 +38,14 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
       {/* Hero */}
-      <div className="hero-banner animate-fade-up p-8 sm:p-10">
+      <div className="hero-banner animate-fade-up p-8 sm:p-12">
         <WaveformDecoration />
         <div className="relative z-10">
-          <span className="badge" style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "white" }}>
-            Voice &amp; Accent Readiness
-          </span>
-          <h1 className="mt-3 font-display text-3xl font-bold text-white">
-            {greeting()}, {firstName}
+          <span className="glass-badge">Voice &amp; Accent Readiness</span>
+          <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            {greeting()}, <span className="text-gradient-warm">{firstName}</span>
           </h1>
-          <p className="mt-1.5 text-sm text-white/70">Here&apos;s your Voice &amp; Accent readiness.</p>
+          <p className="mt-2 text-sm text-white/60">Here&apos;s your Voice &amp; Accent readiness.</p>
         </div>
       </div>
 
@@ -79,7 +77,9 @@ export default async function DashboardPage() {
           style={{ animationDelay: "80ms" }}
         >
           <div className="flex flex-col items-center gap-2">
-            <ScoreRing value={coach.averageOverallScore} label="Readiness" />
+            <div className="glow-halo">
+              <ScoreRing value={coach.averageOverallScore} label="Readiness" />
+            </div>
             <span className="badge badge-skill">
               Based on {coach.sessionsCompleted} assessment{coach.sessionsCompleted === 1 ? "" : "s"}
             </span>
