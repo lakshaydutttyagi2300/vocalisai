@@ -37,15 +37,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink-950">
-        {greeting()}, {firstName}
-      </h1>
-      <p className="mt-1 text-sm text-slate-600">Here&apos;s your Voice &amp; Accent readiness.</p>
+      {/* Hero */}
+      <div className="hero-banner animate-fade-up p-8 sm:p-10">
+        <WaveformDecoration />
+        <div className="relative z-10">
+          <span className="badge" style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "white" }}>
+            Voice &amp; Accent Readiness
+          </span>
+          <h1 className="mt-3 font-display text-3xl font-bold text-white">
+            {greeting()}, {firstName}
+          </h1>
+          <p className="mt-1.5 text-sm text-white/70">Here&apos;s your Voice &amp; Accent readiness.</p>
+        </div>
+      </div>
 
       {/* Readiness */}
       {coach.sessionsCompleted === 0 ? (
-        <div className="card mt-6 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:text-left">
-          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+        <div
+          className="card-elevated animate-fade-up mt-6 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:text-left"
+          style={{ animationDelay: "80ms" }}
+        >
+          <div className="icon-badge h-16 w-16 flex-none text-white">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
               <path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -62,7 +74,10 @@ export default async function DashboardPage() {
           </Link>
         </div>
       ) : (
-        <div className="card mt-6 grid gap-8 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
+        <div
+          className="card-elevated animate-fade-up mt-6 grid gap-8 p-6 sm:grid-cols-[auto_1fr] sm:items-center"
+          style={{ animationDelay: "80ms" }}
+        >
           <div className="flex flex-col items-center gap-2">
             <ScoreRing value={coach.averageOverallScore} label="Readiness" />
             <span className="badge badge-skill">
@@ -83,7 +98,9 @@ export default async function DashboardPage() {
                     </div>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className={`h-full rounded-full ${w.average < 60 ? "bg-red-500" : "bg-amber-500"}`}
+                        className={`h-full rounded-full bg-gradient-to-r ${
+                          w.average < 60 ? "from-red-400 to-red-600" : "from-amber-400 to-amber-600"
+                        }`}
                         style={{ width: `${w.average}%` }}
                       />
                     </div>
@@ -108,11 +125,16 @@ export default async function DashboardPage() {
           title="Start Practicing"
           description="Pronunciation, grammar, fluency and more."
           href="/practice"
+          icon={<MicIcon />}
+          delay="140ms"
         />
         <ActionCard
           title="Start Mock Assessment"
           description="A full proctored practice test."
           href="/mock-tests"
+          icon={<ShieldIcon />}
+          tone="amber"
+          delay="200ms"
         />
         <ActionCard
           title="Continue Practice"
@@ -122,10 +144,12 @@ export default async function DashboardPage() {
               : "Pick up your last exercise where you left off."
           }
           href={focusCategory ? `/practice/${categoryToSlug(focusCategory)}` : "/practice"}
+          icon={<ArrowRightIcon />}
+          delay="260ms"
         />
       </div>
 
-      <div className="card mt-4 p-6">
+      <div className="card-elevated animate-fade-up mt-4 p-6" style={{ animationDelay: "320ms" }}>
         <div className="flex items-center justify-between">
           <h2 className="font-display text-sm font-bold text-ink-900">Recent attempts</h2>
           <Link href="/progress" className="text-xs font-semibold text-brand-600 hover:underline">
@@ -142,12 +166,17 @@ export default async function DashboardPage() {
         ) : (
           <ul className="mt-4 divide-y divide-slate-100">
             {recentAttempts.map((a) => (
-              <li key={a.id} className="flex items-center justify-between py-3 text-sm">
-                <div>
+              <li key={a.id} className="group flex items-center justify-between rounded-lg px-2 py-3 text-sm transition hover:bg-slate-50">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`h-1.5 w-1.5 flex-none rounded-full ${
+                      a.score === null ? "bg-slate-300" : a.isCorrect ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  />
                   <span className="font-medium text-ink-900">
                     {getModeBySlug(categoryToSlug(a.category))?.label ?? a.category}
                   </span>
-                  <span className="ml-2 text-slate-500">{a.difficulty}</span>
+                  <span className="text-slate-500">{a.difficulty}</span>
                 </div>
                 <span
                   className={
@@ -174,11 +203,82 @@ export default async function DashboardPage() {
   );
 }
 
-function ActionCard({ title, description, href }: { title: string; description: string; href: string }) {
+function ActionCard({
+  title,
+  description,
+  href,
+  icon,
+  tone = "brand",
+  delay,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ReactNode;
+  tone?: "brand" | "amber";
+  delay: string;
+}) {
   return (
-    <Link href={href} className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
-      <h2 className="font-display font-bold text-ink-900">{title}</h2>
+    <Link
+      href={href}
+      className="card-elevated animate-fade-up group block p-5"
+      style={{ animationDelay: delay }}
+    >
+      <div className={`icon-badge ${tone === "amber" ? "icon-badge-amber" : ""} h-11 w-11 text-white transition-transform group-hover:scale-105`}>
+        {icon}
+      </div>
+      <h2 className="mt-4 font-display font-bold text-ink-900">{title}</h2>
       <p className="mt-1 text-sm text-slate-600">{description}</p>
     </Link>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" fill="currentColor" fillOpacity={0.95} />
+      <path d="M6 11v1a6 6 0 0 0 12 0v-1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 19v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="m9 12 2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M4 12h16m0 0-6-6m6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Purely decorative, audio-waveform bars behind the hero greeting - ties
+// the visual language back to "voice" without competing with the text
+// (aria-hidden, absolutely positioned, low opacity).
+function WaveformDecoration() {
+  const heights = [14, 26, 18, 34, 22, 40, 16, 30, 20, 12];
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden items-center gap-1.5 pr-10 opacity-40 sm:flex">
+      {heights.map((h, i) => (
+        <span
+          key={i}
+          className="w-1 rounded-full bg-white"
+          style={{ height: `${h * 2}px` }}
+        />
+      ))}
+    </div>
   );
 }

@@ -186,4 +186,77 @@ h1, h2, h3, h4 {
     background-color: var(--color-ink-950);
     color: #e7ede9;
   }
+
+  /* ----- "Premium" surface layer (design concept, dashboard first) -----
+     Layered shadow + hover lift, used instead of .card where a section
+     should feel like the primary focus of the page rather than a plain
+     content block. */
+  .card-elevated {
+    background-color: white;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 1rem;
+    box-shadow:
+      0 1px 2px rgb(19 25 28 / 0.04),
+      0 8px 24px -8px rgb(19 25 28 / 0.10),
+      0 24px 48px -28px rgb(16 110 100 / 0.22);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+  .card-elevated:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-brand-300);
+    box-shadow:
+      0 1px 2px rgb(19 25 28 / 0.04),
+      0 14px 32px -10px rgb(19 25 28 / 0.14),
+      0 36px 64px -28px rgb(16 110 100 / 0.32);
+  }
+
+  /* Dark gradient banner - hero/greeting surfaces that should feel like
+     the top of a real product dashboard, not another white card. */
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(120% 140% at 12% -20%, color-mix(in srgb, var(--color-brand-400) 60%, transparent) 0%, transparent 55%),
+      radial-gradient(90% 120% at 105% 0%, color-mix(in srgb, var(--color-amber-500) 38%, transparent) 0%, transparent 50%),
+      linear-gradient(160deg, var(--color-ink-950) 0%, var(--color-brand-900) 100%);
+  }
+
+  /* Gradient icon badges - replace flat single-color icon tiles with a
+     depth cue (soft colored glow) that ties back to the brand palette. */
+  .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-700));
+    box-shadow: 0 10px 24px -8px rgb(16 110 100 / 0.55);
+  }
+  .icon-badge-amber {
+    background: linear-gradient(135deg, var(--color-amber-500), var(--color-amber-700));
+    box-shadow: 0 10px 24px -8px rgb(201 138 46 / 0.5);
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fade-up 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+  .card-elevated {
+    transition: none;
+  }
 }
