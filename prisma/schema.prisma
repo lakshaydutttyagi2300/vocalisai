@@ -279,6 +279,14 @@ model MockTestTemplate {
   name      String
   createdAt DateTime @default(now())
 
+  // Explicit admin choice of which template new mock-test sessions use -
+  // replaces the old implicit "whichever template was created most
+  // recently" behavior. At most one row has this set to true at a time,
+  // enforced in application code (src/app/api/admin/templates) rather
+  // than a DB constraint, since Postgres partial-unique-index syntax isn't
+  // worth the extra migration complexity for a single admin-managed table.
+  isDefault Boolean @default(false)
+
   sections MockTestTemplateSection[]
   sessions MockTestSession[]
 }

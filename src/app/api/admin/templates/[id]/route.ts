@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
+import { logAdminAction } from "@/lib/audit-log";
 
 const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
 
@@ -51,18 +52,40 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const result = validateSections(body?.sections);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
+  // isDefault is optional on this route - omitted, it's left unchanged;
+  // set to true, every other template's flag is cleared first so exactly
+  // one row is ever the default (see schema.prisma's note on why this is
+  // enforced here rather than a DB constraint). Never allowed to unset
+  // itself directly - clear it by making a different template the default
+  // instead, so there's never a moment with zero defaults while templates
+  // exist.
+  const makeDefault = body?.isDefault === true;
+
   // Simplest correct approach for a small admin-managed row set: replace all
   // sections atomically rather than diffing individual rows.
   const template = await db.$transaction(async (tx) => {
+    if (makeDefault) {
+      await tx.mockTestTemplate.updateMany({ where: { isDefault: true }, data: { isDefault: false } });
+    }
     await tx.mockTestTemplateSection.deleteMany({ where: { templateId: id } });
     return tx.mockTestTemplate.update({
       where: { id },
-      data: { name, sections: { create: result.sections } },
+      data: { name, ...(makeDefault ? { isDefault: true } : {}), sections: { create: result.sections } },
       include: { sections: { orderBy: { order: "asc" } } },
     });
   });
 
-  return NextResponse.json({ id: template.id, name: template.name, sections: template.sections });
+  await logAdminAction({
+    adminId: session.user.id,
+    adminEmail: session.user.email ?? "unknown",
+    action: makeDefault && !existing.isDefault ? "TEMPLATE_SET_DEFAULT" : "TEMPLATE_UPDATED",
+    targetType: "MockTestTemplate",
+    targetId: id,
+    before: { name: existing.name, isDefault: existing.isDefault },
+    after: { name: template.name, isDefault: template.isDefault, sections: result.sections },
+  });
+
+  return NextResponse.json({ id: template.id, name: template.name, isDefault: template.isDefault, sections: template.sections });
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -83,5 +106,25 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
 
   await db.mockTestTemplate.delete({ where: { id } });
+
+  // Deleting the default template leaves zero defaults - promote the next
+  // most-recently-created one automatically, so mock tests never silently
+  // stop working because of a delete (the sessions route also has a
+  // most-recent fallback, but keeping isDefault accurate here means the
+  // admin UI's "Default" badge is never just wrong until someone notices).
+  if (existing.isDefault) {
+    const next = await db.mockTestTemplate.findFirst({ orderBy: { createdAt: "desc" } });
+    if (next) await db.mockTestTemplate.update({ where: { id: next.id }, data: { isDefault: true } });
+  }
+
+  await logAdminAction({
+    adminId: session.user.id,
+    adminEmail: session.user.email ?? "unknown",
+    action: "TEMPLATE_DELETED",
+    targetType: "MockTestTemplate",
+    targetId: id,
+    before: { name: existing.name, isDefault: existing.isDefault },
+  });
+
   return NextResponse.json({ deleted: true });
 }

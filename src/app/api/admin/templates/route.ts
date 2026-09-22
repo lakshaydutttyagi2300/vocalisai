@@ -49,6 +49,7 @@ export async function GET() {
     templates: templates.map((t) => ({
       id: t.id,
       name: t.name,
+      isDefault: t.isDefault,
       createdAt: t.createdAt.toISOString(),
       sessionsUsingIt: t._count.sessions,
       sections: t.sections.map((s) => ({ id: s.id, order: s.order, category: s.category, difficulty: s.difficulty, questionCount: s.questionCount })),
@@ -69,8 +70,13 @@ export async function POST(req: Request) {
   const result = validateSections(body?.sections);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
+  // The very first template ever created has nothing to be "the default"
+  // relative to - make it one automatically so mock tests work immediately
+  // without a separate admin step.
+  const isFirstTemplate = (await db.mockTestTemplate.count()) === 0;
+
   const template = await db.mockTestTemplate.create({
-    data: { name, sections: { create: result.sections } },
+    data: { name, isDefault: isFirstTemplate, sections: { create: result.sections } },
     include: { sections: { orderBy: { order: "asc" } } },
   });
 
@@ -80,8 +86,11 @@ export async function POST(req: Request) {
     action: "TEMPLATE_CREATED",
     targetType: "MockTestTemplate",
     targetId: template.id,
-    after: { name: template.name, sections: result.sections },
+    after: { name: template.name, sections: result.sections, isDefault: template.isDefault },
   });
 
-  return NextResponse.json({ id: template.id, name: template.name, sections: template.sections }, { status: 201 });
+  return NextResponse.json(
+    { id: template.id, name: template.name, isDefault: template.isDefault, sections: template.sections },
+    { status: 201 }
+  );
 }

@@ -14,6 +14,7 @@ interface Section {
 interface Template {
   id: string;
   name: string;
+  isDefault?: boolean;
   createdAt?: string;
   sessionsUsingIt?: number;
   sections: Section[];
@@ -31,6 +32,7 @@ export default function AdminTemplatesPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
 
   function load() {
     setError(null);
@@ -106,6 +108,28 @@ export default function AdminTemplatesPage() {
     }
   }
 
+  async function setDefault(t: Template) {
+    setSettingDefaultId(t.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/templates/${t.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: t.name, sections: t.sections, isDefault: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't set this template as default.");
+        return;
+      }
+      load();
+    } catch {
+      setError("Couldn't set this template as default.");
+    } finally {
+      setSettingDefaultId(null);
+    }
+  }
+
   async function deleteTemplate(id: string) {
     setDeletingId(id);
     setError(null);
@@ -127,7 +151,11 @@ export default function AdminTemplatesPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <h1 className="font-display text-2xl font-bold text-ink-950">Mock Test Templates</h1>
-      <p className="mt-1 text-sm text-slate-600">Manage the sections and difficulty of every proctored assessment.</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Manage the sections and difficulty of every proctored assessment. The template marked{" "}
+        <strong>Default</strong> is the one new mock tests actually use - editing it, or switching the default,
+        takes effect immediately for every new session.
+      </p>
 
       {error && (
         <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
@@ -149,13 +177,26 @@ export default function AdminTemplatesPage() {
               <div key={t.id} className="rounded-md border border-slate-200 p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-ink-900">{t.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-ink-900">{t.name}</p>
+                      {t.isDefault && <span className="badge badge-skill">Default</span>}
+                    </div>
                     <p className="text-xs text-slate-500">
                       {t.sections.length} section{t.sections.length === 1 ? "" : "s"} - used by {t.sessionsUsingIt} session
                       {t.sessionsUsingIt === 1 ? "" : "s"}
                     </p>
                   </div>
                   <div className="flex gap-2">
+                    {!t.isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => setDefault(t)}
+                        disabled={settingDefaultId === t.id}
+                        className="btn-secondary text-xs disabled:opacity-60"
+                      >
+                        {settingDefaultId === t.id ? "Setting..." : "Set as default"}
+                      </button>
+                    )}
                     <button type="button" onClick={() => startEditTemplate(t)} className="btn-secondary text-xs">
                       Edit
                     </button>

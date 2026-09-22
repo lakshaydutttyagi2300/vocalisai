@@ -20,13 +20,21 @@ export async function POST() {
     return NextResponse.json({ error: upgradeMessage(usage, "MOCK_ASSESSMENT") }, { status: 403 });
   }
 
-  // Uses whichever template was seeded/configured most recently - "allow
-  // the test configuration to change the sections" means editing this data,
-  // not the code that runs the test.
-  const template = await db.mockTestTemplate.findFirst({
-    orderBy: { createdAt: "desc" },
-    include: { sections: { orderBy: { order: "asc" } } },
-  });
+  // Uses whichever template an admin explicitly marked as the default -
+  // "allow the test configuration to change the sections" means editing
+  // this data, not the code that runs the test. Falls back to the most
+  // recently created template only if no default has ever been set
+  // (defensive - shouldn't happen once at least one template exists,
+  // since creating/setting a default always maintains exactly one).
+  const template =
+    (await db.mockTestTemplate.findFirst({
+      where: { isDefault: true },
+      include: { sections: { orderBy: { order: "asc" } } },
+    })) ??
+    (await db.mockTestTemplate.findFirst({
+      orderBy: { createdAt: "desc" },
+      include: { sections: { orderBy: { order: "asc" } } },
+    }));
 
   const mockTestSession = await db.mockTestSession.create({
     data: { userId: session.user.id, templateId: template?.id ?? null },
