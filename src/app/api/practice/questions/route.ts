@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { selectWithCooldown, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
 
 // Returns a random set of questions for a category/difficulty. The correct
 // answer is never included here - it's only checked server-side when the
@@ -49,8 +50,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No questions available for this selection yet." }, { status: 404 });
   }
 
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, Math.min(count, pool.length)).map((q) => ({
+  // Most-recently-answered-first, so selectWithCooldown excludes the
+  // freshest repeats first when the pool is too small to avoid all of them.
+  const recentAttempts = await db.practiceAttempt.findMany({
+    where: { userId: session.user.id, category, difficulty },
+    orderBy: { createdAt: "desc" },
+    take: RECENT_HISTORY_LIMIT,
+    select: { questionId: true },
+  });
+  const recentlySeenIds = [...new Set(recentAttempts.map((a) => a.questionId))];
+
+  const picked = selectWithCooldown(pool, recentlySeenIds, count);
+  const selected = picked.map((q) => ({
     ...q,
     options: q.options ? JSON.parse(q.options) : null,
   }));

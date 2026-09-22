@@ -6,6 +6,7 @@ import { getRoleDef } from "@/lib/conversation-roles";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { selectWithCooldown, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -43,7 +44,16 @@ export async function POST(req: Request) {
   if (pool.length === 0) {
     return NextResponse.json({ error: "No scenarios available for this selection yet." }, { status: 404 });
   }
-  const question = pool[Math.floor(Math.random() * pool.length)];
+
+  const recentSessions = await db.conversationSession.findMany({
+    where: { userId: session.user.id, role: roleDef.role, questionId: { not: null } },
+    orderBy: { startedAt: "desc" },
+    take: RECENT_HISTORY_LIMIT,
+    select: { questionId: true },
+  });
+  const recentlySeenIds = [...new Set(recentSessions.map((s) => s.questionId!))];
+
+  const [question] = selectWithCooldown(pool, recentlySeenIds, 1);
   const openingLine = question.passage ?? question.prompt;
 
   const conversationSession = await db.conversationSession.create({
