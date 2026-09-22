@@ -478,6 +478,26 @@ model ScoringCategoryWeight {
   createdAt DateTime @default(now())
 }
 
+// Fixed-window rate limiting, backed by Postgres rather than in-memory
+// state - this app runs as serverless functions (Vercel), where in-memory
+// counters would reset per cold start and never be shared across
+// concurrent instances, making them useless for real protection. `key`
+// identifies what's being limited (e.g. "login:ip:1.2.3.4" or
+// "login:email:someone@example.com"); `windowStart` is the current
+// window's start time truncated to the window size, so a new window is
+// just a new row rather than something that needs a cleanup job to reset.
+// Old rows are harmless clutter, not a correctness issue - can be swept
+// periodically, but nothing depends on that happening.
+model RateLimitHit {
+  id          String   @id @default(cuid())
+  key         String
+  windowStart DateTime
+  count       Int      @default(1)
+
+  @@unique([key, windowStart])
+  @@index([key, windowStart])
+}
+
 // A single-use, expiring token for the forgot-password flow. tokenHash
 // stores a SHA-256 hash of the token, never the raw value - the same
 // reason passwords are hashed, since anyone with DB read access should

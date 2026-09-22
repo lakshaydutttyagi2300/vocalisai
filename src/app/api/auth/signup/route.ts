@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SIGNUP_LIMIT = 5;
+const SIGNUP_WINDOW_SECONDS = 60 * 60;
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const limit = await checkRateLimit(`signup:ip:${ip}`, SIGNUP_LIMIT, SIGNUP_WINDOW_SECONDS);
+  if (!limit.allowed) {
+    return NextResponse.json({ error: "Too many signup attempts. Please try again later." }, { status: 429 });
+  }
+
   const body = await req.json().catch(() => null);
   if (!body) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
