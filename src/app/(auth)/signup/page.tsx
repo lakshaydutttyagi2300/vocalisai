@@ -60,7 +60,7 @@ export default function SignupPage() {
     <AuthShell>
       <h1 className="text-2xl font-semibold text-ink-950">Create your account</h1>
       <p className="mt-1 text-sm text-slate-600">
-        Start practicing for your BPO Voice &amp; Accent assessment.
+        Start practicing for your English communication and Voice &amp; Accent assessment.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">

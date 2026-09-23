@@ -91,31 +91,35 @@ const VOICE_ACCENT_TERMS = [
   { term: "Fluency", text: "Speaking with a natural flow, without long hesitations breaking up your answer." },
   { term: "Pace", text: "Whether you're speaking at a speed a listener can comfortably follow." },
   { term: "Grammar", text: "Sentence structure, tense and agreement in what you actually said." },
-  { term: "Vocabulary", text: "Whether your word choice fits a professional, customer-facing conversation." },
+  { term: "Vocabulary", text: "Whether your word choice fits a professional, clear conversation." },
   { term: "Filler words", text: "Habits like 'um,' 'like,' or 'you know' that can distract from your answer." },
   { term: "Answer quality", text: "Whether your response actually addresses what was asked, clearly and completely." },
 ];
 
 const WHO_FOR = [
   {
-    title: "BPO Job Seekers",
-    text: "Prepare specifically for Voice & Accent rounds and voice-process interviews, not generic English practice.",
+    title: "Recruitment Candidates",
+    text: "Prepare for spoken-English and communication rounds at international companies, whatever the interview format.",
+  },
+  {
+    title: "Students & Study Abroad",
+    text: "Build the speaking, listening and proficiency skills needed for academic and international life.",
+  },
+  {
+    title: "Working Professionals",
+    text: "Sharpen your spoken English for meetings, presentations, and everyday professional communication.",
   },
   {
     title: "Freshers",
     text: "Build real speaking confidence before your first interview, in a low-pressure practice environment.",
   },
   {
-    title: "Experienced Professionals",
-    text: "Sharpen your communication before applying for a senior or better-paying voice role.",
+    title: "Voice & Accent / BPO Candidates",
+    text: "Prepare specifically for Voice & Accent rounds and voice-process interviews - one of many assessment types VocalisAi supports.",
   },
   {
-    title: "Customer Service Candidates",
-    text: "Practice realistic, professional customer-facing conversations - refunds, complaints, escalations.",
-  },
-  {
-    title: "International Process Candidates",
-    text: "Prepare for the clear, professional spoken communication that international voice processes expect.",
+    title: "Anyone Improving Spoken English",
+    text: "Practice real speaking, listening and communication skills for whatever goal brought you here.",
   },
 ];
 
@@ -145,7 +149,7 @@ const WHY = [
 const FAQS = [
   {
     q: "What is VocalisAi?",
-    a: "An AI-powered practice platform for Voice & Accent and voice-process job interviews - real speaking exercises, real recordings, and real AI-supported feedback.",
+    a: "An AI-powered platform for English communication, Voice & Accent, and spoken-English proficiency practice - real speaking exercises, real recordings, and real AI-supported feedback, for recruitment assessments, proficiency exams, study abroad, or everyday professional communication.",
   },
   {
     q: "Is VocalisAi an English-learning app?",
@@ -180,12 +184,12 @@ const FAQS = [
     a: "Yes - the same skills are meant to be practiced repeatedly, with new material each time, so you can build familiarity rather than memorizing one answer.",
   },
   {
-    q: "What kinds of roles can I prepare for?",
-    a: "BPO, voice process, customer support, international customer service, technical support, telecalling, inside sales, and other English-speaking, customer-facing roles.",
+    q: "What kinds of assessments and roles can I prepare for?",
+    a: "Recruitment interviews and Voice & Accent rounds at international companies, English proficiency and study-abroad assessments, and voice-process/BPO/ITES roles - along with general spoken-English and communication improvement for work or study.",
   },
   {
     q: "Which countries can use VocalisAi?",
-    a: "VocalisAi is built for job seekers preparing for international voice and customer-service roles, wherever they're applying from.",
+    a: "VocalisAi is built for anyone preparing for an English speaking, listening, or communication assessment internationally - whatever your goal and wherever you're applying or studying from.",
   },
 ];
 
@@ -205,9 +209,11 @@ export default async function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-            VocalisAi is a practice platform for BPO and voice-process job seekers. Record real
-            spoken answers, get real AI feedback on your pronunciation, fluency and grammar, and
-            practice - repeatedly - until interview pressure feels familiar instead of frightening.
+            VocalisAi is a practice platform for anyone who needs to demonstrate or improve their
+            spoken English - recruitment assessments, Voice &amp; Accent rounds, study-abroad and
+            proficiency exams, or everyday professional communication. Record real spoken answers,
+            get real AI feedback on your pronunciation, fluency and grammar, and practice -
+            repeatedly - until speaking under pressure feels familiar instead of frightening.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">

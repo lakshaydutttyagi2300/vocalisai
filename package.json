@@ -2,7 +2,7 @@
   "name": "proacting",
   "version": "0.1.0",
   "private": true,
-  "description": "ProActing - AI-Powered BPO Voice & Accent Practice & Proctored Assessment Platform",
+  "description": "ProActing - AI-Powered English Communication, Voice & Accent, and Proctored Assessment Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
