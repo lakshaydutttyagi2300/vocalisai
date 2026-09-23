@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { isFeatureEnabled } from "@/lib/feature-flags";
-import { selectWithCooldown, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
+import { selectWithCooldown, shuffleArray, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
 
 // Returns a random set of questions for a category/difficulty. The correct
 // answer is never included here - it's only checked server-side when the
@@ -61,9 +61,13 @@ export async function GET(req: Request) {
   const recentlySeenIds = [...new Set(recentAttempts.map((a) => a.questionId))];
 
   const picked = selectWithCooldown(pool, recentlySeenIds, count);
+  // Shuffled fresh on every fetch (i.e. every new attempt) - the client
+  // stores whatever order it receives here in local state for the rest of
+  // that session, so this is also what keeps a single attempt's option
+  // order fixed once it's started.
   const selected = picked.map((q) => ({
     ...q,
-    options: q.options ? JSON.parse(q.options) : null,
+    options: q.options ? shuffleArray(JSON.parse(q.options)) : null,
   }));
 
   return NextResponse.json({ questions: selected });
