@@ -21,7 +21,7 @@ export interface ImprovedAnswerResult {
 }
 
 function buildPrompt(transcript: string, context?: string): string {
-  return `You are a BPO communication coach. A candidate gave this spoken response${
+  return `You are an English communication coach. A candidate gave this spoken response${
     context ? ` to: "${context}"` : ""
   }, transcribed exactly as spoken (including any filler words or grammar mistakes):
 

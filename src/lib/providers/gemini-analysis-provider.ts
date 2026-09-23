@@ -77,7 +77,7 @@ export interface VoiceAnalysisResult {
 }
 
 function buildPrompt(transcript: string, context?: string, scoringCriteria?: string | null): string {
-  return `You are a BPO Voice & Accent assessment analyst. You have been given both the candidate's actual AUDIO RECORDING and its transcript for one speaking response${
+  return `You are an English Communication & Voice Assessment analyst. You have been given both the candidate's actual AUDIO RECORDING and its transcript for one speaking response${
     context ? ` (context: ${context})` : ""
   }.${scoringCriteria ? ` What this response is meant to be assessed on: ${scoringCriteria}` : ""}
 

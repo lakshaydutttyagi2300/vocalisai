@@ -128,7 +128,7 @@ Write ONLY your next line of dialogue as THEM, with no label, no quotation marks
     }) {
       const candidateLines = history.filter((t) => t.speaker === "candidate").map((t) => t.text).join(" ");
 
-      const prompt = `You are a BPO Voice & Accent assessment analyst reviewing a practice roleplay conversation. The candidate practiced as themselves in a "${role}" scenario: ${scenario}
+      const prompt = `You are an English Communication & Voice Assessment analyst reviewing a practice roleplay conversation. The candidate practiced as themselves in a "${role}" scenario: ${scenario}
 
 Full conversation:
 ${formatHistory(history)}
@@ -174,7 +174,7 @@ Candidate's combined responses for reference: """${candidateLines}"""`;
       history: ConversationTurnInput[];
       candidateAudioClips: AudioPart[];
     }) {
-      const prompt = `You are a BPO Voice & Accent assessment analyst reviewing a customer-service roleplay simulation.${
+      const prompt = `You are a Voice & Accent assessment analyst reviewing a customer-service roleplay simulation.${
         scenarioType ? ` Scenario type: ${scenarioType}.` : ""
       } Scenario: ${scenario}
 

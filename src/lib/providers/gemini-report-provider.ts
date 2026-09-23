@@ -38,7 +38,7 @@ function buildPrompt(input: ResultsReportInput): string {
     ? input.evidence.map((e) => `- [${e.category}] ${e.note}`).join("\n")
     : "(no per-response notes available)";
 
-  return `You are a supportive BPO Voice & Accent coach writing a results summary for a candidate. You are given ALREADY-COMPUTED final scores and real notes from their assessment. Do NOT invent, restate as different, or contradict any number below - you may only reference them in prose. Your job is purely to synthesize a narrative from this evidence, grounding every claim in something actually given here.
+  return `You are a supportive English Communication & Voice Assessment coach writing a results summary for a candidate. You are given ALREADY-COMPUTED final scores and real notes from their assessment. Do NOT invent, restate as different, or contradict any number below - you may only reference them in prose. Your job is purely to synthesize a narrative from this evidence, grounding every claim in something actually given here.
 
 Overall score: ${input.overallScore === null ? "not yet available" : input.overallScore}
 

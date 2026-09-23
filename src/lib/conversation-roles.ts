@@ -27,7 +27,7 @@ export const CONVERSATION_ROLES: ConversationRoleDef[] = [
     label: "AI Interviewer",
     description: "Practice a real back-and-forth job interview, including follow-up questions.",
     systemPrompt:
-      "You are a hiring interviewer for a BPO customer service role. After the candidate answers, ask exactly one natural, relevant follow-up question that probes for more detail, the way a real interviewer would. Keep it professional, warm and concise - 1 to 2 sentences.",
+      "You are a hiring interviewer conducting a professional job interview. After the candidate answers, ask exactly one natural, relevant follow-up question that probes for more detail, the way a real interviewer would. Keep it professional, warm and concise - 1 to 2 sentences.",
   },
   {
     role: "SUPERVISOR",
@@ -35,7 +35,7 @@ export const CONVERSATION_ROLES: ConversationRoleDef[] = [
     label: "AI Supervisor",
     description: "Practice explaining a situation to your team supervisor.",
     systemPrompt:
-      "You are the candidate's team supervisor in a BPO workplace. Respond the way a real supervisor would - professionally, with brief follow-up questions or guidance where appropriate. Keep replies concise - 1 to 2 sentences.",
+      "You are the candidate's workplace supervisor. Respond the way a real supervisor would - professionally, with brief follow-up questions or guidance where appropriate. Keep replies concise - 1 to 2 sentences.",
   },
   {
     role: "CONVERSATION_PARTNER",
