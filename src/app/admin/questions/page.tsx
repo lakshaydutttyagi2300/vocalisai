@@ -132,6 +132,34 @@ export default function AdminQuestionsPage() {
   const newQuestionNeedsOptions =
     newQuestion.type === "MULTIPLE_CHOICE" || newQuestion.type === "READING_COMPREHENSION" || newQuestion.type === "LISTENING_COMPREHENSION";
 
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  const [bulkError, setBulkError] = useState<string | null>(null);
+
+  async function bulkSetActive(isActive: boolean) {
+    setBulkBusy(true);
+    setBulkError(null);
+    setBulkMessage(null);
+    try {
+      const res = await fetch("/api/admin/questions/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, difficulty, isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkError(data.error ?? "Bulk update failed.");
+        return;
+      }
+      setBulkMessage(`${isActive ? "Enabled" : "Disabled"} ${data.updated} question${data.updated === 1 ? "" : "s"}.`);
+      load();
+    } catch {
+      setBulkError("Bulk update failed.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   function load() {
     setError(null);
     const params = new URLSearchParams();
@@ -743,6 +771,23 @@ export default function AdminQuestionsPage() {
             />
           </label>
         </div>
+
+        {category && difficulty && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md bg-slate-50 px-3 py-2">
+            <span className="text-xs text-slate-600">
+              Bulk action for <strong>{PRACTICE_MODES.find((m) => m.category === category)?.label}</strong> /{" "}
+              <strong>{DIFFICULTY_LABELS[difficulty as keyof typeof DIFFICULTY_LABELS]}</strong>:
+            </span>
+            <button onClick={() => bulkSetActive(true)} disabled={bulkBusy} className="text-xs font-medium text-brand-600 hover:underline disabled:opacity-60">
+              Enable all disabled
+            </button>
+            <button onClick={() => bulkSetActive(false)} disabled={bulkBusy} className="text-xs font-medium text-amber-700 hover:underline disabled:opacity-60">
+              Disable all active
+            </button>
+            {bulkMessage && <span className="text-xs text-slate-600">{bulkMessage}</span>}
+            {bulkError && <span className="text-xs text-red-600">{bulkError}</span>}
+          </div>
+        )}
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
