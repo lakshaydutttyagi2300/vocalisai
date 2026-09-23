@@ -781,11 +781,19 @@ export default function AdminQuestionsPage() {
           </label>
         </div>
 
-        {category && difficulty && (
+        {category && (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md bg-slate-50 px-3 py-2">
             <span className="text-xs text-slate-600">
-              Bulk action for <strong>{PRACTICE_MODES.find((m) => m.category === category)?.label}</strong> /{" "}
-              <strong>{DIFFICULTY_LABELS[difficulty as keyof typeof DIFFICULTY_LABELS]}</strong>:
+              Bulk action for <strong>{PRACTICE_MODES.find((m) => m.category === category)?.label}</strong>
+              {difficulty ? (
+                <>
+                  {" "}
+                  / <strong>{DIFFICULTY_LABELS[difficulty as keyof typeof DIFFICULTY_LABELS]}</strong>
+                </>
+              ) : (
+                <> / <strong>all difficulties</strong></>
+              )}
+              :
             </span>
             <button onClick={() => bulkSetActive(true)} disabled={bulkBusy} className="text-xs font-medium text-brand-600 hover:underline disabled:opacity-60">
               Enable all disabled
