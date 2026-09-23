@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface UserRow {
   id: string;
@@ -23,12 +24,15 @@ function randomPassword() {
 }
 
 export default function AdminCandidatesPage() {
+  const { data: session } = useSession();
   const [users, setUsers] = useState<UserRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
@@ -80,6 +84,27 @@ export default function AdminCandidatesPage() {
       setCreateError("Couldn't create the account.");
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function deleteAccount(u: UserRow) {
+    if (!window.confirm(`Permanently delete ${u.name} (${u.email})? This deletes all their data and cannot be undone.`)) {
+      return;
+    }
+    setDeletingId(u.id);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/admin/candidates/${u.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDeleteError(data.error ?? "Couldn't delete this account.");
+        return;
+      }
+      setUsers((prev) => prev?.filter((row) => row.id !== u.id) ?? prev);
+    } catch {
+      setDeleteError("Couldn't delete this account.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -201,6 +226,9 @@ export default function AdminCandidatesPage() {
       {error && (
         <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
+      {deleteError && (
+        <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{deleteError}</p>
+      )}
 
       <div className="card mt-6 p-5">
         <div className="flex flex-wrap items-end gap-3">
@@ -246,7 +274,8 @@ export default function AdminCandidatesPage() {
                   <th className="pb-2 pr-4">Sessions</th>
                   <th className="pb-2 pr-4">Avg score</th>
                   <th className="pb-2 pr-4">Attempts</th>
-                  <th className="pb-2">Joined</th>
+                  <th className="pb-2 pr-4">Joined</th>
+                  <th className="pb-2" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -275,7 +304,20 @@ export default function AdminCandidatesPage() {
                     <td className="py-2 pr-4 text-slate-600">{u.mockSessionsCompleted}</td>
                     <td className="py-2 pr-4 text-slate-600">{u.averageOverallScore ?? "N/A"}</td>
                     <td className="py-2 pr-4 text-slate-600">{u.totalPracticeAttempts}</td>
-                    <td className="py-2 text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td className="py-2 pr-4 text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td className="py-2">
+                      {u.id === session?.user?.id ? (
+                        <span className="text-xs text-slate-400">You</span>
+                      ) : (
+                        <button
+                          onClick={() => deleteAccount(u)}
+                          disabled={deletingId === u.id}
+                          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-60"
+                        >
+                          {deletingId === u.id ? "Deleting..." : "Delete"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

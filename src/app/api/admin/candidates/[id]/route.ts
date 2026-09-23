@@ -112,3 +112,38 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const detail = await getAdminCandidateDetail(id);
   return NextResponse.json(detail);
 }
+
+// Permanent, irreversible delete - every related row (practice attempts,
+// recordings, mock test sessions, conversation sessions, coach messages,
+// subscription, usage events, password reset tokens) cascades via the
+// schema's onDelete: Cascade, so this is one query, not a manual cleanup
+// chain. Distinct from suspension (PATCH isActive: false above), which is
+// reversible and keeps all data - this is for test accounts or a real
+// deletion request, not routine moderation.
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const target = await db.user.findUnique({ where: { id } });
+  if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (id === session.user.id) {
+    return NextResponse.json({ error: "You can't delete your own account. Ask another admin to do it." }, { status: 400 });
+  }
+
+  await logAdminAction({
+    adminId: session.user.id,
+    adminEmail: session.user.email ?? "unknown",
+    action: "USER_DELETED",
+    targetType: "User",
+    targetId: id,
+    before: { name: target.name, email: target.email, role: target.role },
+  });
+
+  await db.user.delete({ where: { id } });
+
+  return NextResponse.json({ deleted: true });
+}
