@@ -1,6 +1,6 @@
-// Real BPO-relevant scenarios for the two conversation roles that don't
-// already have a question-bank category (CUSTOMER reuses CUSTOMER_SERVICE,
-// INTERVIEWER reuses INTERVIEW - both already seeded).
+// Real workplace/conversational scenarios for the two conversation roles
+// that don't already have a question-bank category (CUSTOMER reuses
+// CUSTOMER_SERVICE, INTERVIEWER reuses INTERVIEW - both already seeded).
 
 import { PrismaClient } from "@prisma/client";
 

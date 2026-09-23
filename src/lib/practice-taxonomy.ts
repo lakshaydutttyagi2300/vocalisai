@@ -117,6 +117,22 @@ export const PRACTICE_MODES: PracticeModeDef[] = [
     questionType: "SHORT_ANSWER",
     requiresVoice: true,
   },
+  {
+    slug: "supervisor",
+    category: "SUPERVISOR",
+    label: "Supervisor Conversation",
+    description: "Explain a work situation to your supervisor, clearly and professionally.",
+    questionType: "SHORT_ANSWER",
+    requiresVoice: true,
+  },
+  {
+    slug: "conversation-partner",
+    category: "CONVERSATION_PARTNER",
+    label: "Casual Conversation",
+    description: "Everyday spoken English with a friendly conversation partner - no work scenario.",
+    questionType: "SHORT_ANSWER",
+    requiresVoice: true,
+  },
 ];
 
 export function getModeBySlug(slug: string): PracticeModeDef | undefined {

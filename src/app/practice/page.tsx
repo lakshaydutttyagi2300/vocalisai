@@ -1,21 +1,33 @@
 import Link from "next/link";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 
-const GROUPS: { title: string; blurb: string; categories: string[] }[] = [
+const GROUPS: { title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
   {
-    title: "Voice & Accent",
-    blurb: "The core of a Voice & Accent round - pronunciation, fluency and read-aloud delivery.",
-    categories: ["READING", "PRONUNCIATION", "FLUENCY", "SPEAKING"],
-  },
-  {
-    title: "English Skills",
-    blurb: "The grammar, vocabulary and comprehension recruiters check before they even listen to your accent.",
+    title: "General English",
+    blurb: "The grammar, vocabulary and comprehension foundations every assessment checks first.",
     categories: ["GRAMMAR", "VOCABULARY", "READING_COMPREHENSION", "LISTENING"],
   },
   {
-    title: "Situational & Interview",
-    blurb: "Realistic workplace situations and interview questions, scored on communication - not just correctness.",
-    categories: ["CUSTOMER_SERVICE", "SITUATIONAL_JUDGEMENT", "INTERVIEW"],
+    title: "Speaking",
+    blurb: "Spoken delivery - reading aloud, fluency, open response and casual conversation.",
+    categories: ["READING", "FLUENCY", "SPEAKING", "CONVERSATION_PARTNER"],
+  },
+  {
+    title: "Pronunciation & Speech",
+    blurb: "Accuracy and clarity on the words and sentences that are commonly mispronounced.",
+    categories: ["PRONUNCIATION"],
+  },
+  {
+    title: "Interview Preparation",
+    blurb: "Practice written answers to common interview questions, or do a full live AI interview below.",
+    categories: ["INTERVIEW"],
+    liveConversationHref: "/practice/conversation?role=INTERVIEWER",
+  },
+  {
+    title: "Workplace & Customer Communication",
+    blurb: "Realistic workplace situations, supervisor conversations and customer scenarios, scored on communication - not just correctness.",
+    categories: ["SITUATIONAL_JUDGEMENT", "CUSTOMER_SERVICE", "SUPERVISOR"],
+    liveConversationHref: "/practice/conversation?role=CUSTOMER",
   },
 ];
 
@@ -54,7 +66,7 @@ export default function PracticeHubPage() {
         <div className="flex items-center justify-between">
           <div>
             <span className="badge badge-ai">AI Voice Conversation</span>
-            <h2 className="mt-2 font-display font-bold">Talk with an AI customer, interviewer or supervisor</h2>
+            <h2 className="mt-2 font-display font-bold">Talk with an AI customer, interviewer, supervisor or conversation partner</h2>
           </div>
           <span className="badge badge-neutral flex-none" style={{ backgroundColor: "rgba(255,255,255,.1)", color: "#e2e8e6" }}>
             Needs mic
@@ -78,6 +90,11 @@ export default function PracticeHubPage() {
                 <ModeCard key={mode.slug} mode={mode} />
               ))}
             </div>
+            {group.liveConversationHref && (
+              <Link href={group.liveConversationHref} className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+                Or do a live AI conversation instead &rarr;
+              </Link>
+            )}
           </section>
         );
       })}

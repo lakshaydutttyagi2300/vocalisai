@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CONVERSATION_ROLES } from "@/lib/conversation-roles";
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from "@/lib/practice-taxonomy";
 
-export default function ConversationSetupPage() {
+function ConversationSetupForm() {
   const router = useRouter();
-  const [role, setRole] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const preselectedRole = searchParams.get("role");
+  const [role, setRole] = useState<string | null>(
+    CONVERSATION_ROLES.some((r) => r.role === preselectedRole) ? preselectedRole : null
+  );
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,5 +97,13 @@ export default function ConversationSetupPage() {
         {isStarting ? "Starting..." : "Start conversation"}
       </button>
     </div>
+  );
+}
+
+export default function ConversationSetupPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConversationSetupForm />
+    </Suspense>
   );
 }
