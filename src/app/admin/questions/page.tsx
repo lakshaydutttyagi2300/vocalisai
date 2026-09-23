@@ -66,6 +66,72 @@ export default function AdminQuestionsPage() {
   const [editError, setEditError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newQuestion, setNewQuestion] = useState<QuestionDetail>({
+    id: "",
+    category: PRACTICE_MODES[0].category,
+    difficulty: "BEGINNER",
+    type: "MULTIPLE_CHOICE",
+    prompt: "",
+    passage: null,
+    options: [],
+    correctAnswer: null,
+    expectedAnswer: null,
+    explanation: null,
+    scoringCriteria: null,
+    timeLimitSeconds: 30,
+    isActive: true,
+  });
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addResult, setAddResult] = useState<ImportResult | null>(null);
+
+  async function submitNewQuestion() {
+    setAddSaving(true);
+    setAddError(null);
+    setAddResult(null);
+    try {
+      const { id: _id, ...payload } = newQuestion;
+      void _id;
+      const res = await fetch("/api/admin/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions: [payload] }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAddError(data.error ?? "Couldn't save this question.");
+        return;
+      }
+      setAddResult(data);
+      if (data.inserted > 0) {
+        setNewQuestion({
+          id: "",
+          category: newQuestion.category,
+          difficulty: newQuestion.difficulty,
+          type: newQuestion.type,
+          prompt: "",
+          passage: null,
+          options: [],
+          correctAnswer: null,
+          expectedAnswer: null,
+          explanation: null,
+          scoringCriteria: null,
+          timeLimitSeconds: newQuestion.timeLimitSeconds,
+          isActive: true,
+        });
+        load();
+      }
+    } catch {
+      setAddError("Couldn't save this question.");
+    } finally {
+      setAddSaving(false);
+    }
+  }
+
+  const newQuestionNeedsOptions =
+    newQuestion.type === "MULTIPLE_CHOICE" || newQuestion.type === "READING_COMPREHENSION" || newQuestion.type === "LISTENING_COMPREHENSION";
+
   function load() {
     setError(null);
     const params = new URLSearchParams();
@@ -313,6 +379,175 @@ export default function AdminQuestionsPage() {
               </ul>
             )}
           </div>
+        )}
+      </div>
+
+      <div className="card mt-6 p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display font-bold text-ink-900">Add a question manually</h2>
+          <button onClick={() => setShowAddForm((v) => !v)} className="text-xs font-medium text-brand-600 hover:underline">
+            {showAddForm ? "Hide" : "Show"}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">
+          Write one question by hand instead of pasting JSON - same fields as editing, saved through the same
+          bulk-import endpoint (as a batch of one), so it goes through the same validation and duplicate check.
+        </p>
+
+        {showAddForm && (
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <label className="flex flex-col text-xs text-slate-600">
+                Category
+                <select
+                  value={newQuestion.category}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, category: e.target.value })}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                >
+                  {PRACTICE_MODES.map((m) => (
+                    <option key={m.category} value={m.category}>{m.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">
+                Difficulty
+                <select
+                  value={newQuestion.difficulty}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, difficulty: e.target.value })}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                >
+                  {DIFFICULTIES.map((d) => (
+                    <option key={d} value={d}>{DIFFICULTY_LABELS[d]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">
+                Type
+                <select
+                  value={newQuestion.type}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, type: e.target.value })}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                >
+                  {QUESTION_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="mt-3 flex flex-col text-xs text-slate-600">
+              Prompt
+              <textarea
+                value={newQuestion.prompt}
+                onChange={(e) => setNewQuestion({ ...newQuestion, prompt: e.target.value })}
+                rows={2}
+                className="input-field mt-1"
+                placeholder={'e.g. Complete the sentence: "I eat ___ apple every day."'}
+              />
+            </label>
+
+            <label className="mt-3 flex flex-col text-xs text-slate-600">
+              Passage / instructions (optional)
+              <textarea
+                value={newQuestion.passage ?? ""}
+                onChange={(e) => setNewQuestion({ ...newQuestion, passage: e.target.value || null })}
+                rows={3}
+                className="input-field mt-1"
+              />
+            </label>
+
+            {newQuestionNeedsOptions && (
+              <>
+                <label className="mt-3 flex flex-col text-xs text-slate-600">
+                  Options (one per line)
+                  <textarea
+                    value={(newQuestion.options ?? []).join("\n")}
+                    onChange={(e) => setNewQuestion({ ...newQuestion, options: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                    rows={4}
+                    className="input-field mt-1 font-mono"
+                  />
+                </label>
+                <label className="mt-3 flex flex-col text-xs text-slate-600">
+                  Correct answer (must match one option exactly)
+                  <input
+                    type="text"
+                    value={newQuestion.correctAnswer ?? ""}
+                    onChange={(e) => setNewQuestion({ ...newQuestion, correctAnswer: e.target.value || null })}
+                    className="input-field mt-1"
+                  />
+                </label>
+              </>
+            )}
+
+            <label className="mt-3 flex flex-col text-xs text-slate-600">
+              Expected / reference answer (optional)
+              <textarea
+                value={newQuestion.expectedAnswer ?? ""}
+                onChange={(e) => setNewQuestion({ ...newQuestion, expectedAnswer: e.target.value || null })}
+                rows={2}
+                className="input-field mt-1"
+              />
+            </label>
+
+            <label className="mt-3 flex flex-col text-xs text-slate-600">
+              Explanation shown after answering (optional)
+              <textarea
+                value={newQuestion.explanation ?? ""}
+                onChange={(e) => setNewQuestion({ ...newQuestion, explanation: e.target.value || null })}
+                rows={2}
+                className="input-field mt-1"
+              />
+            </label>
+
+            <label className="mt-3 flex flex-col text-xs text-slate-600">
+              Scoring criteria (optional)
+              <textarea
+                value={newQuestion.scoringCriteria ?? ""}
+                onChange={(e) => setNewQuestion({ ...newQuestion, scoringCriteria: e.target.value || null })}
+                rows={2}
+                className="input-field mt-1"
+              />
+            </label>
+
+            <div className="mt-3 flex items-end gap-4">
+              <label className="flex flex-col text-xs text-slate-600">
+                Time limit (seconds)
+                <input
+                  type="number"
+                  min={5}
+                  max={300}
+                  value={newQuestion.timeLimitSeconds}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, timeLimitSeconds: Number(e.target.value) })}
+                  className="input-field mt-1 w-28"
+                />
+              </label>
+              <label className="flex items-center gap-2 pb-2 text-sm text-ink-900">
+                <input
+                  type="checkbox"
+                  checked={newQuestion.isActive}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, isActive: e.target.checked })}
+                />
+                Active (servable to candidates)
+              </label>
+            </div>
+
+            {addError && (
+              <p role="alert" className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{addError}</p>
+            )}
+            {addResult && (
+              <p className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {addResult.inserted > 0
+                  ? "Question saved."
+                  : addResult.duplicateCount > 0
+                    ? "Skipped - too similar to an existing question."
+                    : addResult.errors[0]?.error ?? "Nothing was saved."}
+              </p>
+            )}
+
+            <button onClick={submitNewQuestion} disabled={addSaving || !newQuestion.prompt.trim()} className="btn-primary mt-4 text-sm disabled:opacity-60">
+              {addSaving ? "Saving..." : "Save question"}
+            </button>
+          </>
         )}
       </div>
 

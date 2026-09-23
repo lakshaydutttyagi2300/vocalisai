@@ -63,6 +63,11 @@ interface QuestionInput {
   explanation?: string | null;
   scoringCriteria?: string | null;
   timeLimitSeconds: number;
+  // Optional - defaults to true (servable immediately), same as before this
+  // field existed. Importing a large draft/needs-review batch can pass
+  // false so nothing reaches candidates until an admin reviews and
+  // enables each question via the existing edit/toggle UI.
+  isActive?: boolean;
 }
 
 // Bulk import, not one-at-a-time - a real question bank grows in batches
@@ -143,6 +148,7 @@ export async function POST(req: Request) {
         explanation: q.explanation ?? null,
         scoringCriteria: q.scoringCriteria ?? null,
         timeLimitSeconds: q.timeLimitSeconds,
+        isActive: q.isActive ?? true,
         source: "SEEDED",
       })),
     });
