@@ -27,10 +27,14 @@ export async function GET(req: Request) {
     ...(active === "true" ? { isActive: true } : active === "false" ? { isActive: false } : {}),
   };
 
-  // Coverage only ever counts active questions - that's what a candidate
-  // can actually be served, which is the number an admin needs to see to
-  // judge "is there enough real content here".
-  const [total, questions, categoryCounts] = await Promise.all([
+  // Coverage counts active questions - that's what a candidate can
+  // actually be served, which is the number an admin needs to see to
+  // judge "is there enough real content here". totalCoverage counts
+  // every question regardless of status, so a large disabled/pending-review
+  // batch (e.g. a bulk import) is visible even before anything in it is
+  // turned on - otherwise the active-only table looks unchanged after a
+  // large import and makes it look like nothing was actually added.
+  const [total, questions, activeCounts, allCounts] = await Promise.all([
     db.practiceQuestion.count({ where }),
     db.practiceQuestion.findMany({
       where,
@@ -40,6 +44,7 @@ export async function GET(req: Request) {
       select: { id: true, category: true, difficulty: true, type: true, prompt: true, source: true, isActive: true, createdAt: true },
     }),
     db.practiceQuestion.groupBy({ by: ["category", "difficulty"], where: { isActive: true }, _count: { _all: true } }),
+    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], _count: { _all: true } }),
   ]);
 
   return NextResponse.json({
@@ -47,7 +52,8 @@ export async function GET(req: Request) {
     page,
     pageSize,
     questions,
-    coverage: categoryCounts.map((c) => ({ category: c.category, difficulty: c.difficulty, count: c._count._all })),
+    coverage: activeCounts.map((c) => ({ category: c.category, difficulty: c.difficulty, count: c._count._all })),
+    totalCoverage: allCounts.map((c) => ({ category: c.category, difficulty: c.difficulty, count: c._count._all })),
   });
 }
 

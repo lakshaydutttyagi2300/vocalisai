@@ -54,6 +54,7 @@ export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<QuestionRow[] | null>(null);
   const [total, setTotal] = useState(0);
   const [coverage, setCoverage] = useState<Coverage[]>([]);
+  const [totalCoverage, setTotalCoverage] = useState<Coverage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -175,6 +176,7 @@ export default function AdminQuestionsPage() {
           setQuestions(data.questions);
           setTotal(data.total);
           setCoverage(data.coverage);
+          setTotalCoverage(data.totalCoverage);
         }
       })
       .catch(() => setError("Couldn't load questions."));
@@ -316,6 +318,10 @@ export default function AdminQuestionsPage() {
     return coverage.find((c) => c.category === cat && c.difficulty === diff)?.count ?? 0;
   }
 
+  function totalCoverageFor(cat: string, diff: string): number {
+    return totalCoverage.find((c) => c.category === cat && c.difficulty === diff)?.count ?? 0;
+  }
+
   const needsOptions = editing && (editing.type === "MULTIPLE_CHOICE" || editing.type === "READING_COMPREHENSION" || editing.type === "LISTENING_COMPREHENSION");
 
   return (
@@ -332,8 +338,9 @@ export default function AdminQuestionsPage() {
       <div className="card mt-6 p-5">
         <h2 className="font-display font-bold text-ink-900">Coverage by category &amp; difficulty</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Active questions only. Low numbers mean candidates will see the same questions repeated often - that's the
-          actual cause of repetition, not a randomization bug.
+          Each cell shows <strong>active / total</strong>. Active is what candidates can actually be served - low
+          active numbers mean repeated questions, not a randomization bug. Total includes disabled questions (e.g.
+          an imported batch pending review) that aren&apos;t reachable by candidates yet.
         </p>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -351,9 +358,11 @@ export default function AdminQuestionsPage() {
                   <td className="py-1.5 pr-4 font-medium text-ink-900">{m.label}</td>
                   {DIFFICULTIES.map((d) => {
                     const n = coverageFor(m.category, d);
+                    const t = totalCoverageFor(m.category, d);
                     return (
                       <td key={d} className={`py-1.5 pr-4 font-mono ${n < 10 ? "text-amber-600" : "text-slate-600"}`}>
                         {n}
+                        {t > n && <span className="text-slate-400"> / {t}</span>}
                       </td>
                     );
                   })}
