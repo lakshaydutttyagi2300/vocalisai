@@ -78,6 +78,14 @@ export const PRACTICE_MODES: PracticeModeDef[] = [
     requiresVoice: false,
   },
   {
+    slug: "writing",
+    category: "WRITING",
+    label: "Writing",
+    description: "Sentence rewriting, short responses and professional messages.",
+    questionType: "SHORT_ANSWER",
+    requiresVoice: false,
+  },
+  {
     slug: "reading",
     category: "READING",
     label: "Read Aloud",

@@ -1,29 +1,40 @@
 import Link from "next/link";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 
-const GROUPS: { title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
+const GROUPS: { id: string; title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
   {
+    id: "general-english",
     title: "General English",
     blurb: "The grammar, vocabulary and comprehension foundations every assessment checks first.",
     categories: ["GRAMMAR", "VOCABULARY", "READING_COMPREHENSION", "LISTENING"],
   },
   {
+    id: "speaking",
     title: "Speaking",
     blurb: "Spoken delivery - reading aloud, fluency, open response and casual conversation.",
     categories: ["READING", "FLUENCY", "SPEAKING", "CONVERSATION_PARTNER"],
   },
   {
+    id: "pronunciation-speech",
     title: "Pronunciation & Speech",
     blurb: "Accuracy and clarity on the words and sentences that are commonly mispronounced.",
     categories: ["PRONUNCIATION"],
   },
   {
+    id: "writing",
+    title: "Writing",
+    blurb: "Sentence rewriting, short responses and professional messages.",
+    categories: ["WRITING"],
+  },
+  {
+    id: "interview-preparation",
     title: "Interview Preparation",
     blurb: "Practice written answers to common interview questions, or do a full live AI interview below.",
     categories: ["INTERVIEW"],
     liveConversationHref: "/practice/conversation?role=INTERVIEWER",
   },
   {
+    id: "workplace-communication",
     title: "Workplace & Customer Communication",
     blurb: "Realistic workplace situations, supervisor conversations and customer scenarios, scored on communication - not just correctness.",
     categories: ["SITUATIONAL_JUDGEMENT", "CUSTOMER_SERVICE", "SUPERVISOR"],
@@ -59,6 +70,16 @@ export default function PracticeHubPage() {
         difficulty; speaking modes ask for microphone access first.
       </p>
 
+      <div className="mt-4 flex flex-wrap gap-3 text-sm">
+        <Link href="/practice/goals" className="font-medium text-brand-600 hover:underline">
+          Not sure where to start? Tell us what you&apos;re preparing for &rarr;
+        </Link>
+        <span className="text-slate-300">|</span>
+        <Link href="/practice/quick" className="font-medium text-brand-600 hover:underline">
+          Short on time? Try a Quick Practice drill &rarr;
+        </Link>
+      </div>
+
       <Link
         href="/practice/conversation"
         className="card mt-8 block bg-ink-950 p-6 text-white transition hover:border-brand-400"
@@ -82,7 +103,7 @@ export default function PracticeHubPage() {
         const modes = PRACTICE_MODES.filter((m) => group.categories.includes(m.category));
         if (modes.length === 0) return null;
         return (
-          <section key={group.title} className="mt-10">
+          <section key={group.title} id={group.id} className="mt-10 scroll-mt-24">
             <h2 className="font-display text-lg font-bold text-ink-950">{group.title}</h2>
             <p className="mt-1 text-sm text-slate-600">{group.blurb}</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
