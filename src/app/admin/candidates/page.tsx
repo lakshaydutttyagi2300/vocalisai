@@ -15,12 +15,30 @@ interface UserRow {
   totalPracticeAttempts: number;
 }
 
+const PLAN_OPTIONS = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"];
+const ROLE_OPTIONS = ["CANDIDATE", "ADMIN"];
+
+function randomPassword() {
+  return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + "!A1";
+}
+
 export default function AdminCandidatesPage() {
   const [users, setUsers] = useState<UserRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState(randomPassword());
+  const [newRole, setNewRole] = useState("CANDIDATE");
+  const [newPlan, setNewPlan] = useState("FREE");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createdAccount, setCreatedAccount] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
     setError(null);
@@ -35,12 +53,150 @@ export default function AdminCandidatesPage() {
         else setUsers(data.users);
       })
       .catch(() => setError("Couldn't load candidates."));
-  }, [search, role, status]);
+  }, [search, role, status, refreshKey]);
+
+  async function createAccount() {
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await fetch("/api/admin/candidates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole, plan: newPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateError(data.error ?? "Couldn't create the account.");
+        return;
+      }
+      setCreatedAccount({ email: newEmail, password: newPassword });
+      setNewName("");
+      setNewEmail("");
+      setNewPassword(randomPassword());
+      setNewRole("CANDIDATE");
+      setNewPlan("FREE");
+      setRefreshKey((k) => k + 1);
+    } catch {
+      setCreateError("Couldn't create the account.");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink-950">Candidates</h1>
-      <p className="mt-1 text-sm text-slate-600">Every registered user, with their real activity and average score.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-ink-950">Candidates</h1>
+          <p className="mt-1 text-sm text-slate-600">Every registered user, with their real activity and average score.</p>
+        </div>
+        <button
+          onClick={() => {
+            setShowAddForm((v) => !v);
+            setCreatedAccount(null);
+            setCreateError(null);
+          }}
+          className="btn-primary text-sm"
+        >
+          {showAddForm ? "Cancel" : "Add account"}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <div className="card mt-4 p-5">
+          <h2 className="font-display font-bold text-ink-900">Create a test or real account</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Creates the account directly with a starting role and plan - no self-signup needed. You can change
+            the plan, role or status any time from the candidate&apos;s detail page.
+          </p>
+
+          {createdAccount ? (
+            <div className="mt-4 rounded-md bg-green-50 px-3 py-3 text-sm text-green-800">
+              <p className="font-semibold">Account created.</p>
+              <p className="mt-1">
+                Email: <span className="font-mono">{createdAccount.email}</span>
+              </p>
+              <p>
+                Password: <span className="font-mono">{createdAccount.password}</span>
+              </p>
+              <p className="mt-1 text-xs text-green-700">Share this password with them - it won&apos;t be shown again.</p>
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col text-xs text-slate-600">
+                Name
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                  placeholder="e.g. Test Candidate"
+                />
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">
+                Email
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                  placeholder="e.g. test1@example.com"
+                />
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">
+                Password
+                <div className="mt-1 flex gap-2">
+                  <input
+                    type="text"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setNewPassword(randomPassword())}
+                    className="rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+                  >
+                    Regenerate
+                  </button>
+                </div>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col text-xs text-slate-600">
+                  Role
+                  <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                    {ROLE_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col text-xs text-slate-600">
+                  Starting plan
+                  <select value={newPlan} onChange={(e) => setNewPlan(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+                    {PLAN_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {createError && (
+            <p role="alert" className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{createError}</p>
+          )}
+
+          {!createdAccount && (
+            <button onClick={createAccount} disabled={creating} className="btn-primary mt-4 text-sm disabled:opacity-60">
+              {creating ? "Creating..." : "Create account"}
+            </button>
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
