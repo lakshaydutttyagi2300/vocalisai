@@ -13,8 +13,8 @@ const GROUPS: { title: string; blurb: string; categories: string[] }[] = [
     categories: ["GRAMMAR", "VOCABULARY", "READING_COMPREHENSION", "LISTENING"],
   },
   {
-    title: "BPO & Interview",
-    blurb: "Realistic customer situations and interview questions, scored on communication - not just correctness.",
+    title: "Situational & Interview",
+    blurb: "Realistic workplace situations and interview questions, scored on communication - not just correctness.",
     categories: ["CUSTOMER_SERVICE", "SITUATIONAL_JUDGEMENT", "INTERVIEW"],
   },
 ];
