@@ -80,7 +80,7 @@ export const PRACTICE_MODES: PracticeModeDef[] = [
   {
     slug: "reading",
     category: "READING",
-    label: "Reading",
+    label: "Read Aloud",
     description: "Read passages aloud, scored on pronunciation, pace and clarity.",
     questionType: "SHORT_ANSWER",
     requiresVoice: true,

@@ -1,17 +1,23 @@
-// Default Full Mock Assessment template, matching the master spec's example
-// section list exactly. This is data, not code - a future admin UI (Phase
-// 17) edits these rows directly to change the test structure, no
-// application changes needed.
+// Workplace-focused Full Mock Assessment template - customer-service and
+// supervisor-scenario heavy, for candidates specifically prepping for a
+// voice-process/workplace-communication role. Not the platform default;
+// see seed-mock-test-template-general.mjs for the general-purpose default.
 //
-// "Reading" here means read-aloud (the READING category, voice) - the real
-// BPO definition per Phase 4 - not the READING_COMPREHENSION practice mode.
-// "Customer-Service Roleplay" is a single recorded response to a scenario,
-// like the other voice sections here - the full multi-turn AI conversation
-// (Phase 10/11) remains available separately for deeper practice.
+// "Reading" here means read-aloud (the READING category, voice) - not the
+// READING_COMPREHENSION practice mode. "Customer-Service Roleplay" is a
+// single recorded response to a scenario, like the other voice sections
+// here - the full multi-turn AI conversation remains available separately
+// for deeper practice.
 
 import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
+
+const NAME = "Workplace Communication Assessment";
+// Renamed from "Standard BPO Assessment" (repositioning work) - checked too
+// so re-running this script against an older, unrenamed database doesn't
+// create a duplicate template.
+const LEGACY_NAME = "Standard BPO Assessment";
 
 const SECTIONS = [
   { order: 1, category: "LISTENING", difficulty: "INTERMEDIATE", questionCount: 2 },
@@ -26,15 +32,17 @@ const SECTIONS = [
 ];
 
 async function main() {
-  const existing = await db.mockTestTemplate.findFirst({ where: { name: "Standard BPO Assessment" } });
+  const existing = await db.mockTestTemplate.findFirst({
+    where: { name: { in: [NAME, LEGACY_NAME] } },
+  });
   if (existing) {
-    console.log("Skipping: default template already seeded.");
+    console.log(`Skipping: "${existing.name}" already seeded.`);
     return;
   }
 
   const template = await db.mockTestTemplate.create({
     data: {
-      name: "Standard BPO Assessment",
+      name: NAME,
       sections: { create: SECTIONS },
     },
     include: { sections: true },
