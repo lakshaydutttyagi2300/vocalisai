@@ -16,11 +16,11 @@ const IMG_CTA = "https://images.unsplash.com/photo-1513258496099-48168024aec0"; 
 const HOW_IT_WORKS = [
   {
     step: "Choose Practice",
-    text: "Pick a skill - pronunciation, fluency, grammar, customer-service roleplay, and more - and get a realistic question.",
+    text: "Pick the skill or exam-style task you need - speaking, listening, reading, writing, grammar, vocabulary, or a role-specific scenario - and get a realistic question.",
   },
   {
     step: "Take the Test",
-    text: "Answer for real: record your spoken response, or answer written questions, under the same conditions as the real thing.",
+    text: "Answer for real: record your spoken response, or answer written questions, under the same conditions as the real assessment.",
   },
   {
     step: "Get AI Analysis",
@@ -34,60 +34,60 @@ const HOW_IT_WORKS = [
 
 const KEY_FEATURES = [
   {
-    title: "AI Voice & Accent Analysis",
+    title: "AI Speaking & Pronunciation Analysis",
     text: "Real audio, genuinely listened to - pronunciation, articulation and delivery scored from your actual recording, not guessed from a transcript.",
   },
   {
-    title: "Practice Tests",
-    text: "Short, focused exercises across 13 skill categories, from grammar and vocabulary to customer-service roleplay.",
+    title: "Practice Across Every Core Skill",
+    text: "Focused exercises across 13 categories - reading, listening, writing, grammar, vocabulary, spoken fluency, and role-specific scenarios.",
   },
   {
-    title: "Full Mock Assessments",
-    text: "A complete, timed, proctored practice test with camera and microphone checks and a full results breakdown at the end.",
+    title: "Full Proctored Mock Exams",
+    text: "A complete, timed, proctored practice exam with camera and microphone checks and a full results breakdown at the end.",
   },
   {
-    title: "Speech & Pronunciation Analysis",
-    text: "Mispronounced words with a plain-language phonetic hint, plus notes on articulation and intelligibility.",
+    title: "Detailed Speech & Language Feedback",
+    text: "Mispronounced words with a plain-language phonetic hint, plus specific grammar, vocabulary and delivery notes.",
   },
   {
-    title: "Interview Simulation",
-    text: "A live, spoken back-and-forth with an AI playing an interviewer, a customer, a supervisor, or a casual conversation partner.",
+    title: "Interview & Role-Play Simulation",
+    text: "A live, spoken back-and-forth with an AI playing an interviewer, a customer, a supervisor, or a casual conversation partner - for recruitment interviews, BPO/MNC assessments, and everyday professional scenarios.",
   },
   {
-    title: "Question Bank",
-    text: "A growing bank of real practice questions across grammar, vocabulary, reading, listening, writing and spoken skills.",
+    title: "Comprehensive Question Bank",
+    text: "A growing bank of real practice questions spanning language-proficiency skills, workplace English, and role-specific assessments.",
   },
   {
-    title: "Performance Reports",
+    title: "Detailed Performance Reports",
     text: "A category-by-category breakdown of every response - what was strong, what needs work, and why.",
   },
   {
     title: "Progress Tracking",
-    text: "Your real scores across every completed mock assessment, tracked over time so improvement is something you can see.",
+    text: "Your real scores across every completed mock exam, tracked over time so improvement is something you can see.",
   },
   {
-    title: "Proctored Exam Experience",
-    text: "Camera and microphone checks, timed sections and a fixed question order once started - the same format as a real assessment.",
+    title: "Secure Proctored Exam Experience",
+    text: "Camera and microphone checks, timed sections and a fixed question order once started - the same format as a real exam or assessment.",
   },
 ];
 
 const SHOWCASE = [
   {
     label: "Practice mode",
-    title: "Skill-by-skill practice",
-    text: "13 focused categories - grammar, vocabulary, reading comprehension, listening, situational judgement, interview questions, writing, read-aloud, pronunciation, fluency, speaking, customer-service roleplay and casual conversation.",
+    title: "Skill & exam-style practice",
+    text: "13 focused categories covering the core skills tested across English proficiency exams, academic and workplace assessments, and placement tests - grammar, vocabulary, reading comprehension, listening, writing, read-aloud, pronunciation, fluency, speaking, and situational judgement.",
     meta: "Untimed by default · answer at your own pace · repeatable with new material",
   },
   {
-    label: "Interview simulation",
+    label: "Interview & role-play simulation",
     title: "Live spoken conversation",
-    text: "A real-time back-and-forth with an AI playing an interviewer, customer, supervisor or conversation partner - not a fixed list of questions.",
+    text: "A real-time back-and-forth with an AI playing an interviewer, customer, supervisor or conversation partner - for recruitment interviews, BPO/MNC assessments, and other role-specific scenarios, not a fixed list of questions.",
     meta: "Spoken, spontaneous responses · feedback after the conversation ends",
   },
   {
-    label: "Full mock assessment",
-    title: "Complete proctored exam",
-    text: "A timed, multi-section assessment built from an admin-configured template - camera and microphone checks first, then a fixed question order for the rest of the session.",
+    label: "Full mock exam",
+    title: "Complete proctored assessment",
+    text: "A timed, multi-section mock exam built from an admin-configured template - camera and microphone checks first, then a fixed question order for the rest of the session, in the same format as a real proctored exam.",
     meta: "Camera + microphone check · timed sections · no going back once started",
   },
 ];
@@ -103,12 +103,12 @@ const AI_METRICS = [
 
 const WHY_CANDIDATES = [
   {
-    title: "Lack of practice",
-    text: "Most candidates walk into a Voice & Accent round having read about it, never having actually done it. Every exercise here is real practice, not a description of one.",
+    title: "Lack of practice under real exam conditions",
+    text: "Most candidates prepare for a language test, assessment or interview having read about it, never having actually done it under timed, proctored conditions. Every exercise here is real practice, not a description of one.",
   },
   {
-    title: "Interview anxiety",
-    text: "The proctored mock assessment and interview simulation exist so the first time you experience that format isn't in front of a recruiter.",
+    title: "Anxiety before speaking tests and interviews",
+    text: "The proctored mock exam and interview simulation exist so the first time you experience that format isn't on exam day or in front of a recruiter.",
   },
   {
     title: "Pronunciation issues you can't hear yourself",
@@ -120,14 +120,14 @@ const WHY_CANDIDATES = [
   },
   {
     title: "Not knowing when you're ready",
-    text: "Your Progress page tracks your real scores across every mock assessment, so \"am I ready?\" has an answer based on your own history, not a guess.",
+    text: "Your Progress page tracks your real scores across every mock exam, so \"am I ready?\" has an answer based on your own history, not a guess.",
   },
 ];
 
 const PLAN_ORDER = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"] as const;
 const PLAN_DISPLAY: Record<(typeof PLAN_ORDER)[number], { label: string; blurb: string }> = {
   FREE: { label: "Free", blurb: "A one-time sample of the platform, at your own pace." },
-  STARTER: { label: "Starter", blurb: "For candidates actively preparing for an upcoming round." },
+  STARTER: { label: "Starter", blurb: "For candidates actively preparing for an upcoming exam, assessment or interview." },
   PROFESSIONAL: { label: "Professional", blurb: "For serious, repeated practice across every skill." },
   PREMIUM: { label: "Premium", blurb: "Full access, for the most thorough preparation." },
 };
@@ -157,17 +157,20 @@ export default async function LandingPage() {
               <svg className="h-3.5 w-3.5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 1.5a1 1 0 01.894.553l1.53 3.1 3.42.497a1 1 0 01.554 1.706l-2.475 2.412.584 3.406a1 1 0 01-1.451 1.054L10 12.48l-3.056 1.748a1 1 0 01-1.451-1.054l.584-3.406-2.475-2.412a1 1 0 01.554-1.706l3.42-.497 1.53-3.1A1 1 0 0110 1.5z" clipRule="evenodd" />
               </svg>
-              Secure AI-Powered Assessments
+              AI-Powered English Practice &amp; Proctored Assessment Platform
             </span>
             <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Practice speaking under pressure
-              <span className="block text-brand-300">before someone else is judging it.</span>
+              Prepare for your English test or assessment
+              <span className="block text-brand-300">before it actually counts.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-200">
-              VocalisAi is an AI-powered practice platform for BPO and voice-process job seekers.
-              Record real spoken answers, get real AI feedback on your pronunciation, fluency and
-              grammar, and take full proctored mock assessments - so your next Voice &amp; Accent
-              round isn&apos;t the first time you&apos;ve done any of this.
+              VocalisAi is a premium AI-powered practice platform for English language tests and
+              professional assessments - IELTS-style speaking, listening, reading and writing
+              practice, general English proficiency and placement tests, academic and workplace
+              English, recruitment and pre-employment assessments, and BPO/MNC interviews. Record
+              real spoken answers, get real AI feedback on your pronunciation, fluency and grammar,
+              and take full proctored mock exams - so exam day or assessment day isn&apos;t the
+              first time you&apos;ve done any of this.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               {session ? (
@@ -195,7 +198,7 @@ export default async function LandingPage() {
           <Reveal delayMs={150} className="relative">
             <div className="card mx-auto max-w-md overflow-hidden p-0 shadow-[var(--shadow-card-lg)]">
               <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
-                <span className="text-xs font-semibold text-ink-700">Speech Analysis · Customer Service</span>
+                <span className="text-xs font-semibold text-ink-700">Speech Analysis · Speaking Practice</span>
                 <span className="badge badge-ai">AI Analyzed</span>
               </div>
               <div className="space-y-4 p-5">
@@ -275,20 +278,25 @@ export default async function LandingPage() {
               />
             </div>
             <div className="absolute -bottom-5 -right-5 hidden rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[var(--shadow-card-lg)] sm:block">
-              <p className="text-xs font-semibold text-ink-900">Interview Readiness</p>
+              <p className="text-xs font-semibold text-ink-900">Readiness score</p>
               <p className="font-display text-2xl font-bold text-brand-600">82<span className="text-sm text-slate-400">/100</span></p>
             </div>
           </Reveal>
           <div className="order-1 lg:order-2">
             <h2 className="font-display text-2xl font-bold text-ink-950 sm:text-3xl">
-              Why candidates use VocalisAi
+              A single platform for English exams, assessments and interviews
             </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              Whichever test or assessment is next - a language-proficiency exam, an academic or
+              workplace English assessment, a recruitment or pre-employment test, or a BPO/MNC
+              interview - the same realistic practice and honest AI feedback apply.
+            </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               {[
-                { title: "AI-powered practice", text: "Every exercise is built around real Voice & Accent and voice-process demands." },
-                { title: "Realistic assessments", text: "Timed, proctored mock tests with camera and microphone checks - the real format, not a preview of it." },
+                { title: "AI-powered practice", text: "Every exercise is built around the real demands of language tests, assessments, and interviews - not generic drills." },
+                { title: "Realistic assessments", text: "Timed, proctored mock exams with camera and microphone checks - the real format, not a preview of it." },
                 { title: "Real speech analysis", text: "Feedback grounded in your actual audio and transcript, never a generic estimate." },
-                { title: "Progress tracking", text: "Your real scores across every mock assessment, tracked over time." },
+                { title: "Progress tracking", text: "Your real scores across every mock exam, tracked over time." },
               ].map((v) => (
                 <div key={v.title}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
@@ -310,8 +318,9 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-center font-display text-2xl font-bold">How it works</h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-sm text-slate-300">
-            The same simple loop, every time - designed to build real speaking confidence through
-            repetition, not a one-time lesson.
+            The same simple loop, every time - whatever exam, assessment or interview you&apos;re
+            preparing for - designed to build real confidence through repetition, not a one-time
+            lesson.
           </p>
           <div className="relative mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {HOW_IT_WORKS.map((j, i) => (
@@ -333,7 +342,8 @@ export default async function LandingPage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <h2 className="text-center font-display text-2xl font-bold text-ink-950">Key features</h2>
         <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
-          Everything you need to practice, get real feedback, and walk in prepared.
+          Everything you need to prepare for a language test, an academic or workplace English
+          assessment, a recruitment assessment, or an interview - and walk in prepared.
         </p>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {KEY_FEATURES.map((f, i) => (
@@ -444,10 +454,11 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h2 className="font-display text-2xl font-bold text-ink-950">Track real improvement, not a feeling</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
-            Every mock assessment produces a real Interview Readiness score, and your Progress page
-            tracks it across every attempt - alongside a category-by-category breakdown of where
-            you&apos;re genuinely improving and where you still need work. It&apos;s calculated from
-            your own completed sessions, never invented.
+            Every mock exam produces a real Readiness score, and your Progress page tracks it
+            across every attempt - alongside a category-by-category breakdown of where you&apos;re
+            genuinely improving and where you still need work, whatever exam or assessment
+            you&apos;re preparing for. It&apos;s calculated from your own completed sessions, never
+            invented.
           </p>
           <div className="card mx-auto mt-10 max-w-lg p-6 text-left">
             <div className="flex items-center justify-between text-xs font-semibold text-ink-700">
@@ -469,6 +480,11 @@ export default async function LandingPage() {
         <h2 className="text-center font-display text-2xl font-bold text-ink-950">
           Built for the problems candidates actually have
         </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
+          Whether you&apos;re preparing for a language-proficiency exam, an academic or workplace
+          assessment, a recruitment test, or a BPO/MNC interview, the underlying problems are the
+          same.
+        </p>
         <div className="mt-10 space-y-6">
           {WHY_CANDIDATES.map((w) => (
             <div key={w.title} className="flex gap-4">
@@ -556,7 +572,7 @@ export default async function LandingPage() {
           <div className="hero-dark-scrim absolute inset-0" />
           <div className="relative mx-auto max-w-2xl px-6 py-24 text-center">
             <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
-              Your next Voice &amp; Accent round doesn&apos;t have to be a guess.
+              Your next exam, assessment or interview doesn&apos;t have to be a guess.
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-200">
               Create a free account and take your first practice session in minutes.

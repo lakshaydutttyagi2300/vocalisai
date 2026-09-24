@@ -11,9 +11,9 @@ const publicSans = Public_Sans({ subsets: ["latin"], weight: ["400", "500", "600
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "VocalisAi - AI English Communication & Voice Coach",
+  title: "VocalisAi - AI English Practice, Assessment & Proctored Exam Preparation",
   description:
-    "Practice real spoken-English and Voice & Accent scenarios, get AI-powered speech analysis, and build the confidence for your next assessment, interview, or international opportunity.",
+    "Practice and prepare for English language tests, academic and workplace English assessments, recruitment and pre-employment assessments, and proctored mock exams - with real AI-powered speech, grammar and performance analysis.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
