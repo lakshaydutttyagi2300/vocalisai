@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PRACTICE_MODES, DIFFICULTIES, DIFFICULTY_LABELS } from "@/lib/practice-taxonomy";
+import { BulkFileImport } from "@/components/admin/BulkFileImport";
 
 const QUESTION_TYPES = ["MULTIPLE_CHOICE", "READING_COMPREHENSION", "LISTENING_COMPREHENSION", "SHORT_ANSWER"] as const;
 
@@ -420,8 +421,10 @@ export default function AdminQuestionsPage() {
         </div>
       </div>
 
+      <BulkFileImport onImported={load} />
+
       <div className="card mt-6 p-5">
-        <h2 className="font-display font-bold text-ink-900">Bulk import</h2>
+        <h2 className="font-display font-bold text-ink-900">Bulk import (paste JSON)</h2>
         <p className="mt-1 text-xs text-slate-500">
           Paste a JSON array of questions (or {"{ \"questions\": [...] }"}). Each needs category, difficulty, type,
           prompt, and timeLimitSeconds at minimum. Every question is checked against the existing bank and the rest
