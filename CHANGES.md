@@ -33,3 +33,13 @@ Replaced `next lint` with `eslint .` against a flat `eslint.config.mjs` (`eslint
 - `tests/unit/exam-catalogue.test.ts` - 9 tests: registry validation, the full Family→Variant→Paper→Part create/cascade-delete chain, per-family slug uniqueness, and confirming the two new template/section columns default to null.
 
 **Result:** 26/26 unit tests pass, 10/10 e2e tests pass (existing signup/login/practice/mock-test flows unaffected), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker, see above).
+
+### B. Shared stimulus (ItemGroup)
+
+**Added:**
+- `ItemGroup` model (migration `20260924155144_item_groups`, applied to `development` and the disposable `test` branch only - never `production`) - a shared stimulus (reading passage, audio clip, image, chart, video) that one or more `PracticeQuestion` rows can point at.
+- Nullable `PracticeQuestion.itemGroupId` and `orderInGroup` - both null on every existing question, additive to (not a replacement for) the existing per-question `passage` field, which keeps working exactly as before.
+- `src/lib/item-groups.ts` - `ItemGroup.type` registry (`PASSAGE`/`AUDIO`/`IMAGE`/`CHART`/`VIDEO`) and field validators (text required for PASSAGE, an uploaded asset required for the other four, `playLimit` only valid on AUDIO).
+- `tests/unit/item-groups.test.ts` - 8 tests: registry/validator coverage, a real Family→group→two-linked-questions create/read chain ordered by `orderInGroup`, and confirming a question's existing standalone `passage` field is untouched when no `itemGroupId` is set.
+
+**Result:** 33/33 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).

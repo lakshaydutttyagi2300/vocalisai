@@ -94,8 +94,66 @@ model PracticeQuestion {
   attempts             PracticeAttempt[]
   conversationSessions ConversationSession[]
 
+  // Optional shared stimulus (P1-B) - e.g. several questions answered
+  // against the same reading passage or audio clip, the way a real
+  // Reading/Listening paper groups its questions. Null means today's
+  // behaviour exactly: a question's own `passage` field is still read and
+  // used everywhere it already is - this is an ADDITIONAL way to attach a
+  // stimulus, not a replacement for the existing one. orderInGroup is only
+  // meaningful when itemGroupId is set (position within that group).
+  itemGroupId String?
+  itemGroup   ItemGroup? @relation(fields: [itemGroupId], references: [id])
+  orderInGroup Int?
+
   @@index([category, difficulty])
   @@index([category, difficulty, isActive])
+  @@index([itemGroupId, orderInGroup])
+}
+
+// P1-B: a shared stimulus multiple PracticeQuestion rows can point at -
+// one reading passage with several comprehension questions, one audio
+// clip with several listening questions, and so on. Not wired into any
+// selection/scoring/import path yet; PracticeQuestion.itemGroupId is
+// nullable and unused by every existing question.
+model ItemGroup {
+  id    String @id @default(cuid())
+  // "PASSAGE" | "AUDIO" | "IMAGE" | "CHART" | "VIDEO" - plain string,
+  // validated in src/lib/item-groups.ts, same reason as everywhere else
+  // in this schema.
+  type  String
+  title String?
+
+  // Human-readable stimulus content - the passage text itself for
+  // PASSAGE, a caption/description for IMAGE/CHART/VIDEO. Null for AUDIO,
+  // which uses assetKey + transcript instead.
+  text String?
+
+  // Storage key for the R2/local-disk asset (P1-D reuses src/lib/storage.ts
+  // for this, the same "key" convention PracticeRecording.filePath
+  // already uses). Null for a text-only PASSAGE.
+  assetKey String?
+
+  // Full transcript for an AUDIO group - shown to a candidate only after
+  // answering, the same "don't leak the answer" discipline as everything
+  // else in this schema; never sent to the client before submission.
+  transcript String?
+
+  // Free-form JSON: accent, wordCount, speakers, or whatever else a given
+  // group type needs - deliberately not modeled as columns, since the
+  // useful metadata differs by type and this avoids a schema change for
+  // every new metadata field someone wants later.
+  metadataJson String?
+
+  // AUDIO only: how many times a candidate may play the clip during a
+  // timed section, enforced client-side by the exam-runner-v2 audio
+  // player (P1-E). Null means unlimited.
+  playLimit Int?
+
+  createdAt DateTime @default(now())
+
+  questions PracticeQuestion[]
+
+  @@index([type])
 }
 
 model PracticeAttempt {
