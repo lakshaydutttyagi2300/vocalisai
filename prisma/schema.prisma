@@ -294,6 +294,13 @@ model MockTestTemplate {
   // worth the extra migration complexity for a single admin-managed table.
   isDefault Boolean @default(false)
 
+  // Optional link to a specific exam structure (P1-A). Null means today's
+  // behaviour exactly: a generic template with no external exam scale or
+  // fixed paper/part shape - every existing template stays null forever
+  // unless an admin explicitly attaches one to a real ExamVariant.
+  examVariantId String?
+  examVariant   ExamVariant? @relation(fields: [examVariantId], references: [id])
+
   sections MockTestTemplateSection[]
   sessions MockTestSession[]
 }
@@ -307,7 +314,102 @@ model MockTestTemplateSection {
   difficulty    String
   questionCount Int
 
+  // Optional link to the specific ExamPart this section represents (P1-A).
+  // Null means today's behaviour exactly: a plain category/difficulty
+  // section with no external paper/part structure.
+  examPartId String?
+  examPart   ExamPart? @relation(fields: [examPartId], references: [id])
+
   @@index([templateId, order])
+}
+
+// P1-A: the exam catalogue. Four levels, matching how real language/
+// employment exams are actually structured: a family of exam styles
+// (IELTS_STYLE, ...), a specific variant within it (Academic, General
+// Training, ...), that variant's papers (Listening, Reading, ...), and
+// each paper's parts. Nothing here is wired into any existing flow yet -
+// MockTestTemplate/-Section only gain an OPTIONAL pointer into this
+// catalogue, so every current template/session keeps behaving exactly as
+// it does today (null variant/part) until an admin deliberately attaches
+// one.
+model ExamFamily {
+  id          String  @id @default(cuid())
+  slug        String  @unique // IELTS_STYLE | SELT_STYLE | PTE_STYLE | CAMBRIDGE_STYLE | APTITUDE | EMPLOYMENT | GENERAL_ENGLISH
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  variants ExamVariant[]
+
+  @@index([isActive])
+}
+
+model ExamVariant {
+  id       String     @id @default(cuid())
+  familyId String
+  family   ExamFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  slug String // unique within its family, not globally - e.g. both IELTS_STYLE and SELT_STYLE could plausibly have an "ACADEMIC"-shaped variant
+  name String // e.g. "Academic", "General Training", "Life Skills A1", "UKVI 4-skill"
+
+  // Key into src/lib/score-scales/ (P1-F) - e.g. "IELTS_STYLE_BAND",
+  // "CEFR". A plain string, not a relation, for the same
+  // registry-validated-in-TS reason as PracticeQuestion.category.
+  scoreScale String
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  papers            ExamPaper[]
+  mockTestTemplates MockTestTemplate[]
+
+  @@unique([familyId, slug])
+  @@index([isActive])
+}
+
+model ExamPaper {
+  id        String      @id @default(cuid())
+  variantId String
+  variant   ExamVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  order        Int
+  name         String // e.g. "Listening", "Reading", "Writing", "Speaking", "Numerical Reasoning"
+  durationSeconds Int
+  instructions String? // markdown, shown before the paper starts
+
+  // "LOCKED_SEQUENTIAL" (answer in order, no going back once submitted -
+  // the shape most real timed language-test papers use) |
+  // "FREE_WITHIN_SECTION" (jump between questions freely until the paper
+  // itself is submitted). Plain string validated in exam-catalogue.ts,
+  // same reason as everywhere else in this schema.
+  navigationMode String @default("LOCKED_SEQUENTIAL")
+  allowReview    Boolean @default(false)
+
+  parts ExamPart[]
+
+  @@index([variantId, order])
+}
+
+model ExamPart {
+  id      String    @id @default(cuid())
+  paperId String
+  paper   ExamPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  order        Int
+  name         String
+  instructions String?
+
+  // Only meaningful for a speaking-style part (P1-E's TIMED_SPEAKING
+  // question type) - null for every other part.
+  prepSeconds     Int?
+  responseSeconds Int?
+
+  mockTestTemplateSections MockTestTemplateSection[]
+
+  @@index([paperId, order])
 }
 
 // A single proctoring flag - a signal requiring human interpretation, never

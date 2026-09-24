@@ -24,4 +24,12 @@ Replaced `next lint` with `eslint .` against a flat `eslint.config.mjs` (`eslint
 
 ## Phase P1 - Foundations
 
-Not started yet.
+### A. Exam catalogue
+
+**Added:**
+- `ExamFamily`, `ExamVariant`, `ExamPaper`, `ExamPart` models (migration `20260924154631_exam_catalogue`, applied to `development` and the disposable `test` branch only - never `production`).
+- Nullable `MockTestTemplate.examVariantId` and `MockTestTemplateSection.examPartId` - both null on every existing row, no behaviour change until an admin explicitly attaches one (P1-G, not built yet).
+- `src/lib/exam-catalogue.ts` - family-slug registry (7 seeded families: `IELTS_STYLE`, `SELT_STYLE`, `PTE_STYLE`, `CAMBRIDGE_STYLE`, `APTITUDE`, `EMPLOYMENT`, `GENERAL_ENGLISH`), navigation-mode registry, field validators for all four new models.
+- `tests/unit/exam-catalogue.test.ts` - 9 tests: registry validation, the full Family→Variant→Paper→Part create/cascade-delete chain, per-family slug uniqueness, and confirming the two new template/section columns default to null.
+
+**Result:** 26/26 unit tests pass, 10/10 e2e tests pass (existing signup/login/practice/mock-test flows unaffected), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker, see above).
