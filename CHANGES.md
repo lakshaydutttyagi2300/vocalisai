@@ -59,3 +59,22 @@ No Prisma schema change - richer answer shapes (arrays/objects) fit into the exi
 **Not done in this chunk (by design, per the original spec):** nothing wires this registry into `api/practice/attempts`, `api/practice/questions`, or the bulk-import routes - those keep using their own existing logic entirely unchanged. This registry is consumed for the first time by P1-E (exam runner v2) and P1-G (admin import extension).
 
 **Result:** 53/53 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+### F. Score scales
+
+No Prisma schema change - pure functions only, no dependency on anything else in P1 (per the original plan, this is why F was moved earlier in the build order).
+
+**Added:**
+- `src/lib/score-scales/types.ts` - shared `ScaleResult` type; every result is explicitly `isEstimate: true`.
+- `src/lib/score-scales/ielts-style-band.ts` - 0-9 half-band estimate. Separate raw-out-of-40 tables for Listening, Reading Academic, and Reading General Training (mirrors the real exam's own convention of one Listening table but two Reading tables); `ruleScoreToBand()` linearly maps this platform's existing 0-100 rule-based score onto the band range for Writing/Speaking, which have no raw-out-of-40 concept here; `overallBand()` averages and rounds to the nearest half band.
+- `src/lib/score-scales/cefr.ts` - A1-C2, threshold table over a 0-100 score.
+- `src/lib/score-scales/pte-style.ts` - linear 10-90 scale.
+- `src/lib/score-scales/cambridge-style.ts` - linear 80-230 scale, plus a nearest-level label deliberately suffixed `-style` (never a bare real qualification name).
+- `src/lib/score-scales/pass-merit-distinction.ts` - Not yet passing / Pass / Merit / Distinction threshold table - this platform's own grading band, not an approximation of any third party's scale.
+- `src/lib/score-scales/percentile.ts` - genuinely implemented (not faked), but returns `null` for an empty population rather than a fabricated number; nothing in the app currently has a real population of scores to pass in, so it stays unwired for now.
+- `src/lib/score-scales/index.ts` - `SCORE_SCALE_KEYS` registry matching `ExamVariant.scoreScale` (P1-A); `exam-catalogue.ts`'s own validator isn't yet checking against it (noted in that file's original comment) - wiring that up is left for P1-G, the first chunk that actually creates/edits `ExamVariant` rows.
+- `tests/unit/score-scales.test.ts` - 70 tests, table-driven (`it.each`) across every threshold in every table, plus clamping/rounding edge cases and the percentile stub's null-on-empty-population guarantee.
+
+**Important scoping note, carried from the plan:** every scale here is explicitly "-style"/approximate and never reproduces a real exam board's actual proprietary conversion table or qualification name - consistent with `TrademarkDisclaimer.tsx`'s "no implied affiliation" requirement.
+
+**Result:** 123/123 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
