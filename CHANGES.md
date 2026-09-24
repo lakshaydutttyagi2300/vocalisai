@@ -43,3 +43,19 @@ Replaced `next lint` with `eslint .` against a flat `eslint.config.mjs` (`eslint
 - `tests/unit/item-groups.test.ts` - 8 tests: registry/validator coverage, a real Family→group→two-linked-questions create/read chain ordered by `orderInGroup`, and confirming a question's existing standalone `passage` field is untouched when no `itemGroupId` is set.
 
 **Result:** 33/33 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+### C. Question-type registry
+
+No Prisma schema change - richer answer shapes (arrays/objects) fit into the existing `PracticeQuestion.correctAnswer`/`options` JSON-string columns the same way `options` already works today.
+
+**Added:**
+- `src/lib/question-types/types.ts` - shared `GradeResult`/`QuestionTypeDef` types, deliberately separate from `practice-taxonomy.ts`'s existing `QuestionType` union.
+- `src/lib/question-types/graders/*.ts` - one pure grader per new type: `GAP_FILL`, `TRUE_FALSE_NOT_GIVEN`, `YES_NO_NOT_GIVEN`, `MULTI_SELECT`, `MATCHING`, `LABELLING`, `ORDERING`, `HIGHLIGHT_WORDS`, `DICTATION`, `NUMERIC_ENTRY`, `LONG_WRITING` (not auto-graded; exposes `wordCount()` separately), `TIMED_SPEAKING` (not auto-graded; answer shape is `{ recordingId }`, same as every existing voice practice mode).
+- `src/lib/question-types/graders/existing-types.ts` - the 4 existing types (`MULTIPLE_CHOICE`, `READING_COMPREHENSION`, `LISTENING_COMPREHENSION`, `SHORT_ANSWER`) re-declared as registry aliases whose `grade()` reproduces `api/practice/attempts/route.ts`'s real logic exactly (case-**sensitive** trim-only compare - verified this does NOT match the case-insensitive behavior the new types use, on purpose, to stay faithful to production).
+- `src/lib/question-types.ts` - the registry itself (16 entries), `isValidQuestionTypeKey`/`getQuestionTypeDef`.
+- `tests/unit/question-types.test.ts` - 20 tests covering every type's grader, its answer-schema validation, the null-correctAnswer-never-fabricates-a-result guarantee across all 14 gradable types, and an explicit check that the existing-type aliases match real production grading behavior (including its case-sensitivity).
+- New dependency used for the first time: `zod` (already installed in P0).
+
+**Not done in this chunk (by design, per the original spec):** nothing wires this registry into `api/practice/attempts`, `api/practice/questions`, or the bulk-import routes - those keep using their own existing logic entirely unchanged. This registry is consumed for the first time by P1-E (exam runner v2) and P1-G (admin import extension).
+
+**Result:** 53/53 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
