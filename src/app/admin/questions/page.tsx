@@ -161,6 +161,38 @@ export default function AdminQuestionsPage() {
     }
   }
 
+  const [globalBulkBusy, setGlobalBulkBusy] = useState(false);
+  const [globalBulkMessage, setGlobalBulkMessage] = useState<string | null>(null);
+  const [globalBulkError, setGlobalBulkError] = useState<string | null>(null);
+
+  async function globalBulkSetActive(isActive: boolean) {
+    const verb = isActive ? "enable" : "disable";
+    if (!window.confirm(`${isActive ? "Enable" : "Disable"} every question in the ENTIRE bank, across all categories and difficulties? This is not scoped to a filter - it affects everything at once.`)) {
+      return;
+    }
+    setGlobalBulkBusy(true);
+    setGlobalBulkError(null);
+    setGlobalBulkMessage(null);
+    try {
+      const res = await fetch("/api/admin/questions/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive, confirmAll: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGlobalBulkError(data.error ?? `Couldn't ${verb} the bank.`);
+        return;
+      }
+      setGlobalBulkMessage(`${isActive ? "Enabled" : "Disabled"} ${data.updated} question${data.updated === 1 ? "" : "s"} bank-wide.`);
+      load();
+    } catch {
+      setGlobalBulkError(`Couldn't ${verb} the bank.`);
+    } finally {
+      setGlobalBulkBusy(false);
+    }
+  }
+
   function load() {
     setError(null);
     const params = new URLSearchParams();
@@ -334,6 +366,21 @@ export default function AdminQuestionsPage() {
       {error && (
         <p role="alert" className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
+
+      <div className="card mt-4 flex flex-wrap items-center gap-3 border-amber-200 bg-amber-50 p-4">
+        <span className="text-sm font-medium text-ink-900">Bulk action for the entire question bank:</span>
+        <button onClick={() => globalBulkSetActive(true)} disabled={globalBulkBusy} className="text-sm font-medium text-brand-600 hover:underline disabled:opacity-60">
+          Enable all disabled
+        </button>
+        <button onClick={() => globalBulkSetActive(false)} disabled={globalBulkBusy} className="text-sm font-medium text-red-700 hover:underline disabled:opacity-60">
+          Disable all active
+        </button>
+        {globalBulkMessage && <span className="text-sm text-slate-700">{globalBulkMessage}</span>}
+        {globalBulkError && <span className="text-sm text-red-700">{globalBulkError}</span>}
+        <span className="w-full text-xs text-amber-700">
+          No filter needed - this acts on every category and difficulty at once. Asks for confirmation first.
+        </span>
+      </div>
 
       <div className="card mt-6 p-5">
         <h2 className="font-display font-bold text-ink-900">Coverage by category &amp; difficulty</h2>
