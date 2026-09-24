@@ -25,3 +25,8 @@ uploads/
 
 .vercel
 .env*
+
+# Test tooling output - not project source
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo
