@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getAllFeatureFlags, isValidFeatureKey } from "@/lib/feature-flags";
+import { getAllFeatureFlags, isValidFeatureKey, defaultEnabled } from "@/lib/feature-flags";
 import { logAdminAction } from "@/lib/audit-log";
 
 export async function GET() {
@@ -47,7 +47,7 @@ export async function PATCH(req: Request) {
     action: enabled ? "FEATURE_ENABLED" : "FEATURE_DISABLED",
     targetType: "FeatureFlag",
     targetId: key,
-    before: before ? { enabled: before.enabled } : { enabled: true, note: "default (no row existed)" },
+    before: before ? { enabled: before.enabled } : { enabled: defaultEnabled(key), note: "default (no row existed)" },
     after: { enabled },
   });
 

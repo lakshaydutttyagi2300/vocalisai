@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { runnerForTemplate } from "@/lib/exam-runner";
 
 export async function POST() {
   const session = await getServerSession(authOptions);
@@ -45,5 +46,9 @@ export async function POST() {
     template: template
       ? { id: template.id, name: template.name, sections: template.sections }
       : null,
+    // P1-E, additive: "v2" only when the template is linked to an exam
+    // format AND the exam_runner_v2 flag is on - every existing template
+    // has no link, so this is "v1" (today's runner) for all of them.
+    runner: await runnerForTemplate(template),
   });
 }

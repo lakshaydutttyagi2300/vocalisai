@@ -20,7 +20,22 @@ export const SUBSYSTEM_FEATURES = [
   { key: "INTERVIEW_SIMULATION", label: "Interview Simulation", description: "Starting a new AI voice conversation roleplay." },
   { key: "AI_SPEECH_ANALYSIS", label: "AI Speech Analysis", description: "Running AI analysis on a recorded voice attempt." },
   { key: "PROGRESS_DASHBOARD", label: "Progress Dashboard", description: "The candidate-facing /progress page." },
+  {
+    key: "exam_runner_v2",
+    label: "Exam Runner v2",
+    description: "New exam-taking screen for templates linked to an exam format (timed papers, autosave, review). Off by default.",
+  },
 ] as const;
+
+// Flags that are OFF until an admin explicitly turns them on - the
+// opposite of the fail-open default every other flag uses. Only new,
+// not-yet-launched features belong here; every pre-existing flag keeps
+// its original "missing row = enabled" behaviour exactly.
+export const DEFAULT_OFF_FEATURES = new Set<string>(["exam_runner_v2"]);
+
+export function defaultEnabled(key: string): boolean {
+  return !DEFAULT_OFF_FEATURES.has(key);
+}
 
 export const CATEGORY_FEATURES = PRACTICE_MODES.map((m) => ({
   key: m.category,
@@ -45,7 +60,7 @@ export function isValidFeatureKey(key: string): boolean {
 // feature looks broken by default.
 export async function isFeatureEnabled(key: string): Promise<boolean> {
   const flag = await db.featureFlag.findUnique({ where: { key } });
-  return flag?.enabled ?? true;
+  return flag?.enabled ?? defaultEnabled(key);
 }
 
 export interface FeatureFlagView {
@@ -65,7 +80,7 @@ export async function getAllFeatureFlags(): Promise<FeatureFlagView[]> {
       key: f.key,
       label: f.label,
       description: f.description,
-      enabled: row?.enabled ?? true,
+      enabled: row?.enabled ?? defaultEnabled(f.key),
       updatedAt: row?.updatedAt.toISOString() ?? null,
     };
   });

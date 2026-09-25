@@ -102,3 +102,49 @@ No Prisma schema change - `ItemGroup.assetKey` already exists from P1-B.
 - The dev `.env` has real R2 credentials, so no test ever performs an actual upload - minting a presigned URL is local signing, and everything past that is unit-tested against the mock. No test files land in the real bucket.
 
 **Result:** 137/137 unit tests pass, 12/12 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+### E. Exam runner v2
+
+**New flag:** `exam_runner_v2` - **OFF by default** (listed in `DEFAULT_OFF_FEATURES`; every pre-existing flag keeps its original "missing row = on" default). Toggle it on `/admin/features`. It also acts as a kill switch: turning it off closes every v2 route immediately.
+
+**When v2 is used:** only when the session's template has an `examVariantId` **and** the flag is on. Every existing template has no variant, so today's mock test is unchanged whether or not the flag is on.
+
+**Database** (migration `20260925092630_exam_runner_v2`, dev + test branches only, never production) - two new tables, no existing table altered:
+- `ExamSessionState` - one per v2 session: the fixed question plan (chosen once at start, so a resume returns the identical exam), current paper/question, server-held exam and paper deadlines, audio play counts, status.
+- `ItemResponse` - one autosaved answer per question, graded when its paper is submitted. Separate from `PracticeAttempt`, so usage counting, practice history and the existing mock-test scoring are untouched.
+
+**Routes** (`/api/exam-sessions/[id]/...`, all signed-in + flag + ownership checked, added to the auth proxy matcher): `start` (idempotent start/resume), `GET` (state), `response` (autosave), `advance` (forward-only step), `submit-paper`, `audio-play`, `assets/[groupId]`. Page: `/exam/results/[sessionId]`.
+
+**Server-authoritative rules:**
+- Deadlines live in the database; the client only displays them. Every request first auto-submits any paper past its deadline (+5s grace), looping if the candidate was away through several. Time keeps running while away, like a real exam.
+- Answers are only accepted for the current paper, validated against the question type's schema (P1-C), and, in `LOCKED_SEQUENTIAL` papers, only for the question the server says the candidate is on - refreshing can't be used to go back.
+- Audio plays are counted server-side against `ItemGroup.playLimit`; audio only streams after a play is granted. Assets only stream for the current paper.
+- Clients never receive a correct answer or an audio transcript.
+- Grading uses only the P1-C pure graders; unanswered auto-markable questions score 0, writing/speaking stay unmarked (null). Never AI.
+
+**Screen** (`src/components/exam-runner-v2/`, inside the existing proctored shell - camera/mic/fullscreen/tab monitoring reused unchanged): section + whole-exam countdowns, free navigation with flag-for-review and a review screen (or forward-only, per paper), confirm-before-submit, debounced autosave with a saved indicator, passage highlighter, play-limited audio, word counter, prep + response timers with recording for `TIMED_SPEAKING`.
+
+**Resume after refresh / crash:** the shell remembers an in-progress v2 session id and, after the server confirms it's still in progress and belongs to the signed-in user, resumes it instead of creating a new session (which would also have spent another mock-test allowance). v1 sessions never store this.
+
+**Proctoring event types:** unchanged - `FULLSCREEN_EXIT`, `PASTE_ATTEMPT` and `WINDOW_BLUR` (focus loss) already existed and are already recorded by `useLiveProctoring`.
+
+**Small additive changes to existing files:** `api/mock-tests/sessions` returns one extra field (`runner`); `MockTestSessionShell` picks the runner and the results destination; `feature-flags.ts` gains the default-off list; the admin feature-toggle audit note now records the correct default; the admin question-delete route also refuses deletion when v2 answers reference the question (friendly 409 instead of a database error); `proxy.ts` matcher covers `/exam` and `/api/exam-sessions`.
+
+**Bugs found and fixed while testing:**
+- A second "Submit section" click arriving just after the first could have submitted the *next* section as well - submits now carry the paper index and are re-checked on fresh state.
+- Grading wrote one row at a time (one round-trip per question) - now a fixed few queries per paper regardless of size, which also removed a concurrent-insert race.
+- The shell's once-a-second re-render kept restarting the exam screen's start-up request, so it never loaded - caught only by the real-browser test.
+- Page refresh would have started a brand-new exam instead of resuming (see above).
+
+**Not included (by design):** no band/score-scale estimate on the results page yet - raw counts only, since converting to an "-style" band needs per-exam calibration and anything else would be an invented number. Speaking prep/response timers are client-side; the paper deadline around them is still enforced server-side.
+
+**Tests:**
+- `tests/unit/exam-runner.test.ts` - 15: deadline capping and grace, deterministic shuffle, whole-group selection, no-fabrication grading, flag defaults, plan fixed on resume, nothing secret in the client view, expiry auto-submit with the clock continuing from the old deadline, completion + unmarked speaking, double-submit (concurrent and back-to-back), End-assessment finalization, refusing a non-exam template.
+- `tests/e2e/exam-runner-v2.spec.ts` - 3 against the real server: flag off (v1 runner, v2 routes 403); full flow (autosave, resume, schema validation, early-paper 409, audio 403 before play and limit enforced, other user 404, stale double-submit, locked paper, forward-only, grading, results page + disclaimer, no `PracticeAttempt` rows); server-side expiry.
+- `tests/e2e/exam-runner-v2-ui.spec.ts` - 1 real-browser walkthrough with Chromium's fake camera/mic: intro → system check → rules → new exam screen → answer → full reload resumes the same exam with answers intact → review → submit → forward-only section → results.
+- `tests/helpers/exam-fixture.ts`, `tests/e2e/exam-v2-setup.ts` - isolated fixture (own per-run category names, so it never mixes with real questions) and flag/default-template setup that restores the original state afterwards.
+- `tests/e2e/helpers.ts` `loginAs` now confirms a session actually exists after logging in (one retry), after a cold-dev-server first login was seen returning OK without a session.
+
+**Result:** 152/152 unit tests, 16/16 e2e tests (all 10 original P0 e2e tests still pass unchanged), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+**To try it (dev):** attach a template to an `ExamVariant` with sections linked to `ExamPart`s (admin UI for this arrives in P1-G; P1-H seeds a demo), then turn on `exam_runner_v2` in `/admin/features`.

@@ -16,15 +16,26 @@ export async function createTestUser(email: string, password: string, name = "E2
   return db.user.create({ data: { email, passwordHash, name } });
 }
 
+// Verifies a session actually exists afterwards (GET /api/auth/session)
+// rather than trusting the callback's 200 - on a freshly started dev
+// server the very first credentials callback can return 200 without the
+// session cookie sticking. One retry covers that; a second failure throws
+// loudly so a real auth problem is never masked.
 export async function loginAs(page: Page, email: string, password: string) {
   const request: APIRequestContext = page.request;
-  const csrfRes = await request.get("/api/auth/csrf");
-  const { csrfToken } = await csrfRes.json();
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const csrfRes = await request.get("/api/auth/csrf");
+    const { csrfToken } = await csrfRes.json();
 
-  const res = await request.post("/api/auth/callback/credentials", {
-    form: { csrfToken, email, password, json: "true" },
-  });
-  if (!res.ok()) {
-    throw new Error(`Login failed for ${email}: ${res.status()} ${await res.text()}`);
+    const res = await request.post("/api/auth/callback/credentials", {
+      form: { csrfToken, email, password, json: "true" },
+    });
+    if (!res.ok()) {
+      throw new Error(`Login failed for ${email}: ${res.status()} ${await res.text()}`);
+    }
+
+    const session = await (await request.get("/api/auth/session")).json().catch(() => null);
+    if (session?.user?.email === email) return;
   }
+  throw new Error(`Login for ${email} returned OK but no session was established.`);
 }

@@ -103,7 +103,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const { id } = await params;
   const existing = await db.practiceQuestion.findUnique({
     where: { id },
-    include: { _count: { select: { attempts: true, conversationSessions: true } } },
+    include: { _count: { select: { attempts: true, conversationSessions: true, itemResponses: true } } },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -112,6 +112,15 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       {
         error: `Can't delete: ${existing._count.attempts} attempt(s) and ${existing._count.conversationSessions} conversation session(s) already reference this question.`,
       },
+      { status: 409 }
+    );
+  }
+  // Separate check (and message) so the original one above stays
+  // word-for-word unchanged - exam-runner-v2 answers (P1-E) also hold a
+  // foreign key to the question.
+  if (existing._count.itemResponses > 0) {
+    return NextResponse.json(
+      { error: `Can't delete: ${existing._count.itemResponses} exam answer(s) already reference this question.` },
       { status: 409 }
     );
   }

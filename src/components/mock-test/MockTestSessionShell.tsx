@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { useLiveProctoring } from "@/hooks/useLiveProctoring";
 import { describeProctoringEvent } from "@/lib/proctoring-events";
 import { MockTestQuestionRunner } from "@/components/mock-test/MockTestQuestionRunner";
+import { ExamRunnerV2 } from "@/components/exam-runner-v2/ExamRunnerV2";
+
+const ACTIVE_V2_SESSION_KEY = "vocalisai:activeExamSession";
+
+function forgetActiveV2Session() {
+  try {
+    localStorage.removeItem(ACTIVE_V2_SESSION_KEY);
+  } catch {
+    // storage blocked - nothing to forget
+  }
+}
 
 interface TemplateSection {
   order: number;
@@ -28,6 +39,11 @@ export function MockTestSessionShell({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sections, setSections] = useState<TemplateSection[] | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  // Decided server-side (api/mock-tests/sessions): "v2" only for a
+  // template linked to an exam format with the exam_runner_v2 flag on.
+  // Anything else - including an older server that doesn't send the
+  // field at all - uses today's runner.
+  const [runner, setRunner] = useState<"v1" | "v2">("v1");
 
   const { events, status } = useLiveProctoring({
     sessionId,
@@ -40,8 +56,40 @@ export function MockTestSessionShell({
     if (videoRef.current) videoRef.current.srcObject = cameraStream;
   }, [cameraStream]);
 
+  // P1-E resume: a refresh (or browser crash) re-mounts this shell, which
+  // would otherwise create a brand-new session and spend another
+  // MOCK_ASSESSMENT allowance. For a v2 exam, the session id is
+  // remembered here and - if the server confirms it's still in progress
+  // AND belongs to whoever is signed in now (ownership-checked route) - it
+  // is resumed instead. v1 sessions never write this key, so today's
+  // runner behaves exactly as before.
+  async function tryResumeV2(): Promise<boolean> {
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(ACTIVE_V2_SESSION_KEY);
+    } catch {
+      return false;
+    }
+    if (!stored) return false;
+    try {
+      const res = await fetch(`/api/exam-sessions/${stored}`);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.status === "IN_PROGRESS") {
+        setSessionId(stored);
+        setRunner("v2");
+        setSections([]);
+        return true;
+      }
+    } catch {
+      // fall through to a fresh session
+    }
+    forgetActiveV2Session();
+    return false;
+  }
+
   async function startSession() {
     setStartError(null);
+    if (await tryResumeV2()) return;
     try {
       const res = await fetch("/api/mock-tests/sessions", { method: "POST" });
       const data = await res.json();
@@ -51,6 +99,15 @@ export function MockTestSessionShell({
       }
       setSessionId(data.sessionId);
       setSections(data.template?.sections ?? []);
+      const nextRunner = data.runner === "v2" ? "v2" : "v1";
+      setRunner(nextRunner);
+      if (nextRunner === "v2") {
+        try {
+          localStorage.setItem(ACTIVE_V2_SESSION_KEY, data.sessionId);
+        } catch {
+          // storage blocked - the exam still runs, it just can't auto-resume
+        }
+      }
     } catch {
       setStartError("Network error while starting the mock test. Please try again.");
     }
@@ -82,9 +139,10 @@ export function MockTestSessionShell({
     endingRef.current = true;
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     await fetch(`/api/mock-tests/sessions/${sessionId}`, { method: "PATCH" });
+    if (runner === "v2") forgetActiveV2Session();
     cameraStream?.getTracks().forEach((t) => t.stop());
     micStream?.getTracks().forEach((t) => t.stop());
-    router.push(`/mock-tests/results/${sessionId}`);
+    router.push(runner === "v2" ? `/exam/results/${sessionId}` : `/mock-tests/results/${sessionId}`);
   }
 
   const mm = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
@@ -117,6 +175,11 @@ export function MockTestSessionShell({
                 Try again
               </button>
             </div>
+          ) : runner === "v2" && sessionId ? (
+            // v2 gets its questions from its own server-held plan, not
+            // from template sections, so it's checked before the
+            // sections-based branches below (a resumed v2 session has none).
+            <ExamRunnerV2 sessionId={sessionId} micStream={micStream} onComplete={endTest} />
           ) : !sections ? (
             <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : sections.length === 0 ? (

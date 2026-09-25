@@ -105,6 +105,8 @@ model PracticeQuestion {
   itemGroup   ItemGroup? @relation(fields: [itemGroupId], references: [id])
   orderInGroup Int?
 
+  itemResponses ItemResponse[] // P1-E back-relation only, no column
+
   @@index([category, difficulty])
   @@index([category, difficulty, isActive])
   @@index([itemGroupId, orderInGroup])
@@ -269,7 +271,69 @@ model MockTestSession {
   scoreReport ScoreReport?
   resultsReport ResultsReport?
 
+  // P1-E: only ever populated for a session run through exam runner v2
+  // (template linked to an ExamVariant AND the exam_runner_v2 flag on).
+  // Relation fields only - no new columns on this table.
+  examSessionState ExamSessionState?
+  itemResponses    ItemResponse[]
+
   @@index([userId, startedAt])
+}
+
+// P1-E: server-authoritative state for one exam-runner-v2 session. The
+// client only ever DISPLAYS these deadlines - every write route re-checks
+// them, and an expired paper is auto-submitted server-side the next time
+// the session is touched, so a paused/tampered client clock can't buy
+// extra time. planJson fixes the question selection and order at start,
+// which is what makes resume-after-refresh return the exact same exam.
+model ExamSessionState {
+  id                String          @id @default(cuid())
+  mockTestSessionId String          @unique
+  mockTestSession   MockTestSession @relation(fields: [mockTestSessionId], references: [id], onDelete: Cascade)
+
+  planJson          String // { papers: [{ paperId, name, durationSeconds, navigationMode, allowReview, instructions, parts: [...], questions: [{ questionId, partId }] }] }
+  currentPaperIndex Int    @default(0)
+  // Only enforced for LOCKED_SEQUENTIAL papers (forward-only); ignored for
+  // FREE_WITHIN_SECTION, where the candidate can move freely.
+  currentQuestionIndex Int @default(0)
+
+  examStartedAt  DateTime @default(now())
+  examDeadline   DateTime
+  paperStartedAt DateTime
+  paperDeadline  DateTime
+
+  audioPlaysJson String @default("{}") // { [itemGroupId]: playsUsed }
+
+  status      String    @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+// P1-E: one autosaved answer in an exam-runner-v2 session. Deliberately a
+// separate table from PracticeAttempt, so existing attempt semantics
+// (usage counting, practice history, the existing mock-test scoring
+// engine) are completely unaffected. isCorrect/score are only written when
+// the paper is submitted, by the P1-C question-type registry's pure
+// graders - never by AI.
+model ItemResponse {
+  id                String          @id @default(cuid())
+  mockTestSessionId String
+  mockTestSession   MockTestSession @relation(fields: [mockTestSessionId], references: [id], onDelete: Cascade)
+  questionId        String
+  question          PracticeQuestion @relation(fields: [questionId], references: [id])
+
+  paperIndex       Int
+  answerJson       String? // null = seen but not answered
+  flaggedForReview Boolean @default(false)
+
+  isCorrect Boolean?
+  score     Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([mockTestSessionId, questionId])
+  @@index([mockTestSessionId, paperIndex])
 }
 
 // Rule-based score breakdown for one mock test session (Phase 13). Cheap
