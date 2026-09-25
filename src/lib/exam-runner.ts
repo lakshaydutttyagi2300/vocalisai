@@ -203,10 +203,18 @@ export async function buildPlan(templateId: string, seed: string): Promise<ExamP
       });
     }
 
-    const pool = await db.practiceQuestion.findMany({
-      where: { category: section.category, difficulty: section.difficulty, isActive: true },
-      select: { id: true, itemGroupId: true, orderInGroup: true },
-    });
+    // Questions pinned to this exact part (P1-H) win outright; otherwise
+    // the section's category/difficulty pool, minus anything pinned to
+    // some other part (a pinned passage never leaks into another exam).
+    const select = { id: true, itemGroupId: true, orderInGroup: true } as const;
+    const pinned = await db.practiceQuestion.findMany({ where: { examPartId: part.id, isActive: true }, select });
+    const pool =
+      pinned.length > 0
+        ? pinned
+        : await db.practiceQuestion.findMany({
+            where: { category: section.category, difficulty: section.difficulty, isActive: true, examPartId: null },
+            select,
+          });
     const ids = selectQuestionUnits(pool, section.questionCount, `${seed}:${section.id}`, used);
     for (const id of ids) {
       used.add(id);

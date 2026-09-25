@@ -107,9 +107,19 @@ model PracticeQuestion {
 
   itemResponses ItemResponse[] // P1-E back-relation only, no column
 
+  // P1-H: optionally pins a question to one specific ExamPart, so exam
+  // runner v2 serves exactly that part's questions (e.g. Reading Passage
+  // 2's own passage and questions) instead of a random pick from the
+  // section's category/difficulty pool. Null means today's behaviour
+  // exactly - no existing question is pinned, and the v1 runner never
+  // reads this. Deleting the part just unpins (SetNull).
+  examPartId String?
+  examPart   ExamPart? @relation(fields: [examPartId], references: [id], onDelete: SetNull)
+
   @@index([category, difficulty])
   @@index([category, difficulty, isActive])
   @@index([itemGroupId, orderInGroup])
+  @@index([examPartId])
 }
 
 // P1-B: a shared stimulus multiple PracticeQuestion rows can point at -
@@ -530,6 +540,7 @@ model ExamPart {
   responseSeconds Int?
 
   mockTestTemplateSections MockTestTemplateSection[]
+  pinnedQuestions          PracticeQuestion[] // P1-H back-relation only, no column
 
   @@index([paperId, order])
 }

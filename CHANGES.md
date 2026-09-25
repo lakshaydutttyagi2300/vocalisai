@@ -181,3 +181,54 @@ No Prisma schema change - every column used already existed (P1-A, B, E).
 - `tests/e2e/helpers.ts` `loginAs` now also clears the test branch's login rate-limit rows before each login: the suite now logs in more than 20 times per run, all from Playwright's one shared "unknown" IP bucket. The real limit is unchanged.
 
 **Result:** 189/189 unit tests, 20/20 e2e tests (all original P0 e2e tests pass unchanged), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+### H. Demo exam (dev only)
+
+A ready-made **IELTS-style Academic (demo)** exam, so exam runner v2 can be tried end to end. All passages, recordings, charts, tasks and questions are **original placeholder content written for this demo** - nothing is copied or adapted from any real exam or practice paper, and no real exam or exam board is named (checked by test).
+
+| Paper | Time | Navigation | Parts | Content |
+|---|---|---|---|---|
+| Listening | 30 min | forward-only | 4 | one recording per part, heard **once**; 3 questions each (gap fill, choice, choose-two) |
+| Reading | 60 min | free + review | 3 passages | 3 questions each (True/False/Not given, Yes/No/Not given, choose-two, gap fill, choice) |
+| Writing | 60 min | free + review | Task 1, Task 2 | Task 1 = describe a chart, **150 words**; Task 2 = essay, **250 words**; 2 alternatives each, one picked per sitting |
+| Speaking | 15 min | forward-only | 3 | Part 1: 3 × 30 s; Part 2: 1 cue card, 60 s prep + 120 s talk (2 alternatives); Part 3: 3 × 45 s |
+
+Listening recordings and the Task 1 charts are generated on the spot from the script/numbers in `prisma/exam-demo/content.mjs`, using the two voices and drawing library built into Windows - nothing is downloaded. They're uploaded where the app reads item-group files from (R2 if configured, else `./uploads`). On a non-Windows machine the seed still works, just without recordings/charts (use `--no-assets` to skip them deliberately).
+
+**One Prisma change** (migration `20260925104107_question_exam_part_pin`, applied to the dev and test branches only):
+```prisma
+model PracticeQuestion {
+  // ...
+  examPartId String?                                                  // new, nullable
+  examPart   ExamPart? @relation(fields: [examPartId], references: [id], onDelete: SetNull)
+  @@index([examPartId])
+}
+model ExamPart { pinnedQuestions PracticeQuestion[] }                 // back-relation only
+```
+Why: without it, v2 picks each part's questions at random from its category, so Reading Passage 1 could show Passage 3's questions. A question can now be **pinned** to one exam part; v2 then uses exactly that part's questions, and pinned questions are never picked for any other exam. No existing question is pinned, and the v1 runner never reads this column. Deleting a part just unpins its questions.
+
+**How to try it (dev database only):**
+1. `npm run seed:exam-demo -- --make-default` - creates the demo and makes it the default mock test. It refuses to run against anything except the dev/test Neon branches (no override). Without `--make-default` it's created but not used by `/mock-test` until you pick it in Admin > Templates.
+2. Admin > Features: turn on **Exam Runner v2**.
+3. As a candidate with mock tests in their plan, open `/mock-test` and start. You get the demo in the new exam screen.
+4. To go back: Admin > Templates > **Set as default** on the previous template ("General English Communication Assessment" on dev), and turn Exam Runner v2 off.
+
+Other options: `-- --reset` (remove and rebuild), `-- --remove` (remove; refuses while the demo is the default or has been sat, rather than deleting anyone's answers).
+
+**Tests:**
+- `tests/unit/exam-demo-seed.test.ts` - 14:
+  - The paper structure and timings.
+  - Each part has 2-3 items.
+  - Every question passes the admin import validation.
+  - Only newer question types are used, so none of it can reach today's screens.
+  - Every answer key is graded correct by its own grader, and a wrong answer isn't.
+  - Gap counts match their answers.
+  - Each recording is heard once and has a transcript.
+  - Chart numbers match the prompt.
+  - No real exam or exam-board names appear.
+  - The database guard.
+  - On the test DB: the seed creates everything pinned part by part, and a re-run changes nothing.
+  - A real plan uses exactly each part's own questions, with every passage and recording kept whole.
+  - Pinned questions never leak into another exam.
+  - Removal takes out exactly what the seed created.
+- `tests/e2e/exam-demo.spec.ts` - 1 against the real server: a candidate sits all 4 papers in order. They get 12 listening items, 9 reading items across 3 passages, 150- and 250-word writing tasks, and the speaking part timings. No transcript or answer key reaches the browser. All 21 objective answers are marked correct, writing and speaking are left unmarked, and the results page shows "12 of 12" and "9 of 9" with the disclaimer. The test restores the default template and flag afterwards and removes the demo.
