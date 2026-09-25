@@ -7,6 +7,7 @@ import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { selectWithCooldown, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
+import { LEGACY_QUESTION_TYPES } from "@/lib/question-validation";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
   }
 
   const pool = await db.practiceQuestion.findMany({
-    where: { category: roleDef.category, difficulty, isActive: true },
+    // Original 4 types only - see api/practice/questions for why.
+    where: { category: roleDef.category, difficulty, isActive: true, type: { in: LEGACY_QUESTION_TYPES } },
   });
   if (pool.length === 0) {
     return NextResponse.json({ error: "No scenarios available for this selection yet." }, { status: 404 });

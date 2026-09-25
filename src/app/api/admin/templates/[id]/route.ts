@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
 import { logAdminAction } from "@/lib/audit-log";
+import { readOptionalId, validateTemplateExamLink } from "@/lib/template-exam-link";
 
 const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
 
@@ -12,6 +13,7 @@ interface SectionInput {
   category: string;
   difficulty: string;
   questionCount: number;
+  examPartId: string | null; // P1-G, optional
 }
 
 function validateSections(sections: unknown): { error: string } | { sections: SectionInput[] } {
@@ -30,7 +32,13 @@ function validateSections(sections: unknown): { error: string } | { sections: Se
     if (!Number.isInteger(s.questionCount) || (s.questionCount as number) < 1 || (s.questionCount as number) > 20) {
       return { error: `Section ${i + 1}: questionCount must be an integer between 1 and 20.` };
     }
-    parsed.push({ order: i + 1, category: s.category, difficulty: s.difficulty, questionCount: s.questionCount as number });
+    parsed.push({
+      order: i + 1,
+      category: s.category,
+      difficulty: s.difficulty,
+      questionCount: s.questionCount as number,
+      examPartId: readOptionalId(s.examPartId),
+    });
   }
   return { sections: parsed };
 }
@@ -52,6 +60,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const result = validateSections(body?.sections);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
+  // P1-G: examVariantId is optional here - omitted, the template keeps its
+  // current link (null for every pre-P1-G template); sent as null/"", it
+  // is unlinked.
+  const examVariantId = body && "examVariantId" in body ? readOptionalId(body.examVariantId) : existing.examVariantId;
+  const linkError = await validateTemplateExamLink(examVariantId, result.sections.map((s) => s.examPartId));
+  if (linkError) return NextResponse.json({ error: linkError }, { status: 400 });
+
   // isDefault is optional on this route - omitted, it's left unchanged;
   // set to true, every other template's flag is cleared first so exactly
   // one row is ever the default (see schema.prisma's note on why this is
@@ -70,7 +85,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await tx.mockTestTemplateSection.deleteMany({ where: { templateId: id } });
     return tx.mockTestTemplate.update({
       where: { id },
-      data: { name, ...(makeDefault ? { isDefault: true } : {}), sections: { create: result.sections } },
+      data: { name, examVariantId, ...(makeDefault ? { isDefault: true } : {}), sections: { create: result.sections } },
       include: { sections: { orderBy: { order: "asc" } } },
     });
   });
@@ -81,11 +96,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     action: makeDefault && !existing.isDefault ? "TEMPLATE_SET_DEFAULT" : "TEMPLATE_UPDATED",
     targetType: "MockTestTemplate",
     targetId: id,
-    before: { name: existing.name, isDefault: existing.isDefault },
-    after: { name: template.name, isDefault: template.isDefault, sections: result.sections },
+    before: { name: existing.name, isDefault: existing.isDefault, examVariantId: existing.examVariantId },
+    after: { name: template.name, isDefault: template.isDefault, sections: result.sections, examVariantId },
   });
 
-  return NextResponse.json({ id: template.id, name: template.name, isDefault: template.isDefault, sections: template.sections });
+  return NextResponse.json({
+    id: template.id,
+    name: template.name,
+    isDefault: template.isDefault,
+    examVariantId: template.examVariantId,
+    sections: template.sections,
+  });
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {

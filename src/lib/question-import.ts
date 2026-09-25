@@ -21,6 +21,10 @@ export interface QuestionInput {
   scoringCriteria?: string | null;
   timeLimitSeconds: number;
   isActive?: boolean;
+  // P1-G, optional - attach to a shared stimulus (ItemGroup). Omitted or
+  // null = standalone question, exactly as before.
+  itemGroupId?: string | null;
+  orderInGroup?: number | null;
 }
 
 export interface RowResult {
@@ -50,6 +54,20 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
   const toInsert: (QuestionInput & { signature: string })[] = [];
   const existingByCategory = new Map<string, { id: string; signature: string }[]>();
 
+  // One lookup for every item group referenced anywhere in the batch.
+  const referencedGroupIds = [
+    ...new Set(
+      inputs
+        .map((raw) => (raw && typeof raw === "object" ? (raw as QuestionInput).itemGroupId : null))
+        .filter((id): id is string => typeof id === "string" && id.length > 0)
+    ),
+  ];
+  const knownGroupIds = new Set(
+    referencedGroupIds.length
+      ? (await db.itemGroup.findMany({ where: { id: { in: referencedGroupIds } }, select: { id: true } })).map((g) => g.id)
+      : []
+  );
+
   for (const [index, raw] of inputs.entries()) {
     const promptForDisplay = (raw as { prompt?: unknown })?.prompt;
     const promptText = typeof promptForDisplay === "string" ? promptForDisplay : "";
@@ -62,6 +80,14 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
     const validationError = validateQuestionFields(q);
     if (validationError) {
       results.push({ index, status: "error", prompt: q.prompt ?? "", error: validationError });
+      continue;
+    }
+    if (q.itemGroupId && !knownGroupIds.has(q.itemGroupId)) {
+      results.push({ index, status: "error", prompt: q.prompt ?? "", error: `Item group "${q.itemGroupId}" doesn't exist.` });
+      continue;
+    }
+    if (q.orderInGroup != null && (!Number.isInteger(q.orderInGroup) || q.orderInGroup < 1)) {
+      results.push({ index, status: "error", prompt: q.prompt ?? "", error: "Order In Group must be a whole number of 1 or more." });
       continue;
     }
 
@@ -121,6 +147,8 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
         timeLimitSeconds: q.timeLimitSeconds,
         isActive: q.isActive ?? true,
         source: "SEEDED",
+        itemGroupId: q.itemGroupId || null,
+        orderInGroup: q.itemGroupId ? (q.orderInGroup ?? null) : null,
       })),
     });
     insertedCount = toInsert.length;

@@ -108,6 +108,16 @@ export function isValidItemGroupAssetKey(key: string, mimeType: string): boolean
   return UUID_RE.test(match[1]) && match[2] === extensionForItemGroupAsset(mimeType);
 }
 
+// P1-G: when an admin saves a group with an assetKey, it must be a key our
+// own upload routes produced (item-groups/<uuid>.<known ext>) - never an
+// arbitrary path like "recordings/<someone>/..." that would let a group
+// point at a candidate's private recording.
+const KNOWN_ASSET_EXTENSIONS = new Set(["mp3", "wav", "ogg", "webm", "m4a", "png", "jpg", "webp", "mp4"]);
+export function isItemGroupAssetKeyShape(key: string): boolean {
+  const match = /^item-groups\/([^/.]+)\.([a-z0-9]+)$/.exec(key);
+  return !!match && UUID_RE.test(match[1]) && KNOWN_ASSET_EXTENSIONS.has(match[2]);
+}
+
 export interface ItemGroupFields {
   type: string;
   text?: string | null;

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
 import { logAdminAction } from "@/lib/audit-log";
+import { readOptionalId, validateTemplateExamLink } from "@/lib/template-exam-link";
 
 const VALID_CATEGORIES = new Set(PRACTICE_MODES.map((m) => m.category));
 
@@ -12,6 +13,7 @@ interface SectionInput {
   category: string;
   difficulty: string;
   questionCount: number;
+  examPartId: string | null; // P1-G, optional
 }
 
 function validateSections(sections: unknown): { error: string } | { sections: SectionInput[] } {
@@ -30,7 +32,13 @@ function validateSections(sections: unknown): { error: string } | { sections: Se
     if (!Number.isInteger(s.questionCount) || (s.questionCount as number) < 1 || (s.questionCount as number) > 20) {
       return { error: `Section ${i + 1}: questionCount must be an integer between 1 and 20.` };
     }
-    parsed.push({ order: i + 1, category: s.category, difficulty: s.difficulty, questionCount: s.questionCount as number });
+    parsed.push({
+      order: i + 1,
+      category: s.category,
+      difficulty: s.difficulty,
+      questionCount: s.questionCount as number,
+      examPartId: readOptionalId(s.examPartId),
+    });
   }
   return { sections: parsed };
 }
@@ -52,7 +60,15 @@ export async function GET() {
       isDefault: t.isDefault,
       createdAt: t.createdAt.toISOString(),
       sessionsUsingIt: t._count.sessions,
-      sections: t.sections.map((s) => ({ id: s.id, order: s.order, category: s.category, difficulty: s.difficulty, questionCount: s.questionCount })),
+      examVariantId: t.examVariantId,
+      sections: t.sections.map((s) => ({
+        id: s.id,
+        order: s.order,
+        category: s.category,
+        difficulty: s.difficulty,
+        questionCount: s.questionCount,
+        examPartId: s.examPartId,
+      })),
     })),
   });
 }
@@ -70,13 +86,17 @@ export async function POST(req: Request) {
   const result = validateSections(body?.sections);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
+  const examVariantId = readOptionalId(body?.examVariantId);
+  const linkError = await validateTemplateExamLink(examVariantId, result.sections.map((s) => s.examPartId));
+  if (linkError) return NextResponse.json({ error: linkError }, { status: 400 });
+
   // The very first template ever created has nothing to be "the default"
   // relative to - make it one automatically so mock tests work immediately
   // without a separate admin step.
   const isFirstTemplate = (await db.mockTestTemplate.count()) === 0;
 
   const template = await db.mockTestTemplate.create({
-    data: { name, isDefault: isFirstTemplate, sections: { create: result.sections } },
+    data: { name, isDefault: isFirstTemplate, examVariantId, sections: { create: result.sections } },
     include: { sections: { orderBy: { order: "asc" } } },
   });
 
@@ -86,11 +106,11 @@ export async function POST(req: Request) {
     action: "TEMPLATE_CREATED",
     targetType: "MockTestTemplate",
     targetId: template.id,
-    after: { name: template.name, sections: result.sections, isDefault: template.isDefault },
+    after: { name: template.name, sections: result.sections, isDefault: template.isDefault, examVariantId },
   });
 
   return NextResponse.json(
-    { id: template.id, name: template.name, isDefault: template.isDefault, sections: template.sections },
+    { id: template.id, name: template.name, isDefault: template.isDefault, examVariantId: template.examVariantId, sections: template.sections },
     { status: 201 }
   );
 }

@@ -47,6 +47,8 @@ export async function GET(req: Request) {
         scoringCriteria: q.scoringCriteria,
         timeLimitSeconds: q.timeLimitSeconds,
         isActive: q.isActive,
+        itemGroupId: q.itemGroupId,
+        orderInGroup: q.orderInGroup,
       })
     ),
   ];

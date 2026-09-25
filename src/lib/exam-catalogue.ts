@@ -6,6 +6,8 @@
 // both nullable, so nothing in the app behaves differently until an admin
 // deliberately attaches a template to a real ExamVariant (P1-G).
 
+import { isValidScoreScaleKey } from "@/lib/score-scales";
+
 export const EXAM_FAMILY_SLUGS = [
   "IELTS_STYLE",
   "SELT_STYLE",
@@ -60,13 +62,12 @@ export interface ExamVariantFields {
   scoreScale: string;
 }
 
-// scoreScale is checked against SCORE_SCALE_KEYS once P1-F exists (that
-// file will re-export this validator with the real check added); kept
-// separate here so P1-A has no dependency on P1-F's not-yet-written code.
+// scoreScale must be a real key in the P1-F score-scales registry.
 export function validateExamVariantFields(f: ExamVariantFields): string | null {
   if (!f.slug || !/^[A-Z0-9_]+$/.test(f.slug)) return `Invalid variant slug "${f.slug}" - use A-Z, 0-9, underscore.`;
   if (!f.name || f.name.trim().length < 2) return "name is required.";
   if (!f.scoreScale || f.scoreScale.trim().length === 0) return "scoreScale is required.";
+  if (!isValidScoreScaleKey(f.scoreScale)) return `Unknown scoreScale "${f.scoreScale}".`;
   return null;
 }
 

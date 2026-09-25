@@ -148,3 +148,36 @@ No Prisma schema change - `ItemGroup.assetKey` already exists from P1-B.
 **Result:** 152/152 unit tests, 16/16 e2e tests (all 10 original P0 e2e tests still pass unchanged), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
 
 **To try it (dev):** attach a template to an `ExamVariant` with sections linked to `ExamPart`s (admin UI for this arrives in P1-G; P1-H seeds a demo), then turn on `exam_runner_v2` in `/admin/features`.
+
+### G. Admin
+
+No Prisma schema change - every column used already existed (P1-A, B, E).
+
+**New admin pages** (added to the admin nav):
+- `/admin/exams` - the exam catalogue as a tree: add a family (only from the 7 registry families), then versions (short code + score scale from the P1-F list), timed papers (minutes, forward-only or free navigation, review screen, instructions, order) and parts (order, instructions, prep/speak seconds). Edit or delete at every level.
+- `/admin/item-groups` - create/edit passages, audio, images, charts, video; upload the file (P1-D routes, R2 or server fallback); audio play limit + transcript; optional metadata JSON; attach questions by ID with an order, detach them.
+- `/admin/templates` (existing page, extended) - optional "Exam format" picker and a per-section "exam part" picker.
+
+**New admin API** (admin-only, every change written to the Activity Log):
+- `GET /api/admin/exam-catalogue` (tree + option lists), `POST /api/admin/exam-catalogue/{families|variants|papers|parts}`, `PATCH|DELETE /api/admin/exam-catalogue/{entity}/{id}`.
+- `GET|POST /api/admin/item-groups`, `GET|PATCH|DELETE /api/admin/item-groups/{id}` (PATCH also does `{attach:[...]}` / `{detach:[...]}`).
+- `POST/PATCH /api/admin/templates` accept optional `examVariantId` and per-section `examPartId`; a part must belong to the chosen version, and parts can't be set without a version. PATCH without `examVariantId` keeps the current link (so the existing "Set as default" button can't wipe it).
+
+**Safety rules:**
+- **Delete protection:** anything in the catalogue that a mock-test template still uses can't be deleted (409 with a clear message) - the database would otherwise silently unlink the template. Item groups can't be deleted while questions are attached. Running v2 exams are unaffected either way (their plan is a snapshot).
+- **Only real uploads:** an item group's file reference must be a key our own upload routes produce (`item-groups/<uuid>.<ext>`) - never an arbitrary path such as a candidate's private recording.
+- **Legacy-type guard:** `api/practice/questions` and `api/conversations` now select only the 4 original question types. Newer types can be imported into shared categories (e.g. Reading Comprehension), and today's practice / v1 mock-test / interview-simulation screens can't render them - they're served only by exam runner v2. Every question that existed before P1-G is one of the 4 original types, so this changes nothing for existing data (verified by test).
+
+**Question validation & bulk import:**
+- All 16 registry types are now valid question types. The 4 original types keep their exact rules; each of the 12 new types gets a shape check for its stored correct answer (`src/lib/question-types/correct-answer.ts`) - e.g. GAP_FILL needs `[["a","an"],...]`, ORDERING must contain every option exactly once, NUMERIC_ENTRY needs `{"value":n}`.
+- Import template gains two **optional** trailing columns, `Item Group` and `Order In Group`; old 12-column files import exactly as before (tested). Referenced groups must exist. Export includes them; the template has a worked GAP_FILL example; friendly type spellings like `TFNG`, `Gap Fill`, `Essay` are recognised.
+- Bulk import no longer flattens a structured correct answer (a real JSON array/object in a .json file) into "a | b" text - only the Options column is pipe-joined, as before.
+- Carried over from P1-F: an exam version's score scale must be a real `SCORE_SCALE_KEYS` entry.
+
+**Tests:**
+- `tests/unit/admin-p1g.test.ts` - 37: every new type's correct-answer rule (valid + invalid), original types' rules unchanged, import-file compatibility and new columns, score-scale and asset-key checks, and DB-backed admin rules (catalogue create/update/auto-order/duplicate/refused deletes/cascade, template-link validation, item-group attach/detach/delete protection, bulk import with a group).
+- `tests/e2e/admin-exams.spec.ts` - 3 against the real server: candidates get 403 on every new admin route; full catalogue → linked template → refused deletes → unlink → delete cycle with Activity Log entries; item group + bulk import of an active newer-type question, which is then confirmed never served by today's practice endpoint.
+- `tests/e2e/admin-exams-ui.spec.ts` - 1 real-browser run: an admin builds a family/version/paper/part on `/admin/exams`, links a template in the editor, and creates a passage group - all by clicking, verified in the database, then cleaned up.
+- `tests/e2e/helpers.ts` `loginAs` now also clears the test branch's login rate-limit rows before each login: the suite now logs in more than 20 times per run, all from Playwright's one shared "unknown" IP bucket. The real limit is unchanged.
+
+**Result:** 189/189 unit tests, 20/20 e2e tests (all original P0 e2e tests pass unchanged), `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).

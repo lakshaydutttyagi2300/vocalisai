@@ -18,6 +18,10 @@ export const TEMPLATE_COLUMNS = [
   "Scoring Criteria",
   "Time Limit Seconds",
   "Active",
+  // P1-G, both OPTIONAL - a file without them (every file made before
+  // P1-G) imports exactly as it always did.
+  "Item Group",
+  "Order In Group",
 ] as const;
 
 export type TemplateColumn = (typeof TEMPLATE_COLUMNS)[number];
@@ -57,6 +61,12 @@ const HEADER_ALIASES: Record<string, TemplateColumn> = {
   active: "Active",
   isactive: "Active",
   status: "Active",
+  itemgroup: "Item Group",
+  itemgroupid: "Item Group",
+  group: "Item Group",
+  groupid: "Item Group",
+  orderingroup: "Order In Group",
+  grouporder: "Order In Group",
 };
 
 export function normalizeHeader(header: string): string {
@@ -82,6 +92,8 @@ export interface FlatQuestionRow {
   "Scoring Criteria"?: string;
   "Time Limit Seconds"?: string | number;
   Active?: string | boolean;
+  "Item Group"?: string;
+  "Order In Group"?: string | number;
 }
 
 export interface ImportableQuestion {
@@ -97,8 +109,12 @@ export interface ImportableQuestion {
   scoringCriteria?: string | null;
   timeLimitSeconds: number;
   isActive?: boolean;
+  itemGroupId?: string | null;
+  orderInGroup?: number | null;
 }
 
+// Friendly spellings for type names. Anything not listed here still works
+// in its canonical form ("Gap Fill" -> "GAP_FILL" via normalizeType).
 const TYPE_ALIASES: Record<string, string> = {
   multiplechoice: "MULTIPLE_CHOICE",
   mcq: "MULTIPLE_CHOICE",
@@ -106,6 +122,27 @@ const TYPE_ALIASES: Record<string, string> = {
   listeningcomprehension: "LISTENING_COMPREHENSION",
   shortanswer: "SHORT_ANSWER",
   openended: "SHORT_ANSWER",
+  // P1-G: the 12 newer types.
+  tfng: "TRUE_FALSE_NOT_GIVEN",
+  truefalsenotgiven: "TRUE_FALSE_NOT_GIVEN",
+  ynng: "YES_NO_NOT_GIVEN",
+  yesnonotgiven: "YES_NO_NOT_GIVEN",
+  gapfill: "GAP_FILL",
+  fillintheblank: "GAP_FILL",
+  fillintheblanks: "GAP_FILL",
+  multiselect: "MULTI_SELECT",
+  multipleselect: "MULTI_SELECT",
+  matching: "MATCHING",
+  labelling: "LABELLING",
+  labeling: "LABELLING",
+  ordering: "ORDERING",
+  highlightwords: "HIGHLIGHT_WORDS",
+  dictation: "DICTATION",
+  numericentry: "NUMERIC_ENTRY",
+  numeric: "NUMERIC_ENTRY",
+  longwriting: "LONG_WRITING",
+  essay: "LONG_WRITING",
+  timedspeaking: "TIMED_SPEAKING",
 };
 
 const DIFFICULTY_ALIASES: Record<string, string> = {
@@ -148,6 +185,12 @@ export function rowToQuestion(row: FlatQuestionRow): ImportableQuestion {
   // batches disabled rather than immediately live for candidates.
   const isActive = ["true", "yes", "1", "active"].includes(activeStr);
 
+  // P1-G optional columns. A missing/blank Item Group leaves the question
+  // standalone (itemGroupId null), exactly like every pre-P1-G import.
+  const itemGroupId = (row["Item Group"] ?? "").toString().trim() || null;
+  const orderRaw = (row["Order In Group"] ?? "").toString().trim();
+  const orderParsed = orderRaw ? parseInt(orderRaw, 10) : NaN;
+
   return {
     category: (row["Category"] ?? "").toString().trim().toUpperCase().replace(/\s+/g, "_"),
     difficulty: normalizeDifficulty((row["Difficulty"] ?? "").toString()),
@@ -161,6 +204,8 @@ export function rowToQuestion(row: FlatQuestionRow): ImportableQuestion {
     scoringCriteria: (row["Scoring Criteria"] ?? "").toString().trim() || null,
     timeLimitSeconds: Number.isFinite(timeLimitSeconds) ? timeLimitSeconds : NaN,
     isActive,
+    itemGroupId,
+    orderInGroup: itemGroupId && Number.isFinite(orderParsed) ? orderParsed : null,
   };
 }
 
@@ -178,6 +223,8 @@ export function questionToRow(q: ImportableQuestion & { id?: string }): (string 
     q.scoringCriteria ?? "",
     q.timeLimitSeconds,
     q.isActive ? "TRUE" : "FALSE",
+    q.itemGroupId ?? "",
+    q.orderInGroup ?? "",
   ];
 }
 
@@ -222,6 +269,23 @@ export const SAMPLE_ROWS: ImportableQuestion[] = [
     explanation: null,
     scoringCriteria: "Assess grammar, clarity, tone and structure appropriate to the task. No fixed answer.",
     timeLimitSeconds: 180,
+    isActive: false,
+  },
+  // P1-G: one of the newer types, showing its JSON correct-answer shape.
+  // Newer types are only ever served by the new exam runner, never by
+  // today's practice screens.
+  {
+    category: "READING_COMPREHENSION",
+    difficulty: "INTERMEDIATE",
+    type: "GAP_FILL",
+    prompt: "The pool opens at ___ every day.",
+    passage: null,
+    options: null,
+    correctAnswer: JSON.stringify([["7:00", "7", "seven"]]),
+    expectedAnswer: null,
+    explanation: "The notice says the pool is open every day from 7:00.",
+    scoringCriteria: null,
+    timeLimitSeconds: 45,
     isActive: false,
   },
 ];

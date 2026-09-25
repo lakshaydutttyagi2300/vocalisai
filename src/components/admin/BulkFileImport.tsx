@@ -180,6 +180,8 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
       scoringCriteria: "Scoring Criteria",
       timeLimitSeconds: "Time Limit Seconds",
       isActive: "Active",
+      itemGroupId: "Item Group",
+      orderInGroup: "Order In Group",
     };
     return map[header] ?? "";
   }
@@ -190,7 +192,17 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
       for (const [header, col] of Object.entries(mapping)) {
         if (!col) continue;
         const value = raw[header];
-        (flat as Record<string, unknown>)[col] = Array.isArray(value) ? value.join(" | ") : value;
+        // Options are a pipe-separated list in flat files. Any OTHER
+        // structured value (e.g. a GAP_FILL/MULTI_SELECT correct answer
+        // given as a real JSON array in a .json import) is kept as JSON
+        // text - joining it with pipes would corrupt it. Plain strings and
+        // numbers (every pre-P1-G file) pass through unchanged.
+        (flat as Record<string, unknown>)[col] =
+          col === "Options" && Array.isArray(value)
+            ? value.join(" | ")
+            : value !== null && typeof value === "object"
+              ? JSON.stringify(value)
+              : value;
       }
       return rowToQuestion(flat);
     });

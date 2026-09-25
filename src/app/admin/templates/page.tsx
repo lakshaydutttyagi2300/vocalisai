@@ -9,6 +9,7 @@ interface Section {
   category: string;
   difficulty: string;
   questionCount: number;
+  examPartId?: string | null; // P1-G: optional link to an exam part
 }
 
 interface Template {
@@ -17,7 +18,15 @@ interface Template {
   isDefault?: boolean;
   createdAt?: string;
   sessionsUsingIt?: number;
+  examVariantId?: string | null; // P1-G: optional exam format
   sections: Section[];
+}
+
+// Flattened from /api/admin/exam-catalogue for the pickers below.
+interface VariantOption {
+  id: string;
+  label: string;
+  parts: { id: string; label: string }[];
 }
 
 function emptySection(): Section {
@@ -33,6 +42,7 @@ export default function AdminTemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
+  const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
 
   function load() {
     setError(null);
@@ -46,6 +56,29 @@ export default function AdminTemplatesPage() {
   }
 
   useEffect(load, []);
+
+  // P1-G: exam formats and their parts, for the optional link pickers.
+  useEffect(() => {
+    fetch("/api/admin/exam-catalogue")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.families)) return;
+        const options: VariantOption[] = [];
+        for (const f of data.families) {
+          for (const v of f.variants) {
+            options.push({
+              id: v.id,
+              label: `${f.name} · ${v.name}`,
+              parts: v.papers.flatMap((paper: { name: string; parts: { id: string; name: string }[] }) =>
+                paper.parts.map((part) => ({ id: part.id, label: `${paper.name} › ${part.name}` }))
+              ),
+            });
+          }
+        }
+        setVariantOptions(options);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!editing) return;
@@ -92,7 +125,7 @@ export default function AdminTemplatesPage() {
       const res = await fetch(url, {
         method: isNew ? "POST" : "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editing.name, sections: editing.sections }),
+        body: JSON.stringify({ name: editing.name, examVariantId: editing.examVariantId ?? null, sections: editing.sections }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -180,6 +213,11 @@ export default function AdminTemplatesPage() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-ink-900">{t.name}</p>
                       {t.isDefault && <span className="badge badge-skill">Default</span>}
+                      {t.examVariantId && (
+                        <span className="badge badge-ai">
+                          {variantOptions.find((v) => v.id === t.examVariantId)?.label ?? "Exam format"}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-500">
                       {t.sections.length} section{t.sections.length === 1 ? "" : "s"} - used by {t.sessionsUsingIt} session
@@ -247,6 +285,33 @@ export default function AdminTemplatesPage() {
               />
             </label>
 
+            <label className="mt-4 block text-sm">
+              <span className="text-slate-600">Exam format (optional)</span>
+              <select
+                value={editing.examVariantId ?? ""}
+                onChange={(e) =>
+                  setEditing({
+                    ...editing,
+                    examVariantId: e.target.value || null,
+                    // Parts belong to one format - switching formats clears them.
+                    sections: editing.sections.map((sec) => ({ ...sec, examPartId: null })),
+                  })
+                }
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+              >
+                <option value="">None - standard mock test</option>
+                {variantOptions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-slate-500">
+                Linking a format lets the new exam screen run this template (only while the &quot;Exam Runner v2&quot; feature is on).
+                Link each section to the part it fills.
+              </span>
+            </label>
+
             <div className="mt-4 space-y-2">
               {editing.sections.map((s, i) => (
                 <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 p-2">
@@ -283,6 +348,21 @@ export default function AdminTemplatesPage() {
                     onChange={(e) => updateSection(i, { questionCount: Number(e.target.value) })}
                     className="w-20 rounded-md border border-slate-300 px-2 py-1 text-sm"
                   />
+                  {editing.examVariantId && (
+                    <select
+                      aria-label={`Section ${i + 1} exam part`}
+                      value={s.examPartId ?? ""}
+                      onChange={(e) => updateSection(i, { examPartId: e.target.value || null })}
+                      className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                    >
+                      <option value="">No exam part</option>
+                      {(variantOptions.find((v) => v.id === editing.examVariantId)?.parts ?? []).map((part) => (
+                        <option key={part.id} value={part.id}>
+                          {part.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button
                     type="button"
                     onClick={() => removeSection(i)}

@@ -21,8 +21,15 @@ export async function createTestUser(email: string, password: string, name = "E2
 // server the very first credentials callback can return 200 without the
 // session cookie sticking. One retry covers that; a second failure throws
 // loudly so a real auth problem is never masked.
+//
+// It also clears the TEST branch's login rate-limit rows first. The real
+// limit (20 logins / 10 min per IP, src/lib/auth.ts) is correct and
+// untouched - but every Playwright request shares one "unknown" IP
+// bucket, and the suite now logs in more than 20 times in one run, so the
+// one-time clear in global-setup.ts is no longer enough on its own.
 export async function loginAs(page: Page, email: string, password: string) {
   const request: APIRequestContext = page.request;
+  await db.rateLimitHit.deleteMany({ where: { key: { startsWith: "login:" } } });
   for (let attempt = 1; attempt <= 2; attempt++) {
     const csrfRes = await request.get("/api/auth/csrf");
     const { csrfToken } = await csrfRes.json();

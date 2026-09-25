@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { selectWithCooldown, shuffleArray, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
+import { LEGACY_QUESTION_TYPES } from "@/lib/question-validation";
 
 // Returns a random set of questions for a category/difficulty. The correct
 // answer is never included here - it's only checked server-side when the
@@ -32,7 +33,12 @@ export async function GET(req: Request) {
   }
 
   const pool = await db.practiceQuestion.findMany({
-    where: { category, difficulty, isActive: true },
+    // Only the 4 original types - the only ones this route's callers
+    // (solo practice, the v1 mock-test runner) can render. Newer types
+    // (P1-C/G) are served exclusively by exam runner v2. Every question
+    // that existed before P1-G is one of these 4, so this changes nothing
+    // for existing data.
+    where: { category, difficulty, isActive: true, type: { in: LEGACY_QUESTION_TYPES } },
     select: {
       id: true,
       category: true,
