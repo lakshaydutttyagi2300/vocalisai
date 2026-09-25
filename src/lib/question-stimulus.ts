@@ -137,12 +137,78 @@ export function isListeningQuestion(q: { type?: string | null; category?: string
   return q.type === "LISTENING_COMPREHENSION" || q.category === "LISTENING";
 }
 
+// A plain-text dialogue script: EVERY non-empty line is "S1: ..." (or
+// "Speaker 1: ..."). The labels are speaker ids, not words to read out - a
+// dialogue is split into turns so each speaker gets their own voice and the
+// label itself is never spoken or shown. Any other text returns null.
+// MUST match prisma/question-audio/speaker-labels.mjs (see its tests).
+const DIALOGUE_LINE = /^\s*(S\s?\d{1,2}|Speaker\s*\d{1,2})\s*:\s*(\S.*)$/i;
+
+export function parseDialogueText(text: string): AudioTurn[] | null {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return null;
+  const turns: AudioTurn[] = [];
+  for (const line of lines) {
+    const m = line.match(DIALOGUE_LINE);
+    if (!m) return null;
+    turns.push({ speaker: `S${m[1].replace(/\D/g, "")}`, text: m[2].trim() });
+  }
+  return turns;
+}
+
+// "S2" (internal) -> "Speaker 2" (by order of appearance), for display.
+function speakerLabels(turns: AudioTurn[]): { label: string; text: string }[] {
+  const order = [...new Set(turns.map((t) => t.speaker))];
+  return turns.map((t) => ({ label: `Speaker ${order.indexOf(t.speaker) + 1}`, text: t.text }));
+}
+
 export function parseStimulus(passage: string | null | undefined, q: { id?: string | null; type?: string | null; category?: string | null } = {}): Stimulus {
   if (!isStr(passage)) return NONE;
   if (looksLikeJson(passage)) return parseStimulusSpec(passage, q.id ?? null) ?? NONE; // never raw JSON
-  // Plain text: a listening passage is heard, never read; anything else is shown.
-  if (isListeningQuestion(q)) return { kind: "audio", turns: [{ speaker: "S1", text: passage.trim() }], rate: 0.95, pauseMs: 400, playLimit: null, audioUrl: null, transcript: null };
+  const dialogue = parseDialogueText(passage);
+  // Plain text: a listening passage is heard, never read (a dialogue as
+  // separate voices, its labels never spoken); anything else is shown - a
+  // written dialogue with neutral "Speaker 1:" labels instead of S1/S2.
+  if (isListeningQuestion(q)) {
+    return {
+      kind: "audio",
+      turns: dialogue ?? [{ speaker: "S1", text: passage.trim() }],
+      rate: 0.95,
+      pauseMs: 400,
+      playLimit: null,
+      audioUrl: null,
+      transcript: null,
+    };
+  }
+  if (dialogue) return { kind: "text", text: speakerLabels(dialogue).map((t) => `${t.label}: ${t.text}`).join("\n") };
   return { kind: "text", text: passage };
+}
+
+// Question text (wording, options, answer, explanation) must never refer to
+// the internal speaker ids - candidates only ever hear voices, or see
+// "Speaker 1/2". Used by admin import/edit for listening questions, so new
+// content can't reintroduce "What is S2's view?". Error message or null.
+const SPEAKER_ID = /\bS\s?\d{1,2}\b/;
+export function validateSpeakerReferences(q: {
+  category?: string | null;
+  type?: string | null;
+  prompt?: string | null;
+  options?: string[] | string | null;
+  correctAnswer?: string | null;
+  explanation?: string | null;
+}): string | null {
+  if (!isListeningQuestion(q)) return null;
+  const options = Array.isArray(q.options) ? q.options.join(" ") : (q.options ?? "");
+  for (const [field, value] of [["Prompt", q.prompt], ["Options", options], ["Correct answer", q.correctAnswer], ["Explanation", q.explanation]] as const) {
+    const m = typeof value === "string" ? value.match(SPEAKER_ID) : null;
+    if (m) {
+      return `${field} mentions the internal speaker label "${m[0]}". Candidates never see those labels - write "the first speaker", "the second speaker", etc. instead.`;
+    }
+  }
+  return null;
 }
 
 // What may be sent to a candidate's browser: the stimulus plus a

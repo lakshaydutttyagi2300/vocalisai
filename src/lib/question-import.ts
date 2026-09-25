@@ -6,7 +6,7 @@
 
 import { db } from "@/lib/db";
 import { validateQuestionFields } from "@/lib/question-validation";
-import { validatePassageStimulus } from "@/lib/question-stimulus";
+import { validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
 import { findSimilar, questionSignature } from "@/lib/question-dedup";
 
 export interface QuestionInput {
@@ -81,7 +81,10 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
     // A JSON-looking passage must be a stimulus spec candidates can render
     // (question-stimulus.ts) - never imported as something that would show
     // as raw JSON or an empty question. Plain-text passages are unaffected.
-    const validationError = validateQuestionFields(q) ?? validatePassageStimulus((q as { passage?: string | null }).passage);
+    const validationError =
+      validateQuestionFields(q) ??
+      validatePassageStimulus((q as { passage?: string | null }).passage) ??
+      validateSpeakerReferences(q as Parameters<typeof validateSpeakerReferences>[0]);
     if (validationError) {
       results.push({ index, status: "error", prompt: q.prompt ?? "", error: validationError });
       continue;

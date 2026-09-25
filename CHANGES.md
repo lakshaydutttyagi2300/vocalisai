@@ -378,3 +378,28 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
   - A refresh in the middle of a mock test, then re-entry, stays clean.
   - A v2 exam built from spec-shaped listening and picture questions: answer, refresh, resume the same session. Players and answers come back, and the state API and screen stay clean.
 - **Read-only audit of the live question bank** (3,455 questions) through the same parser: 0 internal fields sent, 0 JSON shown as text, 0 listening transcripts printed, and 129 of 129 audio specs with a playable, current file.
+
+### Fix: S1/S2 speaker labels reaching candidates
+
+**Found in the live question bank (read-only search):**
+- **134 listening questions** stored their dialogue as plain text, with every line starting "S1:" or "S2:". The player spoke that text, labels included, in one voice.
+- **10 listening questions** (5 unique, each stored twice) said "S2" or "S3" in the question or its explanation, e.g. "What is S2's main argument?".
+
+**Code:**
+- `question-stimulus.ts` reads a plain-text "S1:/S2:" (or "Speaker 1:") dialogue as separate turns per speaker, so labels are never spoken. A written (non-listening) dialogue is shown with "Speaker 1/2".
+- `validateSpeakerReferences`: admin import, and any edit that changes the wording, options, answer or explanation, refuses S1/S2-style labels in a listening question's text, with guidance to write "the second speaker".
+
+**Data** (`npm run fix:speaker-labels`, with `--production` for live and `--dry-run` to preview):
+- Rewrites labels in question text to "the first/second/third speaker", by that question's own speaking order.
+- Converts plain-text dialogues to the standard audio spec, using the bank's per-level play limits and speeds.
+- Then run `generate:question-audio`.
+
+**Live:**
+- A backup `backup-production-before-speaker-label-fix-2026-09-25` was taken first.
+- 10 questions reworded, 134 dialogues converted, and 134 recordings generated (0 failed).
+- Audit of all 3,455 live questions: 0 labels in question text, 0 labels spoken or shown, 0 internal fields, and 263 of 263 conversations with a playable recording.
+- Dev was repaired the same way. It has no recordings, so the browser's voices play the turns there.
+
+**Tests:**
+- `tests/unit/speaker-labels.test.ts` (9): dialogue parsing parity with the repair script, the rewrite by speaking order, refusal to guess an unknown label, spec conversion, and the import rule.
+- `raw-data-guard.spec.ts`: adds a plain "S1:/S2:" dialogue, which plays as 2 speakers with no labels on screen or in what is spoken, and an import refusal for "What is S2's view".

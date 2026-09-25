@@ -133,6 +133,8 @@ test("new questions of ANY shape never expose raw data - on the wire, through Ne
     await pools.add(listeningQ("What must they bring?", spec([["S1", "Please bring the signed contract."], ["S2", "Of course."], ["S3", "And your ID card."]])));
     await pools.add(listeningQ("Who will present?", JSON.stringify({ video: { url: "x", "mystery-video-field": 1 } }))); // unknown spec
     await pools.add(listeningQ("Which printer is broken?", "{broken json")); // malformed
+    // Plain-text dialogue with S1:/S2: labels (134 such questions exist live).
+    await pools.add(listeningQ("Which room is it in?", "S1: The meeting has moved to room four.\nS2: Great, that room is bigger."));
 
     // 1) What the server sends: sanitized stimulus only, never the spec.
     const api = await (await page.request.get("/api/practice/questions?category=LISTENING&difficulty=INTERMEDIATE&count=10")).json();
@@ -142,6 +144,9 @@ test("new questions of ANY shape never expose raw data - on the wire, through Ne
     expect(byPrompt.get("What must they bring?")?.stimulus.kind).toBe("audio");
     expect(byPrompt.get("Who will present?")?.stimulus.kind).toBe("none"); // unknown JSON -> nothing, not text
     expect(byPrompt.get("Which printer is broken?")?.stimulus.kind).toBe("none");
+    const dialogue = byPrompt.get("Which room is it in?")?.stimulus as unknown as { kind: string; turns: { speaker: string; text: string }[] };
+    expect(dialogue.kind).toBe("audio");
+    expect(dialogue.turns.map((t) => t.text)).toEqual(["The meeting has moved to room four.", "Great, that room is bigger."]); // labels never spoken
     for (const q of byPrompt.values()) expect(q.passage).toBeNull();
 
     // 2) On screen, clicking Next through every question.
@@ -166,7 +171,7 @@ test("new questions of ANY shape never expose raw data - on the wire, through Ne
       await page.getByRole("button", { name: /Next question|Finish/ }).click();
       seen++;
     }
-    expect(seen).toBe(4);
+    expect(seen).toBe(5);
     await expect(page.getByRole("heading", { name: "Session complete" })).toBeVisible();
 
     // 3) Future content: admin import refuses JSON the renderer can't show.
@@ -180,6 +185,7 @@ test("new questions of ANY shape never expose raw data - on the wire, through Ne
             { ...listeningQ("Bad import", "{broken json"), options: ["A", "B"], correctAnswer: "A", isActive: false },
             { ...listeningQ("Unknown spec import", JSON.stringify({ video: { url: "x" } })), options: ["A", "B"], correctAnswer: "A", isActive: false },
             { ...listeningQ("Good spec import", spec([["S1", "Hello."], ["S2", "Hi."]])), options: ["A", "B"], correctAnswer: "A", isActive: false },
+            { ...listeningQ("What is S2's view", spec([["S1", "Hello."], ["S2", "Hi."]])), options: ["A", "B"], correctAnswer: "A", isActive: false },
           ],
         },
       })
@@ -187,6 +193,7 @@ test("new questions of ANY shape never expose raw data - on the wire, through Ne
     expect(imported.inserted).toBe(1);
     const errors = JSON.stringify(imported);
     expect(errors).toMatch(/isn't a recognised stimulus/);
+    expect(errors).toMatch(/mentions the internal speaker label \W{0,3}S2/); // "What is S2's view" refused
     const good = await db.practiceQuestion.findFirst({ where: { prompt: `Good spec import [${run}]` } });
     if (good) pools.created.push(good.id);
     expect(good).toBeTruthy();
