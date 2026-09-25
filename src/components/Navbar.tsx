@@ -49,6 +49,14 @@ const ADMIN_NAV: ({ kind: "link" } & AdminLink | { kind: "group"; label: string;
 
 const ADMIN_LINKS: AdminLink[] = ADMIN_NAV.flatMap((e) => (e.kind === "link" ? [e] : e.items));
 
+// High-contrast admin bar: near-white text on the dark background, a soft
+// highlight on hover, and the current section as a solid amber pill with
+// dark text - readable at a glance, not just a thin underline.
+const ADMIN_ITEM = "flex items-center gap-1 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-semibold transition-colors";
+const ADMIN_ITEM_IDLE = "text-slate-100 hover:bg-white/10 hover:text-white";
+const ADMIN_ITEM_ACTIVE = "bg-amber-400 text-ink-950";
+const ADMIN_ITEM_OPEN = "bg-white/15 text-white";
+
 function isActiveAdmin(pathname: string, href: string) {
   return href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -78,19 +86,17 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
+        data-active={active ? "true" : undefined}
         onClick={() => setOpen((v) => !v)}
-        className={`relative flex items-center gap-1 whitespace-nowrap py-1 text-sm font-medium transition-colors ${
-          active || open ? "text-amber-500" : "text-slate-400 hover:text-white"
-        }`}
+        className={`${ADMIN_ITEM} ${active ? ADMIN_ITEM_ACTIVE : open ? ADMIN_ITEM_OPEN : ADMIN_ITEM_IDLE}`}
       >
         {label}
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${open ? "rotate-180" : ""}`}>
           <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
         </svg>
-        {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-amber-500" />}
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-4 w-64 -translate-x-1/2 rounded-lg border border-ink-700 bg-ink-900 p-1.5 shadow-xl">
+        <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 rounded-xl border border-slate-600 bg-ink-900 p-2 shadow-2xl">
           {items.map((item) => {
             const itemActive = isActiveAdmin(pathname, item.href);
             return (
@@ -99,10 +105,10 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
                 href={item.href}
                 onClick={() => setOpen(false)}
                 aria-current={itemActive ? "page" : undefined}
-                className={`block rounded-md px-3 py-2 transition-colors ${itemActive ? "bg-ink-800" : "hover:bg-ink-800"}`}
+                className={`block rounded-lg px-3 py-2.5 transition-colors ${itemActive ? "bg-amber-400" : "hover:bg-white/10"}`}
               >
-                <span className={`block text-sm font-medium ${itemActive ? "text-amber-500" : "text-slate-200"}`}>{item.label}</span>
-                {item.hint && <span className="block text-xs text-slate-500">{item.hint}</span>}
+                <span className={`block text-[15px] font-semibold ${itemActive ? "text-ink-950" : "text-white"}`}>{item.label}</span>
+                {item.hint && <span className={`block text-[13px] ${itemActive ? "text-ink-800" : "text-slate-300"}`}>{item.hint}</span>}
               </Link>
             );
           })}
@@ -155,7 +161,7 @@ export function Navbar() {
             </span>
           </Link>
 
-          <nav aria-label="Admin" className="hidden items-center gap-7 md:flex">
+          <nav aria-label="Admin" className="hidden items-center gap-1.5 md:flex">
             {ADMIN_NAV.map((entry) => {
               if (entry.kind === "group") {
                 return <AdminDropdown key={entry.label} label={entry.label} items={entry.items} pathname={pathname} />;
@@ -166,24 +172,24 @@ export function Navbar() {
                   key={entry.href}
                   href={entry.href}
                   aria-current={active ? "page" : undefined}
-                  className={`relative whitespace-nowrap py-1 text-sm font-medium transition-colors ${
-                    active ? "text-amber-500" : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`${ADMIN_ITEM} ${active ? ADMIN_ITEM_ACTIVE : ADMIN_ITEM_IDLE}`}
                 >
                   {entry.label}
-                  {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-amber-500" />}
                 </Link>
               );
             })}
           </nav>
 
           <div className="flex shrink-0 items-center gap-3">
-            <Link href="/dashboard" className="hidden whitespace-nowrap text-sm font-medium text-slate-400 hover:text-white lg:inline">
+            <Link
+              href="/dashboard"
+              className="hidden whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-semibold text-slate-100 hover:bg-white/10 hover:text-white lg:inline"
+            >
               Candidate view
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="whitespace-nowrap rounded-md border border-ink-700 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-ink-800"
+              className="whitespace-nowrap rounded-full border border-slate-400 px-4 py-1.5 text-[15px] font-semibold text-white hover:bg-white hover:text-ink-950"
             >
               Log out
             </button>
@@ -191,7 +197,7 @@ export function Navbar() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className="rounded-md border border-ink-700 p-2 text-slate-300 md:hidden"
+              className="rounded-md border border-slate-400 p-2 text-white md:hidden"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -208,8 +214,8 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`rounded-md px-2 py-2 text-sm font-medium ${
-                    isActiveAdmin(pathname, link.href) ? "bg-ink-800 text-amber-500" : "text-slate-300"
+                  className={`rounded-lg px-3 py-2.5 text-[15px] font-semibold ${
+                    isActiveAdmin(pathname, link.href) ? "bg-amber-400 text-ink-950" : "text-slate-100 hover:bg-white/10"
                   }`}
                 >
                   {link.label}

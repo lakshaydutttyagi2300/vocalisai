@@ -25,10 +25,10 @@ test("admin navigation fits on one line, groups pages into menus, and works on a
   // One line: every top-level item has the height of a single text line.
   for (const name of ["Overview", "Candidates", "Activity Log"]) {
     const box = (await nav.getByRole("link", { name, exact: true }).boundingBox())!;
-    expect(box.height, name).toBeLessThan(32);
+    expect(box.height, name).toBeLessThan(44);
   }
   for (const name of ["Content", "Settings"]) {
-    expect((await nav.getByRole("button", { name }).boundingBox())!.height, name).toBeLessThan(32);
+    expect((await nav.getByRole("button", { name }).boundingBox())!.height, name).toBeLessThan(44);
   }
   const header = (await page.locator("header").boundingBox())!;
   expect(header.height).toBeLessThan(80);
@@ -43,7 +43,7 @@ test("admin navigation fits on one line, groups pages into menus, and works on a
   await nav.getByRole("link", { name: /^Exams/ }).click();
   await expect(page).toHaveURL(/\/admin\/exams$/);
   // The group is marked active while one of its pages is open; the menu closed.
-  await expect(nav.getByRole("button", { name: "Content" })).toHaveClass(/text-amber-500/);
+  await expect(nav.getByRole("button", { name: "Content" })).toHaveAttribute("data-active", "true");
   await expect(nav.getByRole("link", { name: /^Questions/ })).toHaveCount(0);
 
   // Settings menu, closes on Escape.
