@@ -78,3 +78,27 @@ No Prisma schema change - pure functions only, no dependency on anything else in
 **Important scoping note, carried from the plan:** every scale here is explicitly "-style"/approximate and never reproduces a real exam board's actual proprietary conversion table or qualification name - consistent with `TrademarkDisclaimer.tsx`'s "no implied affiliation" requirement.
 
 **Result:** 123/123 unit tests pass, 10/10 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).
+
+### D. Assets (admin uploads for ItemGroups)
+
+No Prisma schema change - `ItemGroup.assetKey` already exists from P1-B.
+
+**Added routes (admin-only, 403 for anyone else):**
+- `POST /api/admin/item-groups/assets/presign` - validates type/MIME/claimed size, then returns a short-lived signed R2 PUT URL and an `item-groups/<uuid>.<ext>` key. Returns `{ mode: "server" }` when R2 isn't configured, same as the recordings flow.
+- `POST /api/admin/item-groups/assets/complete` - rebuilds and checks the key's exact shape, confirms the object really exists, and checks its **real stored size**. An upload over the cap is deleted from the bucket (413) rather than left as an orphan. Audit-logged.
+- `POST /api/admin/item-groups/assets` - local-disk/through-the-server fallback, reusing the existing `writeRecording()` unchanged (it's a generic key-to-bytes writer). Audit-logged.
+
+**Touched (additive only):**
+- `src/lib/storage.ts` - added `getPresignedItemAssetUploadUrl`, `itemAssetSize`, `deleteItemAsset`. Existing recording functions untouched.
+- `src/lib/item-groups.ts` - MIME allow-lists per type (audio/image/chart/video), a 25MB cap, `validateItemGroupAssetUpload`, and key build/validate helpers.
+
+**Why the size check happens after upload:** a presigned S3/R2 PUT can't cap upload size up front (that needs a POST policy, a different flow). So the presign step rejects an honest oversized request early, and the complete step checks the real stored size and deletes anything over the cap - a client that lies about size still can't keep an oversized file.
+
+**Not done in this chunk (by design):** nothing yet attaches an `assetKey` to an `ItemGroup` row - that's the admin CRUD in P1-G.
+
+**Tests:**
+- `tests/unit/item-group-assets.test.ts` - 14 tests: validators, plus every branch of all three routes (non-admin, bad MIME, R2 vs server mode, bad key, missing upload, oversized-delete, success + audit log), with storage mocked.
+- `tests/e2e/item-group-assets.spec.ts` - 2 tests against the real server: non-admin gets 403; admin gets 400 for a bad file type and a well-formed presign response for a good one.
+- The dev `.env` has real R2 credentials, so no test ever performs an actual upload - minting a presigned URL is local signing, and everything past that is unit-tested against the mock. No test files land in the real bucket.
+
+**Result:** 137/137 unit tests pass, 12/12 e2e tests pass, `npm run build` clean, `npx tsc --noEmit` clean. `npm run lint` unchanged (same pre-existing TS7 blocker).

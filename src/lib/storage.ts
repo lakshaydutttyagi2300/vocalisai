@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { UPLOADS_ROOT } from "@/lib/uploads";
 
@@ -47,6 +47,40 @@ export async function getPresignedUploadUrl(key: string, mimeType: string): Prom
   return getSignedUrl(client, command, { expiresIn: 300 });
 }
 
+// P1-D: same direct-to-R2 presigned-PUT pattern as getPresignedUploadUrl
+// above, kept as its own function (rather than just calling that one)
+// because item-group assets have their own key prefix
+// ("item-groups/<id-or-pending>/...", never "recordings/..."). A
+// presigned S3/R2 PUT has no reliable way to cap the upload size up front
+// (that needs a POST policy, a materially different flow) - the real size
+// cap (item-groups.ts's ITEM_GROUP_ASSET_MAX_BYTES) is enforced AFTER the
+// upload instead, by itemAssetSize() below, checked by the /complete
+// route before the ItemGroup row is created or updated.
+export async function getPresignedItemAssetUploadUrl(key: string, mimeType: string): Promise<string> {
+  const client = r2Client();
+  if (!client || !BUCKET) throw new Error("R2 is not configured.");
+
+  const command = new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: mimeType });
+  return getSignedUrl(client, command, { expiresIn: 300 });
+}
+
+// Confirms an item-group asset actually landed in R2 and reports its real
+// size - same "never trust the client's word alone" discipline as
+// recordingExists(), extended to size since an oversized upload must be
+// caught here (the presigned PUT itself can't reject it - see above).
+// Returns null if the object doesn't exist.
+export async function itemAssetSize(key: string): Promise<number | null> {
+  const client = r2Client();
+  if (!client || !BUCKET) return null;
+
+  try {
+    const result = await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    return result.ContentLength ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Confirms a direct-to-R2 upload actually landed before the caller trusts
 // it and creates a PracticeRecording row - never take the client's word
 // alone that a presigned PUT succeeded (src/app/api/practice/recordings/complete).
@@ -59,6 +93,22 @@ export async function recordingExists(key: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+// Removes an item-group asset that failed a post-upload check (currently
+// only the size cap - see the /complete route) - the object already
+// landed in R2 by the time that check runs, so this cleans it up rather
+// than leaving an orphaned, oversized file billed to the bucket forever.
+// Never used on a PracticeRecording; recordings have no equivalent
+// post-upload rejection path today.
+export async function deleteItemAsset(key: string): Promise<void> {
+  const client = r2Client();
+  if (!client || !BUCKET) return;
+  try {
+    await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
+  } catch (err) {
+    console.error("Failed to delete rejected item-group asset:", err);
   }
 }
 
