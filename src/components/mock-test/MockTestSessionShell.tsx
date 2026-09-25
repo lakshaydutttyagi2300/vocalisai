@@ -27,9 +27,12 @@ interface TemplateSection {
 export function MockTestSessionShell({
   cameraStream,
   micStream,
+  templateId = null,
 }: {
   cameraStream: MediaStream | null;
   micStream: MediaStream | null;
+  // The test chosen on the Mock Tests page; null = the default template.
+  templateId?: string | null;
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,7 +94,13 @@ export function MockTestSessionShell({
     setStartError(null);
     if (await tryResumeV2()) return;
     try {
-      const res = await fetch("/api/mock-tests/sessions", { method: "POST" });
+      const res = templateId
+        ? await fetch("/api/mock-tests/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ templateId }),
+          })
+        : await fetch("/api/mock-tests/sessions", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
         setStartError(data.error || "Couldn't start the mock test. Please try again.");

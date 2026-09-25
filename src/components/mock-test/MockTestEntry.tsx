@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { MockTestSystemCheck } from "@/components/mock-test/MockTestSystemCheck";
 import { CandidateRules } from "@/components/mock-test/CandidateRules";
 import { MockTestSessionShell } from "@/components/mock-test/MockTestSessionShell";
+import { TrademarkDisclaimer } from "@/components/exam/TrademarkDisclaimer";
+import type { MockTestOption } from "@/lib/mock-test-options";
 
 type Stage = "intro" | "system-check" | "rules" | "session";
 
@@ -13,18 +15,49 @@ export function MockTestEntry() {
     cameraStream: null,
     micStream: null,
   });
+  // Choices from /api/mock-tests/options. With one option (or if the list
+  // can't be loaded) nothing extra is shown and the default test is used,
+  // exactly as before; the chooser only appears when there's a real choice.
+  const [options, setOptions] = useState<MockTestOption[]>([]);
+  const [chosenId, setChosenId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/mock-tests/options")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data?.options)) setOptions(data.options);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const hasChoice = options.length > 1;
+  const chosen = options.find((o) => o.templateId === chosenId) ?? options[0] ?? null;
 
   if (stage === "intro") {
     return (
-      <div className="mx-auto max-w-lg px-6 py-16 text-center">
+      <div className={`mx-auto px-6 py-16 text-center ${hasChoice ? "max-w-3xl" : "max-w-lg"}`}>
         <span className="badge badge-skill">Proctored Assessment</span>
         <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">Prepare for your assessment</h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          A realistic, timed Voice &amp; Accent assessment - the closest thing to the real hiring
-          process you can practice on your own.
+          {hasChoice
+            ? "Choose the test you want to take. Every test is timed and proctored, just like the real thing."
+            : "A realistic, timed Voice & Accent assessment - the closest thing to the real hiring process you can practice on your own."}
         </p>
 
-        <div className="card mt-8 grid grid-cols-3 gap-4 p-5 text-left">
+        {hasChoice && (
+          <div role="radiogroup" aria-label="Choose a mock test" className="mt-8 grid gap-3 text-left sm:grid-cols-2">
+            {options.map((o) => (
+              <TestChoice key={o.templateId} option={o} selected={chosen?.templateId === o.templateId} onSelect={() => setChosenId(o.templateId)} />
+            ))}
+          </div>
+        )}
+        {hasChoice && chosen?.kind === "exam" && <TrademarkDisclaimer className="mt-3 text-left" />}
+
+        <div className={`card mt-8 grid grid-cols-3 gap-4 p-5 text-left ${hasChoice ? "mx-auto max-w-lg" : ""}`}>
           <PrepItem label="Camera" />
           <PrepItem label="Microphone" />
           <PrepItem label="Environment" />
@@ -57,7 +90,63 @@ export function MockTestEntry() {
     return <CandidateRules onConfirm={() => setStage("session")} />;
   }
 
-  return <MockTestSessionShell cameraStream={streams.cameraStream} micStream={streams.micStream} />;
+  return (
+    <MockTestSessionShell
+      cameraStream={streams.cameraStream}
+      micStream={streams.micStream}
+      // Only send a choice when one was actually offered - otherwise the
+      // request is byte-for-byte what it was before (default template).
+      templateId={hasChoice ? chosen?.templateId ?? null : null}
+    />
+  );
+}
+
+function formatMinutes(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+function TestChoice({ option, selected, onSelect }: { option: MockTestOption; selected: boolean; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={`rounded-xl border-2 p-4 text-left transition ${
+        selected ? "border-brand-600 bg-brand-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"
+      }`}
+    >
+      <span className="flex items-start justify-between gap-2">
+        <span className="font-display text-base font-bold text-ink-950">{option.name}</span>
+        <span
+          aria-hidden="true"
+          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-brand-600 bg-brand-600" : "border-slate-300"}`}
+        >
+          {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+        </span>
+      </span>
+      {option.kind === "standard" ? (
+        <span className="mt-1 block text-sm text-slate-600">Our standard assessment: speaking, listening, reading and workplace communication.</span>
+      ) : (
+        <>
+          <span className="mt-1 block text-sm text-slate-600">
+            Full exam-style practice test{option.totalMinutes ? ` · ${formatMinutes(option.totalMinutes)} in total` : ""}
+          </span>
+          {option.papers.length > 0 && (
+            <span className="mt-2 flex flex-wrap gap-1.5">
+              {option.papers.map((p) => (
+                <span key={p.name} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  {p.name} {p.minutes} min
+                </span>
+              ))}
+            </span>
+          )}
+        </>
+      )}
+    </button>
+  );
 }
 
 const PREP_ICONS: Record<string, ReactNode> = {

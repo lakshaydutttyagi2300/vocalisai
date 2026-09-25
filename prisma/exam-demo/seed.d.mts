@@ -1,16 +1,25 @@
 // Types for seed.mjs, so the TypeScript tests can import it (allowJs is off).
 import type { PrismaClient } from "@prisma/client";
+import type { PracticeTest } from "./content.mjs";
 
 export const ALLOWED_DB_HOST_PREFIXES: string[];
-export function assertDevDatabase(databaseUrl: string | undefined): string;
+export const PRODUCTION_DB_HOST_PREFIX: string;
+export function assertDevDatabase(databaseUrl: string | undefined, opts?: { allowProduction?: boolean }): string;
 
-export interface SeedResult {
+export interface TestSeedResult {
   created: boolean;
   variantId: string;
   templateId: string | null;
-  familyCreated?: boolean;
-  questionTotal?: number;
-  assetNotes?: string[];
+  questionTotal: number;
+  assetNotes: string[];
+}
+
+export interface SeedResult {
+  created: boolean;
+  familyCreated: boolean;
+  tests: TestSeedResult[];
+  questionTotal: number;
+  assetNotes: string[];
 }
 
 export function seedExamDemo(
@@ -21,10 +30,11 @@ export function seedExamDemo(
     log?: (msg: string) => void;
     buildGroupAsset?: (group: unknown) => Promise<{ key: string | null; reason: string | null }>;
     familySlug?: string;
+    tests?: PracticeTest[];
   }
 ): Promise<SeedResult>;
 
 export function removeExamDemo(
   db: PrismaClient,
-  opts?: { log?: (msg: string) => void; removeFamily?: boolean; familySlug?: string }
-): Promise<{ removed: boolean; questionCount?: number; groupCount?: number; familyRemoved?: boolean }>;
+  opts?: { log?: (msg: string) => void; removeFamily?: boolean; familySlug?: string; tests?: PracticeTest[] }
+): Promise<{ removed: boolean; testCount?: number; questionCount?: number; groupCount?: number; familyRemoved?: boolean }>;

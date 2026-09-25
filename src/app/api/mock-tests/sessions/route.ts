@@ -5,8 +5,9 @@ import { db } from "@/lib/db";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { runnerForTemplate } from "@/lib/exam-runner";
+import { listMockTestOptions } from "@/lib/mock-test-options";
 
-export async function POST() {
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,6 +15,19 @@ export async function POST() {
 
   if (!(await isFeatureEnabled("MOCK_TEST"))) {
     return NextResponse.json({ error: "Mock tests are currently unavailable." }, { status: 403 });
+  }
+
+  // Optional { templateId } - a choice from GET /api/mock-tests/options.
+  // No body (every existing caller) means the default template, exactly
+  // as before. A choice outside the offered list is refused BEFORE any
+  // usage is recorded, so a bad request never costs an assessment.
+  const body = (await req.json().catch(() => null)) as { templateId?: unknown } | null;
+  const chosenId = typeof body?.templateId === "string" && body.templateId ? body.templateId : null;
+  if (chosenId) {
+    const offered = await listMockTestOptions();
+    if (!offered.some((o) => o.templateId === chosenId)) {
+      return NextResponse.json({ error: "That mock test isn't available." }, { status: 400 });
+    }
   }
 
   const usage = await checkAndRecordUsage(session.user.id, "MOCK_ASSESSMENT");
@@ -27,15 +41,16 @@ export async function POST() {
   // recently created template only if no default has ever been set
   // (defensive - shouldn't happen once at least one template exists,
   // since creating/setting a default always maintains exactly one).
-  const template =
-    (await db.mockTestTemplate.findFirst({
-      where: { isDefault: true },
-      include: { sections: { orderBy: { order: "asc" } } },
-    })) ??
-    (await db.mockTestTemplate.findFirst({
-      orderBy: { createdAt: "desc" },
-      include: { sections: { orderBy: { order: "asc" } } },
-    }));
+  const template = chosenId
+    ? await db.mockTestTemplate.findUnique({ where: { id: chosenId }, include: { sections: { orderBy: { order: "asc" } } } })
+    : ((await db.mockTestTemplate.findFirst({
+        where: { isDefault: true },
+        include: { sections: { orderBy: { order: "asc" } } },
+      })) ??
+      (await db.mockTestTemplate.findFirst({
+        orderBy: { createdAt: "desc" },
+        include: { sections: { orderBy: { order: "asc" } } },
+      })));
 
   const mockTestSession = await db.mockTestSession.create({
     data: { userId: session.user.id, templateId: template?.id ?? null },

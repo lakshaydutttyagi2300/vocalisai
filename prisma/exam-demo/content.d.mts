@@ -49,12 +49,18 @@ export interface DemoPaper {
   parts: DemoPart[];
 }
 
+export interface PracticeTest {
+  number: number;
+  variantSlug: string;
+  variantName: string;
+  templateName: string;
+  papers: DemoPaper[];
+}
+
 export const DEMO_FAMILY_SLUG: string;
-export const DEMO_VARIANT_SLUG: string;
-export const DEMO_VARIANT_NAME: string;
 export const DEMO_SCORE_SCALE: string;
-export const DEMO_TEMPLATE_NAME: string;
 export const DEMO_DIFFICULTY: string;
 export const CHART_LIBRARIES: DemoChart;
 export const CHART_TRANSPORT: DemoChart;
-export const DEMO_PAPERS: DemoPaper[];
+export const CHART_SCREEN_TIME: DemoChart;
+export const PRACTICE_TESTS: PracticeTest[];

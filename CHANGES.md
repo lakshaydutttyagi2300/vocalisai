@@ -232,3 +232,41 @@ Other options: `-- --reset` (remove and rebuild), `-- --remove` (remove; refuses
   - Pinned questions never leak into another exam.
   - Removal takes out exactly what the seed created.
 - `tests/e2e/exam-demo.spec.ts` - 1 against the real server: a candidate sits all 4 papers in order. They get 12 listening items, 9 reading items across 3 passages, 150- and 250-word writing tasks, and the speaking part timings. No transcript or answer key reaches the browser. All 21 objective answers are marked correct, writing and speaking are left unmarked, and the results page shows "12 of 12" and "9 of 9" with the disclaimer. The test restores the default template and flag afterwards and removes the demo.
+
+### Practice tests for students (follow-up to H)
+
+Students can now choose an IELTS-style practice test on the Mock Tests page. The existing default test is unchanged and still pre-selected.
+
+**Content:** the demo became **Practice Test 1**, and two more complete tests were added (**Practice Tests 2 and 3**). All of it is original, written for VocalisAi, and repeats nothing across tests (checked by test).
+
+Each test has:
+- **Listening:** 4 recordings (heard once), 12 questions.
+- **Reading:** 3 passages, 9 questions.
+- **Writing:** a chart task (150 words) and an essay (250 words).
+- **Speaking:** 3 Part 1 questions, a cue card, and 3 Part 3 questions on the same theme as the cue card.
+
+Each test is its own exam version and template (`ACADEMIC_PT1..3`), so a sitting always gets one coherent test.
+
+**Choosing a test** (no database change - reads existing columns only):
+- `GET /api/mock-tests/options` returns the default template, as before. While **Exam Runner v2** is on, it also returns every template linked to an **active** exam version of an **active** family.
+- `POST /api/mock-tests/sessions` accepts an optional `{ templateId }` from that list. A choice outside the list is refused (400) **before** any usage is recorded. With no body, it behaves exactly as before.
+- **Mock Tests page:** the chooser appears only when there is more than one option. With the flag off, the page is unchanged.
+- **Admin control:** on Admin > Exams, **Deactivate** a version (or family) to hide its tests from students. The version card now says "Offered to students" or "Hidden from students".
+
+**Seeding:** `npm run seed:exam-demo` creates whichever tests are missing (skips existing ones). To write to production you must pass `--production` explicitly. That flag accepts only the known production endpoint, and `--make-default` is refused there.
+
+**Tests:**
+- `tests/unit/exam-demo-seed.test.ts` (updated):
+  - The shape and timings of all 3 tests.
+  - No repeated content.
+  - Every answer key is gradable.
+  - Every listening answer is actually spoken in its recording.
+  - The guard allows production only with the flag.
+  - Seed, plan and remove, per test, on the test DB.
+- `tests/e2e/exam-demo.spec.ts` (updated):
+  - The options list with the flag off and on.
+  - A refused choice costs nothing.
+  - No choice still gives the default test.
+  - A deactivated version is hidden.
+  - The chooser screen works.
+  - A full sitting of Practice Test 2 scores 12/12 and 9/9.

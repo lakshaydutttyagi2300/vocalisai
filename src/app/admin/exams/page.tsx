@@ -233,7 +233,15 @@ function VariantCard({ variant, catalogue, api }: { variant: Variant; catalogue:
       </div>
       <p className="mt-1 text-xs text-slate-500">
         Used by {variant._count.mockTestTemplates} template{variant._count.mockTestTemplates === 1 ? "" : "s"}
-        {!variant.isActive && " · Inactive"}
+        {variant._count.mockTestTemplates > 0 ? (
+          variant.isActive ? (
+            <span className="font-semibold text-emerald-700"> · Offered to students on the Mock Tests page (when Exam Runner v2 is on)</span>
+          ) : (
+            <span className="font-semibold text-amber-700"> · Inactive - hidden from students</span>
+          )
+        ) : (
+          !variant.isActive && " · Inactive"
+        )}
       </p>
 
       <div className="mt-3 space-y-3">
