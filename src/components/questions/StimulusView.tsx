@@ -13,11 +13,11 @@ export function StimulusView({ stimulus, resetKey }: { stimulus: Stimulus | null
   if (stimulus.kind === "text") {
     return <p className="mb-4 whitespace-pre-line rounded-md bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">{stimulus.text}</p>;
   }
-  if (stimulus.kind === "image") return <PictureTask description={stimulus.description} keyElements={stimulus.keyElements} />;
+  if (stimulus.kind === "image") return <PictureTask description={stimulus.description} features={stimulus.features} />;
   return <ListeningPlayer key={resetKey} stimulus={stimulus} />;
 }
 
-function PictureTask({ description, keyElements }: { description: string; keyElements: string[] }) {
+function PictureTask({ description, features }: { description: string; features: string[] }) {
   return (
     <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4" aria-label="Picture">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -29,11 +29,11 @@ function PictureTask({ description, keyElements }: { description: string; keyEle
         The picture
       </div>
       <p className="mt-2 text-sm font-medium leading-relaxed text-ink-900">{description}</p>
-      {keyElements.length > 0 && (
+      {features.length > 0 && (
         <>
           <p className="mt-3 text-xs text-slate-500">In the picture you can see:</p>
           <ul className="mt-1.5 flex flex-wrap gap-1.5">
-            {keyElements.map((k) => (
+            {features.map((k) => (
               <li key={k} className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
                 {k}
               </li>

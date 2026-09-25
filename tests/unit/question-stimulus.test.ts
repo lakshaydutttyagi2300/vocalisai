@@ -30,7 +30,7 @@ const IMAGE_SPEC = JSON.stringify({
   },
 });
 
-const INTERNAL_FIELDS = ["voices", "speechRate", "maxPlays", "generationStatus", "audioAssetKey", "ttsNotes", "transcriptVisibleToCandidate", "imageAssetKey", "clean flat style", "pauseBetweenTurnsMs"];
+const INTERNAL_FIELDS = ["voices", "speechRate", "maxPlays", "generationStatus", "audioAssetKey", "ttsNotes", "transcriptVisibleToCandidate", "imageAssetKey", "clean flat style", "pauseBetweenTurnsMs", "keyElements"];
 
 describe("question stimulus - what a candidate may see", () => {
   it("turns an audio spec into a playable recording and drops every internal field", () => {
@@ -55,7 +55,7 @@ describe("question stimulus - what a candidate may see", () => {
 
   it("turns an image spec into a scene description, never the illustrator's brief", () => {
     const s = parseStimulus(IMAGE_SPEC, { type: "SHORT_ANSWER", category: "SPEAKING" });
-    expect(s).toEqual({ kind: "image", description: "People waiting at a bus stop in the rain as a bus approaches.", keyElements: ["bus stop", "rain", "umbrella"] });
+    expect(s).toEqual({ kind: "image", description: "People waiting at a bus stop in the rain as a bus approaches.", features: ["bus stop", "rain", "umbrella"] });
     const sent = JSON.stringify(candidateStimulus(IMAGE_SPEC, { category: "SPEAKING" }));
     for (const f of INTERNAL_FIELDS) expect(sent, f).not.toContain(f);
   });

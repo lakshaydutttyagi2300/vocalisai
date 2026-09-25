@@ -45,7 +45,7 @@ export type Stimulus =
     }
   // A picture task whose image hasn't been produced yet: the candidate gets
   // a written scene description instead of the illustrator's brief.
-  | { kind: "image"; description: string; keyElements: string[] };
+  | { kind: "image"; description: string; features: string[] };
 
 const NONE: Stimulus = { kind: "none" };
 
@@ -108,8 +108,8 @@ export function generatedAudioKey(passage: string | null | undefined): string | 
 function imageFromSpec(image: Record<string, unknown>): Stimulus | null {
   const description = isStr(image.altText) ? image.altText.trim() : null;
   if (!description) return null; // the illustrator brief (`prompt`) is never shown
-  const keyElements = Array.isArray(image.keyElements) ? image.keyElements.filter(isStr).map((s) => s.trim()).slice(0, 12) : [];
-  return { kind: "image", description, keyElements };
+  const features = Array.isArray(image.keyElements) ? image.keyElements.filter(isStr).map((s) => s.trim()).slice(0, 12) : [];
+  return { kind: "image", description, features };
 }
 
 // Recognises a JSON stimulus spec. Returns null when `raw` isn't a

@@ -368,3 +368,13 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
 - **Tests:**
   - `tests/unit/question-audio.test.ts` (8): script-fingerprint parity with the generator; a file is used only when valid and current; nothing internal reaches the browser; the transcript rule; distinct voices and the rate mapping; and the audio route (sign-in required, own file only, 404 when stale, invalid or missing).
   - `tests/e2e/mock-test-rendering.spec.ts` now runs **14 consecutive questions** through "Submit & next". They include 5 production-shaped listening specs: one generated but with its file missing, which must fall back; one with a transcript allowed. Every screen is checked for JSON, spec fields, S1/S2 and hidden transcripts, and the browser's API payload is checked for internal fields.
+
+### Verification pass: raw question data
+
+- **Gap closed:** a question's own audio or picture spec used in a *new-style (v2) exam* now plays or renders there too (it previously showed nothing, which was not a leak but had no audio). `QuestionView.stimulus` is built by the same parser, including after resume.
+- The cleaned-up picture field is renamed `keyElements` → `features`, so no spec field name reaches the browser at all.
+- **`tests/e2e/raw-data-guard.spec.ts` (3 tests):**
+  - New questions of any shape (2- and 3-speaker specs, an unknown JSON spec, malformed JSON) are clean on the wire. They are clicked through with Next in practice, 4 questions, with no raw data on screen. Admin import refuses the broken ones.
+  - A refresh in the middle of a mock test, then re-entry, stays clean.
+  - A v2 exam built from spec-shaped listening and picture questions: answer, refresh, resume the same session. Players and answers come back, and the state API and screen stay clean.
+- **Read-only audit of the live question bank** (3,455 questions) through the same parser: 0 internal fields sent, 0 JSON shown as text, 0 listening transcripts printed, and 129 of 129 audio specs with a playable, current file.

@@ -13,7 +13,7 @@ import { db } from "@/lib/db";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { getQuestionTypeDef, type GradeResult } from "@/lib/question-types";
 import { isValidNavigationMode, type NavigationMode } from "@/lib/exam-catalogue";
-import { candidateStimulus } from "@/lib/question-stimulus";
+import { candidateStimulus, type Stimulus } from "@/lib/question-stimulus";
 
 export const EXAM_RUNNER_V2_FLAG = "exam_runner_v2";
 
@@ -410,6 +410,9 @@ export interface QuestionView {
   options: string[] | null;
   partId: string;
   itemGroup: ItemGroupView | null;
+  // Audio/picture stimulus parsed from the question's own passage (only when it
+  // has no item group) - see question-stimulus.ts. Never the raw spec.
+  stimulus: Extract<Stimulus, { kind: "audio" } | { kind: "image" }> | null;
 }
 
 export interface ExamStateView {
@@ -428,6 +431,16 @@ export interface ExamStateView {
 // Everything the client may see for the CURRENT paper only - never a
 // correctAnswer, never an audio transcript, never a future paper's
 // questions.
+// A question's own passage for the v2 screen, via the shared parser: plain
+// text stays `passage` (read in the passage panel), an audio/picture spec
+// becomes `stimulus` (played / described), and nothing raw is ever sent.
+// Questions with an item group use the group's stimulus instead.
+function v2Stimulus(q: { id: string; type: string; category: string; passage: string | null; itemGroup: unknown }): Pick<QuestionView, "passage" | "stimulus"> {
+  const { stimulus, passage } = candidateStimulus(q.passage, q);
+  const media = !q.itemGroup && (stimulus.kind === "audio" || stimulus.kind === "image") ? stimulus : null;
+  return { passage, stimulus: media };
+}
+
 export async function buildStateView(mockTestSessionId: string): Promise<ExamStateView | null> {
   const state = await processExpiry(mockTestSessionId);
   if (!state) return null;
@@ -450,6 +463,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
       select: {
         id: true,
         type: true,
+        category: true,
         prompt: true,
         passage: true,
         options: true,
@@ -478,7 +492,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
         id: q.id,
         type: q.type,
         prompt: q.prompt,
-        passage: candidateStimulus(q.passage, q).passage, // never a raw spec or listening transcript
+        ...v2Stimulus(q),
         options,
         partId: pq.partId,
         itemGroup: q.itemGroup

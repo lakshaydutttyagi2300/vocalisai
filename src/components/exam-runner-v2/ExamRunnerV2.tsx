@@ -7,6 +7,7 @@ import { QuestionInput } from "./QuestionInput";
 import { PassageView } from "./PassageView";
 import { AudioPlayer } from "./AudioPlayer";
 import { TimedSpeaking } from "./TimedSpeaking";
+import { StimulusView } from "@/components/questions/StimulusView";
 
 type LocalAnswer = { answer: unknown; flagged: boolean };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -487,6 +488,8 @@ function QuestionCard({
         <video src={`/api/exam-sessions/${sessionId}/assets/${group.id}`} controls className="mb-4 w-full rounded-md" />
       )}
       {group && group.type !== "PASSAGE" && group.text && <p className="mb-4 text-sm text-slate-600">{group.text}</p>}
+      {/* A question's own audio/picture spec - the same renderer as the mock test. */}
+      {question.stimulus && <StimulusView stimulus={question.stimulus} resetKey={question.id} />}
 
       {stimulusText && (
         <div className="mb-4 max-h-80 overflow-y-auto rounded-md bg-slate-50 p-4">
