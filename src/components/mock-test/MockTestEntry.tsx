@@ -71,6 +71,11 @@ export function MockTestEntry() {
         <button onClick={() => setStage("system-check")} className="btn-primary mt-6">
           Begin system check
         </button>
+        <p className="mt-4 text-sm">
+          <a href="/mock-tests/history" className="font-medium text-brand-600 hover:underline">
+            View my past results &rarr;
+          </a>
+        </p>
       </div>
     );
   }

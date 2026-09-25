@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { getProgressData, type OverallTrendPoint } from "@/lib/progress";
 import { SCORE_CATEGORIES, CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { examPaperStats } from "@/lib/candidate-history";
 
 function TrendChart({ points }: { points: OverallTrendPoint[] }) {
   const scored = points.filter((p) => p.overallScore !== null) as { sessionId: string; date: string; overallScore: number }[];
@@ -48,7 +49,7 @@ export default async function ProgressPage() {
     );
   }
 
-  const data = await getProgressData(userId);
+  const [data, exam] = await Promise.all([getProgressData(userId), examPaperStats(userId)]);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -112,6 +113,52 @@ export default async function ProgressPage() {
             })}
           </div>
         )}
+      </div>
+
+      <div className="card mt-4 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-ink-900">Exam-style practice tests</h2>
+          <span className="text-sm text-slate-500">
+            {exam.completedSittings} completed
+          </span>
+        </div>
+        {exam.completedSittings === 0 ? (
+          <p className="mt-4 text-sm text-slate-500">
+            No exam-style practice tests completed yet.{" "}
+            <Link href="/mock-tests" className="text-brand-600 hover:underline">
+              Take one
+            </Link>{" "}
+            from Mock Exams when available.
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2" aria-label="Exam paper results">
+            {exam.papers.map((p) => {
+              const pct = p.marked > 0 ? Math.round((p.correct / p.marked) * 100) : null;
+              return (
+                <div key={p.paper} className="rounded-md border border-slate-200 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ink-900">{p.paper}</span>
+                    <span className="text-sm font-semibold text-ink-900">
+                      {pct !== null ? `${pct}%` : `${p.responses} response${p.responses === 1 ? "" : "s"}`}
+                    </span>
+                  </div>
+                  {pct !== null && (
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full bg-brand-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {pct !== null ? `${p.correct} of ${p.marked} answers correct` : "Not marked automatically"} - across {p.sittings} sitting
+                    {p.sittings === 1 ? "" : "s"}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <Link href="/mock-tests/history" className="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline">
+          See every mock exam result &rarr;
+        </Link>
       </div>
 
       <div className="card mt-4 p-6">

@@ -48,6 +48,7 @@ export const config = {
     "/profile/:path*",
     "/practice/:path*",
     "/mock-tests/:path*",
+    "/speech-analysis/:path*",
     "/progress/:path*",
     "/coach/:path*",
     "/billing/:path*",

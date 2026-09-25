@@ -270,3 +270,44 @@ Each test is its own exam version and template (`ACADEMIC_PT1..3`), so a sitting
   - A deactivated version is hidden.
   - The chooser screen works.
   - A full sitting of Practice Test 2 scores 12/12 and 9/9.
+
+### Candidate experience
+
+The candidate side is now organised into clear sections, kept fully separate from the admin area (which keeps its own dark menu and pages).
+
+**Menu:**
+- Dashboard
+- **Practice ▾:** library, AI conversation, quick practice, find my focus
+- **Mock Exams ▾:** take a mock exam, my results
+- **Speech Analysis**
+- Progress
+- AI Coach
+- **Account ▾:** profile, plan & billing
+
+The current section is always highlighted. On phones and tablets, a menu lists every page grouped by section.
+
+**New pages:**
+- `/mock-tests/history`: every mock exam and exam-style practice test, with its result and status, each opening its full report.
+- `/speech-analysis`: every analysed recording, with average pace, filler words and pronunciation. Each card shows pronunciation, fluency and grammar ratings and opens the full breakdown.
+
+**Updated pages:**
+- **Dashboard:** quick links to each section, plus recent mock exams and latest speech analyses.
+- **Progress:** a new "Exam-style practice tests" section showing correct answers per paper, across completed sittings.
+- **Mock Exams page and exam results:** both now link to "My results".
+
+**Fixes:**
+- The dashboard showed scored voice answers as "Incorrect". They now show their score.
+- Internal developer wording ("…once that's built (Phase 8)") removed from the practice summary.
+
+**Tests:** `tests/e2e/candidate-experience.spec.ts` (4 tests) runs every candidate page and checks that:
+- It opens without errors, and the admin area stays closed to candidates.
+- The grouped menu and the phone menu work.
+- A practice session can be completed by clicking.
+- A speech analysis and a mock exam appear in their sections and open.
+
+`exam-demo.spec.ts` also checks that a finished practice test shows in My results and on Progress.
+
+**Result:**
+- 207/207 unit tests and 27/27 e2e tests pass. The full suite was re-run after the last fixes (candidate and practice-test specs: 6/6).
+- Build and tsc are clean.
+- Lint shows only the known TS7 blocker.

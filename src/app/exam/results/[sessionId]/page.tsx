@@ -108,6 +108,9 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
         <Link href="/dashboard" className="btn-primary">
           Back to dashboard
         </Link>
+        <Link href="/mock-tests/history" className="btn-secondary">
+          All my results
+        </Link>
       </div>
 
       <TrademarkDisclaimer className="mt-10" />

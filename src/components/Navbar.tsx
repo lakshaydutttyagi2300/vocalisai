@@ -5,15 +5,114 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/practice", label: "Practice" },
-  { href: "/mock-tests", label: "Mock Tests" },
-  { href: "/progress", label: "Progress" },
-  { href: "/coach", label: "Coach" },
-  { href: "/billing", label: "Billing" },
-  { href: "/profile", label: "Profile" },
+// Candidate menu, grouped by what a candidate is trying to do. Each group's
+// `match` decides when it's highlighted (any page inside that area).
+interface CandidateLink {
+  href: string;
+  label: string;
+  hint?: string;
+}
+type CandidateEntry =
+  | ({ kind: "link"; match: string[] } & CandidateLink)
+  | { kind: "group"; label: string; match: string[]; items: CandidateLink[] };
+
+const CANDIDATE_NAV: CandidateEntry[] = [
+  { kind: "link", href: "/dashboard", label: "Dashboard", match: ["/dashboard"] },
+  {
+    kind: "group",
+    label: "Practice",
+    match: ["/practice"],
+    items: [
+      { href: "/practice", label: "Practice library", hint: "Grammar, speaking, writing, interviews and more" },
+      { href: "/practice/conversation", label: "AI conversation", hint: "Talk live with an AI customer or interviewer" },
+      { href: "/practice/quick", label: "Quick practice", hint: "A short drill when you're short on time" },
+      { href: "/practice/goals", label: "Find my focus", hint: "Tell us your goal, get a practice plan" },
+    ],
+  },
+  {
+    kind: "group",
+    label: "Mock Exams",
+    match: ["/mock-tests", "/exam"],
+    items: [
+      { href: "/mock-tests", label: "Take a mock exam", hint: "Timed, proctored assessments and practice tests" },
+      { href: "/mock-tests/history", label: "My results", hint: "Every mock exam you've taken" },
+    ],
+  },
+  { kind: "link", href: "/speech-analysis", label: "Speech Analysis", match: ["/speech-analysis"] },
+  { kind: "link", href: "/progress", label: "Progress", match: ["/progress"] },
+  { kind: "link", href: "/coach", label: "AI Coach", match: ["/coach"] },
+  {
+    kind: "group",
+    label: "Account",
+    match: ["/profile", "/billing"],
+    items: [
+      { href: "/profile", label: "Profile", hint: "Your details and password" },
+      { href: "/billing", label: "Plan & billing", hint: "Your plan and what's included" },
+    ],
+  },
 ];
+
+const inArea = (pathname: string, match: string[]) => match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
+
+function CandidateDropdown({ entry, pathname }: { entry: Extract<CandidateEntry, { kind: "group" }>; pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const active = inArea(pathname, entry.match);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        data-active={active ? "true" : undefined}
+        onClick={() => setOpen((v) => !v)}
+        className={`relative flex items-center gap-1 whitespace-nowrap py-1 text-sm font-medium transition-colors ${
+          active || open ? "text-brand-600" : "text-slate-600 hover:text-ink-900"
+        }`}
+      >
+        {entry.label}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+        </svg>
+        {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-brand-600" />}
+      </button>
+      {open && (
+        <div className="absolute left-1/2 top-full z-50 mt-4 w-72 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+          {entry.items.map((item) => {
+            const itemActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                aria-current={itemActive ? "page" : undefined}
+                className={`block rounded-lg px-3 py-2.5 transition-colors ${itemActive ? "bg-brand-50" : "hover:bg-slate-50"}`}
+              >
+                <span className={`block text-sm font-semibold ${itemActive ? "text-brand-700" : "text-ink-900"}`}>{item.label}</span>
+                {item.hint && <span className="block text-xs text-slate-500">{item.hint}</span>}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface AdminLink {
   href: string;
@@ -148,7 +247,6 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = session?.user.role === "ADMIN" && pathname.startsWith("/admin");
-  const navLinks = NAV_LINKS;
 
   if (isAdmin) {
     return (
@@ -239,21 +337,21 @@ export function Navbar() {
         </Link>
 
         {status === "authenticated" && (
-          <nav className="hidden gap-7 md:flex">
-            {navLinks.map((link) => {
-              const active = pathname === link.href;
+          <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
+            {CANDIDATE_NAV.map((entry) => {
+              if (entry.kind === "group") return <CandidateDropdown key={entry.label} entry={entry} pathname={pathname} />;
+              const active = inArea(pathname, entry.match);
               return (
                 <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`relative py-1 text-sm font-medium transition-colors ${
+                  key={entry.href}
+                  href={entry.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative whitespace-nowrap py-1 text-sm font-medium transition-colors ${
                     active ? "text-brand-600" : "text-slate-600 hover:text-ink-900"
                   }`}
                 >
-                  {link.label}
-                  {active && (
-                    <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-brand-600" />
-                  )}
+                  {entry.label}
+                  {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-brand-600" />}
                 </Link>
               );
             })}
@@ -266,20 +364,19 @@ export function Navbar() {
           ) : session ? (
             <>
               {session.user.role === "ADMIN" && (
-                <Link href="/admin" className="badge badge-ai hidden sm:inline-flex">
-                  Admin
+                <Link href="/admin" className="badge badge-ai hidden whitespace-nowrap sm:inline-flex">
+                  Admin panel
                 </Link>
               )}
-              <span className="hidden text-sm text-slate-500 sm:inline">
-                {session.user.name}
-              </span>
-              <button onClick={() => signOut({ callbackUrl: "/" })} className="btn-secondary">
+              <span className="hidden max-w-[10rem] truncate text-sm text-slate-500 2xl:inline">{session.user.name}</span>
+              <button onClick={() => signOut({ callbackUrl: "/" })} className="btn-secondary whitespace-nowrap">
                 Log out
               </button>
               <button
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label="Toggle menu"
-                className="rounded-md border border-slate-300 p-2 md:hidden"
+                aria-expanded={mobileOpen}
+                className="rounded-md border border-slate-300 p-2 lg:hidden"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -300,20 +397,28 @@ export function Navbar() {
       </div>
 
       {status === "authenticated" && mobileOpen && (
-        <nav className="border-t border-slate-200 bg-white px-6 py-3 md:hidden">
-          <div className="flex flex-col gap-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`text-sm font-medium ${
-                  pathname === link.href ? "text-brand-600" : "text-slate-600"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+        <nav aria-label="Main" className="border-t border-slate-200 bg-white px-6 py-3 lg:hidden">
+          <div className="flex flex-col gap-4">
+            {CANDIDATE_NAV.map((entry) => {
+              const links = entry.kind === "link" ? [entry] : entry.items;
+              return (
+                <div key={entry.label}>
+                  {entry.kind === "group" && <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p>}
+                  {links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`block rounded-lg px-2 py-2 text-sm font-medium ${
+                        pathname === link.href ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </nav>
       )}

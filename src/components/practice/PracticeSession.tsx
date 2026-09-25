@@ -226,7 +226,8 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
         ) : (
           <p className="mt-3 text-slate-600">
             Your {results.length} response{results.length === 1 ? "" : "s"} were saved.
-            Open-ended responses like this get AI feedback once that&apos;s built (Phase 8).
+            Open-ended answers like these aren&apos;t marked automatically. Ask your AI Coach for
+            feedback on how to improve them.
           </p>
         )}
         <div className="mt-8 flex justify-center gap-3">

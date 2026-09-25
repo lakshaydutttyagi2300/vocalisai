@@ -211,6 +211,19 @@ test("a candidate sits Practice Test 2 end to end: 4 papers in order, right answ
     await expect(correctIn("Reading")).toHaveText("9 of 9");
     await expect(page.locator(".card", { has: page.getByRole("heading", { name: "Writing" }) })).toContainText("2 responses");
     await expect(page.getByText(/not affiliated with or endorsed by IELTS/)).toBeVisible();
+
+    // ...and it shows up in the candidate's own sections.
+    await page.getByRole("link", { name: "All my results" }).click();
+    await expect(page).toHaveURL(/\/mock-tests\/history$/);
+    const row = page.getByRole("list", { name: "Mock exam results" }).getByRole("link", { name: new RegExp(pt2.templateName) });
+    await expect(row).toContainText("21 / 21 correct");
+    await expect(row).toContainText("Completed");
+    await page.goto("/progress");
+    const papers = page.getByLabel("Exam paper results");
+    await expect(papers).toContainText("Listening100%");
+    await expect(papers).toContainText("12 of 12 answers correct");
+    await expect(papers).toContainText("Reading100%");
+    await expect(papers).toContainText("Writing2 responses");
   } finally {
     await db.user.delete({ where: { id: user.id } }); // cascades the session and its answers
   }
