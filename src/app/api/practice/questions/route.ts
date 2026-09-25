@@ -6,6 +6,7 @@ import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { selectWithCooldown, shuffleArray, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
 import { LEGACY_QUESTION_TYPES } from "@/lib/question-validation";
+import { candidateStimulus } from "@/lib/question-stimulus";
 
 // Returns a random set of questions for a category/difficulty. The correct
 // answer is never included here - it's only checked server-side when the
@@ -71,8 +72,12 @@ export async function GET(req: Request) {
   // stores whatever order it receives here in local state for the rest of
   // that session, so this is also what keeps a single attempt's option
   // order fixed once it's started.
+  // `passage` goes through the shared stimulus parser: raw production
+  // specs (audio scripts, image briefs) and listening transcripts never
+  // reach the browser as displayable text - see src/lib/question-stimulus.ts.
   const selected = picked.map((q) => ({
     ...q,
+    ...candidateStimulus(q.passage, q),
     options: q.options ? shuffleArray(JSON.parse(q.options)) : null,
   }));
 

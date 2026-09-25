@@ -8,6 +8,8 @@ import {
   type Difficulty,
   type PracticeModeDef,
 } from "@/lib/practice-taxonomy";
+import { StimulusView } from "@/components/questions/StimulusView";
+import type { Stimulus } from "@/lib/question-stimulus";
 
 type Question = {
   id: string;
@@ -16,6 +18,7 @@ type Question = {
   type: string;
   prompt: string;
   passage: string | null;
+  stimulus?: Stimulus;
   options: string[] | null;
   timeLimitSeconds: number;
 };
@@ -154,15 +157,6 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
     setFeedback(null);
   }
 
-  function playAudio() {
-    if (!currentQuestion?.passage) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(currentQuestion.passage);
-    utterance.rate = 0.95;
-    window.speechSynthesis.speak(utterance);
-  }
-
   if (stage === "pick-difficulty") {
     return (
       <div className="mx-auto max-w-xl px-6 py-16">
@@ -259,17 +253,8 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
       </div>
 
       <div className="card mt-4 p-6">
-        {currentQuestion.type === "READING_COMPREHENSION" && currentQuestion.passage && (
-          <p className="mb-5 rounded-md bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-            {currentQuestion.passage}
-          </p>
-        )}
-
-        {currentQuestion.type === "LISTENING_COMPREHENSION" && (
-          <button onClick={playAudio} className="btn-secondary mb-5">
-            Play audio
-          </button>
-        )}
+        {/* Only the parsed stimulus is ever shown - never the raw passage. */}
+        <StimulusView stimulus={currentQuestion.stimulus} resetKey={currentQuestion.id} />
 
         <h2 className="font-medium text-ink-900">{currentQuestion.prompt}</h2>
 

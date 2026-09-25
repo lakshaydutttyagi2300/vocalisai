@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { stimulusText } from "@/lib/question-stimulus";
 import { readRecording } from "@/lib/storage";
 import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
@@ -90,7 +91,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const candidateTurnCount = convoSession.turns.filter((t) => t.speaker === "candidate").length + 1;
   const roleDef = getRoleDef(convoSession.role);
-  const scenario = convoSession.question?.passage ?? convoSession.question?.prompt ?? "";
+  const scenario = stimulusText(convoSession.question?.passage) ?? convoSession.question?.prompt ?? "";
   const effectiveMaxTurns = plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : MAX_CANDIDATE_TURNS;
 
   let aiTurn = null;

@@ -61,6 +61,7 @@ export const config = {
     // they must stay reachable without (or before) a normal session.
     "/api/practice/:path*",
     "/api/mock-tests/:path*",
+    "/api/questions/:path*",
     "/api/coach/:path*",
     "/api/conversations/:path*",
     "/api/profile/:path*",

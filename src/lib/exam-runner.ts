@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { getQuestionTypeDef, type GradeResult } from "@/lib/question-types";
 import { isValidNavigationMode, type NavigationMode } from "@/lib/exam-catalogue";
+import { candidateStimulus } from "@/lib/question-stimulus";
 
 export const EXAM_RUNNER_V2_FLAG = "exam_runner_v2";
 
@@ -477,7 +478,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
         id: q.id,
         type: q.type,
         prompt: q.prompt,
-        passage: q.passage,
+        passage: candidateStimulus(q.passage, q).passage, // never a raw spec or listening transcript
         options,
         partId: pq.partId,
         itemGroup: q.itemGroup

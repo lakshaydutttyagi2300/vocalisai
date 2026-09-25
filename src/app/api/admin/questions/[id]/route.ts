@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 import { validateQuestionFields } from "@/lib/question-validation";
+import { validatePassageStimulus } from "@/lib/question-stimulus";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -55,7 +56,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     isActive: body.isActive !== undefined ? body.isActive : existing.isActive,
   };
 
-  const validationError = validateQuestionFields(merged);
+  // Only a passage the admin is changing is checked, so editing any other
+  // field of an existing question behaves exactly as before.
+  const validationError =
+    validateQuestionFields(merged) ?? (body.passage !== undefined ? validatePassageStimulus(merged.passage) : null);
   if (validationError) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }

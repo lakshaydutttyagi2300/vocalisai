@@ -5,6 +5,8 @@ import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { uploadRecording } from "@/lib/upload-recording-client";
+import { StimulusView } from "@/components/questions/StimulusView";
+import type { Stimulus } from "@/lib/question-stimulus";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABELS,
@@ -19,6 +21,7 @@ type Question = {
   type: string;
   prompt: string;
   passage: string | null;
+  stimulus?: Stimulus;
   timeLimitSeconds: number;
   source?: string;
 };
@@ -395,11 +398,8 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
             AI-generated scenario
           </span>
         )}
-        {currentQuestion.passage && (
-          <p className="mb-5 rounded-md bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-            {currentQuestion.passage}
-          </p>
-        )}
+        {/* Only the parsed stimulus is ever shown - never the raw passage. */}
+        <StimulusView stimulus={currentQuestion.stimulus} resetKey={currentQuestion.id} />
         <h2 className="font-medium text-ink-900">{currentQuestion.prompt}</h2>
 
         <div className="mt-6">

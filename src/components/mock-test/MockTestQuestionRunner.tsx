@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { getModeByCategory, isVoiceCategory } from "@/lib/practice-taxonomy";
 import { uploadRecording } from "@/lib/upload-recording-client";
+import { StimulusView } from "@/components/questions/StimulusView";
+import { questionInstruction } from "@/components/questions/question-instruction";
+import type { Stimulus } from "@/lib/question-stimulus";
 
 interface TemplateSection {
   order: number;
@@ -19,6 +22,7 @@ interface Question {
   type: string;
   prompt: string;
   passage: string | null;
+  stimulus?: Stimulus;
   options: string[] | null;
   timeLimitSeconds: number;
 }
@@ -135,19 +139,6 @@ export function MockTestQuestionRunner({
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
   }
 
-  // Mirrors PracticeSession's playAudio - mock-test Listening Comprehension
-  // questions were rendering the passage as silent text with no way to
-  // actually hear it, since this component never got the same "Play audio"
-  // button the regular practice flow has.
-  function playAudio() {
-    if (!currentQuestion?.passage) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(currentQuestion.passage);
-    utterance.rate = 0.95;
-    window.speechSynthesis.speak(utterance);
-  }
-
   async function submitAnswer(timedOut: boolean, recordingBlob?: Blob) {
     if (!currentQuestion) return;
     setPhase("submitting");
@@ -240,6 +231,7 @@ export function MockTestQuestionRunner({
   const isChoice = currentQuestion.options && currentQuestion.options.length > 0;
 
   const modeDef = getModeByCategory(currentQuestion.category);
+  const isLastQuestion = sectionIndex + 1 >= sections.length && questionIndex + 1 >= questions.length;
 
   return (
     <div className="w-full max-w-xl">
@@ -267,17 +259,12 @@ export function MockTestQuestionRunner({
       </div>
 
       <div className="mt-4 rounded-lg bg-white p-6 text-ink-900">
-        {currentQuestion.passage && (
-          <p className="mb-4 rounded-md bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
-            {currentQuestion.passage}
-          </p>
-        )}
-        {currentQuestion.type === "LISTENING_COMPREHENSION" && (
-          <button onClick={playAudio} className="btn-secondary mb-4">
-            Play audio
-          </button>
-        )}
-        <h3 className="font-display font-bold">{currentQuestion.prompt}</h3>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-700">
+          {questionInstruction({ ...currentQuestion, isVoice: voice, isChoice: !!isChoice })}
+        </p>
+        {/* Only the parsed stimulus is ever shown - never the raw passage. */}
+        <StimulusView stimulus={currentQuestion.stimulus} resetKey={currentQuestion.id} />
+        <h3 className="font-display text-lg font-bold leading-snug">{currentQuestion.prompt}</h3>
 
         {!voice ? (
           isChoice ? (
@@ -320,7 +307,7 @@ export function MockTestQuestionRunner({
                   <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
                 </div>
                 <button onClick={stopRecording} className="btn-secondary mt-3">
-                  Stop and submit
+                  {isLastQuestion ? "Stop & finish" : "Stop & next"}
                 </button>
               </div>
             )}
@@ -334,7 +321,7 @@ export function MockTestQuestionRunner({
             disabled={phase === "submitting" || !responseText.trim()}
             className="btn-primary mt-6"
           >
-            {phase === "submitting" ? "Submitting..." : "Submit"}
+            {phase === "submitting" ? "Saving..." : isLastQuestion ? "Submit & finish" : "Submit & next"}
           </button>
         )}
       </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { stimulusText } from "@/lib/question-stimulus";
 import { getRoleDef } from "@/lib/conversation-roles";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
@@ -56,7 +57,8 @@ export async function POST(req: Request) {
   const recentlySeenIds = [...new Set(recentSessions.map((s) => s.questionId!))];
 
   const [question] = selectWithCooldown(pool, recentlySeenIds, 1);
-  const openingLine = question.passage ?? question.prompt;
+  // Never a raw production spec (see question-stimulus.ts).
+  const openingLine = stimulusText(question.passage) ?? question.prompt;
 
   const conversationSession = await db.conversationSession.create({
     data: {

@@ -311,3 +311,60 @@ The current section is always highlighted. On phones and tablets, a menu lists e
 - 207/207 unit tests and 27/27 e2e tests pass. The full suite was re-run after the last fixes (candidate and practice-test specs: 6/6).
 - Build and tsc are clean.
 - Lint shows only the known TS7 blocker.
+
+### Fix: raw question data shown in the mock test
+
+**Problem:** 131 live question-bank questions (129 listening, 2 "describe the picture") store a production spec in `PracticeQuestion.passage`:
+- an audio spec: `{"audio":{"script":[...],"voices":...,"speechRate":...,"maxPlays":...,"generationStatus":...}}`
+- or an image spec: `{"image":{"prompt":...,"altText":...}}`
+
+The mock test printed `passage` as-is, and its "Play audio" button read the whole JSON aloud. Plain-text listening passages were also printed in the mock test, which showed candidates the transcript.
+
+**Fix - one renderer for every candidate screen:**
+- `src/lib/question-stimulus.ts` turns any passage into one of four things:
+  - plain text
+  - a listening recording: script turns, speed, pause and play limit
+  - a picture task: the scene description and key elements, never the illustrator's brief
+  - or nothing
+- Unrecognised or malformed JSON is never shown. Plain-text listening passages are played, not printed.
+- Only the cleaned-up result leaves the server. `/api/practice/questions`, AI-generated questions and the exam runner v2 view all send it. Their `passage` field is now only ever plain display text, and internal spec fields never reach the browser.
+- AI conversations use the parsed text as the scenario, never a raw spec.
+- `src/components/questions/StimulusView.tsx` is used by the mock test, text practice and voice practice. It shows:
+  - the reading passage
+  - a **listening player** that speaks each turn in a different voice or pitch, at the spec's speed with its pauses, enforces the play limit ("You can play this recording 2 more times"), and never shows the script
+  - or a **picture task** card
+- Every mock-test question now has a clear instruction line for its task type: Listening, Picture task, Grammar, Vocabulary, Reading, Read aloud, Customer call, Spontaneous response, Workplace scenario, Interview.
+
+**Future content:** bulk import (and a question edit that changes the passage) refuses a JSON passage that isn't a recognised audio or image spec, with a clear message. Plain text and the existing valid specs import and edit exactly as before. No other admin behaviour changed; no database change.
+
+**Tests:**
+- `tests/unit/question-stimulus.test.ts` (8), using the exact production shapes. It checks:
+  - specs are parsed and every internal field is dropped
+  - bad JSON is never shown
+  - plain text is unchanged
+  - listening text is played, not printed
+  - values are clamped
+  - the admin import check works
+- `tests/e2e/mock-test-rendering.spec.ts` is a complete standard mock test in a real browser: fake camera and mic, system check, rules, 10 sections covering listening (a production-shaped audio spec), picture task (an image spec), grammar, vocabulary, reading, read aloud, customer call, spontaneous response, workplace scenario and interview. Every screen is checked for raw JSON, spec field names and the transcript. It checks the player and its play limit, records voice answers, and confirms that all 10 answers are saved and the results page opens.
+
+### Listening audio pipeline (generated recordings)
+
+- **`npm run generate:question-audio`** (`prisma/generate-question-audio.mjs`; add `--production` for the live DB, plus `--dry-run` and `--limit`):
+  - Speaks every audio-spec question's script: a different voice per speaker (S1 and S2 map to two distinct voices, in order of appearance), at the spec's `speechRate`, with its `pauseBetweenTurnsMs`.
+  - Uploads the WAV to storage under `question-audio/`.
+  - Writes back into the same spec: `generationStatus: "generated"`, `audioAssetKey`, `audioScriptHash` and `generatedAt`. Every other field is kept, so admin editing works on the same data.
+  - A failure is recorded as `generationStatus: "failed"` with `generationError`.
+  - Re-running only processes questions that are not generated, failed, or whose script changed.
+- **Stale audio can't play:** `audioScriptHash` fingerprints the script and speed. If an admin edits the dialogue, the old file is ignored automatically, and the next generator run replaces it.
+- **Serving:** `GET /api/questions/[id]/audio` is for signed-in users only. It streams only that question's own validated, current `question-audio/` file (never any other stored file), with `no-store`.
+- **Player:**
+  - Plays the generated file. If there is none yet, or it fails to load, the same play uses the browser's voices (a different voice or pitch per speaker).
+  - If nothing can play, it shows a friendly message and the play is given back.
+  - Shows "Plays left: N of M".
+  - A transcript appears only when `transcriptVisibleToCandidate` is true, on request, labelled "Speaker 1/2" (never S1/S2).
+- **Mock test:** the buttons are now "Submit & next" / "Stop & next", and "Submit & finish" on the last question.
+- **Live data:** all 129 production listening questions were generated (0 failures). A backup branch `backup-production-before-question-audio-2026-09-25` was taken first.
+- **Limit:** generation uses Windows' built-in voices, so it runs from a Windows machine rather than on Vercel. Newly imported audio questions play through browser voices until the command is run again. Fully automatic server-side generation would need a paid text-to-speech API.
+- **Tests:**
+  - `tests/unit/question-audio.test.ts` (8): script-fingerprint parity with the generator; a file is used only when valid and current; nothing internal reaches the browser; the transcript rule; distinct voices and the rate mapping; and the audio route (sign-in required, own file only, 404 when stale, invalid or missing).
+  - `tests/e2e/mock-test-rendering.spec.ts` now runs **14 consecutive questions** through "Submit & next". They include 5 production-shaped listening specs: one generated but with its file missing, which must fall back; one with a transcript allowed. Every screen is checked for JSON, spec fields, S1/S2 and hidden transcripts, and the browser's API payload is checked for internal fields.

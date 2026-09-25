@@ -7,6 +7,7 @@ import { createGeminiScenarioProvider, type ScenarioCategory, type ScenarioResul
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { candidateStimulus } from "@/lib/question-stimulus";
 
 // Only SHORT_ANSWER voice categories - no fixed "correctAnswer" for the AI
 // to invent or get wrong (see gemini-scenario-provider.ts for why this
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
       difficulty: question.difficulty,
       type: question.type,
       prompt: question.prompt,
-      passage: question.passage,
+      ...candidateStimulus(question.passage, question),
       timeLimitSeconds: question.timeLimitSeconds,
       source: question.source,
     },

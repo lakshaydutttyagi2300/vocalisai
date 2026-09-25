@@ -15,6 +15,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed:exam-demo": "node prisma/seed-exam-demo.mjs",
+    "generate:question-audio": "node prisma/generate-question-audio.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

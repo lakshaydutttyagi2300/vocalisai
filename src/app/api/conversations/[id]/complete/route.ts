@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { stimulusText } from "@/lib/question-stimulus";
 import { readRecording } from "@/lib/storage";
 import { canonicalAudioMimeType } from "@/lib/uploads";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
@@ -41,7 +42,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const roleDef = getRoleDef(convoSession.role);
-  const scenario = convoSession.question?.passage ?? convoSession.question?.prompt ?? "";
+  const scenario = stimulusText(convoSession.question?.passage) ?? convoSession.question?.prompt ?? "";
   const conversationProvider = createGeminiConversationProvider(geminiKey);
   const history = convoSession.turns.map((t) => ({ speaker: t.speaker as "ai" | "candidate", text: t.text }));
 

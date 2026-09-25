@@ -30,17 +30,42 @@ function runPowerShell(script) {
 
 const psString = (s) => `'${String(s).replace(/'/g, "''")}'`;
 
+// Speakers keyed "F"/"M" (the practice tests) get that voice; any other
+// keys ("S1", "S2", ... in the question bank) get distinct voices in order
+// of first appearance, so Speaker 1 and Speaker 2 never sound the same.
+const VOICE_ORDER = [VOICES.F, VOICES.M];
+
+export function voiceMapFor(script) {
+  const map = new Map();
+  let next = 0;
+  for (const [who] of script) {
+    if (map.has(who)) continue;
+    map.set(who, VOICES[who] ?? VOICE_ORDER[next++ % VOICE_ORDER.length]);
+  }
+  return map;
+}
+
+// SpeechSynthesizer.Rate runs -10..10 (0 = normal); a spec's speechRate is
+// a multiplier (1.0 = normal), roughly 10 steps per 1.0.
+export function synthRateFor(speechRate) {
+  if (typeof speechRate !== "number" || !Number.isFinite(speechRate)) return -1;
+  return Math.max(-10, Math.min(10, Math.round((speechRate - 1) * 10)));
+}
+
 // 16 kHz mono 16-bit WAV - ~32 KB per second, far under the 25 MB asset cap.
-export async function generateListeningWav(script, outPath) {
+// `script` is [[speaker, text], ...].
+export async function generateListeningWav(script, outPath, { speechRate, pauseMs = 600 } = {}) {
+  const voices = voiceMapFor(script);
+  const pause = Math.max(0, Math.min(3000, Math.round(pauseMs)));
   const lines = script
-    .map(([who, text]) => `$pb.StartVoice(${psString(VOICES[who] ?? VOICES.F)}); $pb.AppendText(${psString(text)}); $pb.EndVoice(); $pb.AppendBreak([TimeSpan]::FromMilliseconds(600));`)
+    .map(([who, text]) => `$pb.StartVoice(${psString(voices.get(who))}); $pb.AppendText(${psString(text)}); $pb.EndVoice(); $pb.AppendBreak([TimeSpan]::FromMilliseconds(${pause}));`)
     .join("\n");
   runPowerShell(`
 Add-Type -AssemblyName System.Speech
 $s = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
 $s.SetOutputToWaveFile(${psString(outPath)}, $fmt)
-$s.Rate = -1
+$s.Rate = ${speechRate === undefined ? -1 : synthRateFor(speechRate)}
 $pb = New-Object System.Speech.Synthesis.PromptBuilder
 ${lines}
 $s.Speak($pb)
@@ -115,8 +140,8 @@ function r2() {
   };
 }
 
-export async function uploadAsset(buffer, ext, mimeType) {
-  const key = `item-groups/${randomUUID()}.${ext}`;
+export async function uploadAsset(buffer, ext, mimeType, prefix = "item-groups") {
+  const key = `${prefix}/${randomUUID()}.${ext}`;
   const remote = r2();
   if (remote) {
     await remote.client.send(new PutObjectCommand({ Bucket: remote.bucket, Key: key, Body: buffer, ContentType: mimeType }));
