@@ -112,6 +112,27 @@ export async function deleteItemAsset(key: string): Promise<void> {
   }
 }
 
+// Whether a stored file exists, on R2 or (without R2) on local disk - used
+// by the natural-voice cache (src/lib/tts/service.ts) to reuse audio that
+// was already generated instead of paying for it again.
+export async function storedFileExists(key: string): Promise<boolean> {
+  const client = r2Client();
+  if (client && BUCKET) {
+    try {
+      await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  try {
+    await fs.access(path.join(UPLOADS_ROOT, key));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function writeRecording(key: string, buffer: Buffer, mimeType: string): Promise<void> {
   const client = r2Client();
   if (client && BUCKET) {

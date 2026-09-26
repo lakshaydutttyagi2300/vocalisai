@@ -70,5 +70,6 @@ export const config = {
     "/api/admin/:path*",
     "/api/exam-sessions/:path*", // P1-E exam runner v2
     "/api/skills/:path*",
+    "/api/tts/:path*", // natural-voice playback
   ],
 };

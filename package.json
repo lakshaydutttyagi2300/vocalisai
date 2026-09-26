@@ -19,6 +19,7 @@
     "fix:speaker-labels": "node prisma/fix-speaker-labels.mjs",
     "seed:skills": "node --no-warnings prisma/seed-skills.mjs",
     "seed:skills-content": "node --no-warnings prisma/seed-skills-content.mjs",
+    "generate:listening-voices": "node --no-warnings prisma/generate-listening-voices.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

@@ -8,6 +8,8 @@ import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { uploadRecording } from "@/lib/upload-recording-client";
+import { AccentPicker } from "@/components/speech/ListenButton";
+import { playSpeech, useAccent, type PlayHandle } from "@/components/speech/speech";
 
 interface Turn {
   id: string;
@@ -73,25 +75,33 @@ export default function ConversationPage() {
   const chunksRef = useRef<Blob[]>([]);
   const recordStartRef = useRef<number>(0);
   const spokenIndexRef = useRef(-1);
+  const voiceRef = useRef<PlayHandle | null>(null);
+  const [accent] = useAccent();
   const micLevel = useMicLevel(recordingState === "recording" ? micStream : null);
 
   useEffect(() => {
     return () => micStream?.getTracks().forEach((t) => t.stop());
   }, [micStream]);
 
-  // Speak each new AI line exactly once, as it arrives.
+  // Speak each new AI line exactly once, as it arrives - in a natural
+  // voice when one is available (interviewers and supervisors male, others
+  // female), otherwise the device's voice.
   useEffect(() => {
     const latest = turns[turns.length - 1];
     if (!latest || latest.speaker !== "ai") return;
     if (latest.turnIndex <= spokenIndexRef.current) return;
     spokenIndexRef.current = latest.turnIndex;
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(latest.text);
-      utterance.rate = 0.98;
-      window.speechSynthesis.speak(utterance);
-    }
+    voiceRef.current?.stop();
+    voiceRef.current = playSpeech({
+      source: { type: "conversation-turn", turnId: latest.id },
+      fallbackText: latest.text,
+      accent,
+      gender: role === "INTERVIEWER" || role === "SUPERVISOR" ? "male" : "female",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turns]);
+
+  useEffect(() => () => voiceRef.current?.stop(), []);
 
   async function handleSystemReady({ micStream: stream }: { cameraStream: MediaStream | null; micStream: MediaStream | null }) {
     setMicStream(stream);
@@ -337,6 +347,7 @@ export default function ConversationPage() {
         </Link>
         <span className="text-xs font-medium text-slate-500">{role.replace("_", " ")}</span>
       </div>
+      <AccentPicker className="mt-2" />
 
       <div className="card mt-4 max-h-96 space-y-2 overflow-y-auto p-4">
         {turns.map((t) => (

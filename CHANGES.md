@@ -601,3 +601,61 @@ How it chooses:
   - every MCQ's answer is among its options and every wrong option has a reason;
   - open prompts have no fixed answer;
   - every floor puzzle is re-solved independently and has exactly one answer.
+
+## Skills platform - Phase 3: natural voices (ElevenLabs) (branch `feat/skills-platform`)
+
+**Free-tier check** (official ElevenLabs pages, 26 Sep 2026):
+
+| Plan | Price | Credits a month | Agent minutes a month | Commercial use |
+|---|---|---|---|---|
+| Free | $0 | 10,000 | 15 | **Not allowed** (must credit "elevenlabs.io") |
+| Starter | $6/mo | 30,000 | 75 | Allowed |
+
+- The free plan can call the API, but it cannot be used commercially.
+- Extra agent minutes are $0.08 each, plus LLM cost.
+- The Flash TTS model costs half the per-character price of Multilingual/v3.
+
+**Decisions:**
+- **TTS model** `eleven_flash_v2_5`: cheapest and fastest.
+- **Voices:**
+  - American and British: built-in premade voices (Matilda/Eric, Alice/George).
+  - Indian English: library voices (Sweta, Amay).
+  - All can be overridden with env vars.
+- **Conversational agents:** not used, because the free tier (15 minutes, non-commercial) doesn't allow them. The cheap fallback is the existing AI-conversation pipeline (Groq STT + Gemini), now speaking with ElevenLabs voices.
+- **STT:** stays on Groq Whisper. ElevenLabs Scribe costs $0.22/hour, and there's no clear evidence it's better for Indian English.
+
+**What was built** (no DB migration):
+- **`src/lib/tts/elevenlabs.ts`** (server only): TTS call, reading remaining credits (cached 60 seconds), credit-cost estimate. The key is read only from `ELEVENLABS_API_KEY` and there is no `NEXT_PUBLIC_` variant.
+- **`src/lib/tts/service.ts`:**
+  - **Cache:** each clip is stored once at `tts/<sha256(model|voice|text)>.mp3` and replayed free for everyone.
+  - **Daily limit:** per candidate, on new clips only (rolling 24 hours: FREE 5, STARTER 25, PROFESSIONAL 60, PREMIUM 120), counted in UsageEvent `TTS_GENERATION`.
+  - **Safety margin:** a credit reserve (default 1,000, env `ELEVENLABS_RESERVE_CREDITS`).
+  - **Admin switch:** `NATURAL_VOICES`.
+  - **Fallback:** any failure returns a reason, and the browser uses the device voice.
+- **`POST /api/tts`** takes a *source*, never free text:
+  - a READING or PRONUNCIATION question;
+  - the candidate's own improved answer;
+  - their own AI conversation turn;
+  - or a short word or phrase (80 characters or fewer, letters only).
+
+  Other sources, and other people's content, get 404.
+- **`GET /api/tts/audio/[id]`** serves clips (hash-named, immutable). Both routes sit behind the sign-in guard.
+- **UI:**
+  - `ListenButton` and `AccentPicker` (India / US / UK, remembered per device).
+  - "Hear this answer" on the improved model answer, and Listen on mispronounced words.
+  - "Hear it first" on Read Aloud and Pronunciation practice.
+  - The AI conversation speaks with natural voices: male for interviewer and supervisor, female otherwise.
+- **Listening:** `npm run generate:listening-voices` re-voices listening questions with a different voice and accent per speaker.
+  - Each run has a hard credit budget (`--max-credits`, default 5,000) and respects the account reserve.
+  - `--dry-run` gives a cost estimate. Staging, a copy of live, has 263 listening questions at about 24,227 credits in total.
+  - Existing audio stays until a question is re-voiced.
+
+**Tests:**
+- `tests/unit/tts.test.ts` (10):
+  - client headers and body, voices and overrides, credit cost, quota cache;
+  - cache hit versus new clip, one use counted;
+  - daily limit (cached clips still play), reserve, provider error not counted;
+  - no key or switch off still plays cached clips;
+  - route ownership and allow-list;
+  - no client file imports the ElevenLabs code or the key.
+- `tests/e2e/voices.spec.ts`: Listen buttons and the remembered accent on the results page, plus the device-voice fallback when there's no key.

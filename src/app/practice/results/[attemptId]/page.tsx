@@ -10,6 +10,7 @@ import { RATING_SCORE, PACE_SCORE } from "@/lib/scoring-engine";
 import { getModeByCategory } from "@/lib/practice-taxonomy";
 import { SyncedTranscript, type TranscriptSegment } from "@/components/practice/SyncedTranscript";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { AccentPicker, ListenButton } from "@/components/speech/ListenButton";
 
 type Rating = "strong" | "adequate" | "weak";
 
@@ -225,6 +226,7 @@ export default function AttemptResultsPage() {
       <Section title="Pronunciation Improvement" badge={`AI rating: ${ai.pronunciation.rating} - ${RATING_SCORE[ai.pronunciation.rating]}`}>
         {ai.pronunciation.mispronouncedWords.length > 0 ? (
           <div className="mb-4 space-y-3">
+            <AccentPicker />
             {ai.pronunciation.mispronouncedWords.map((w, i) => (
               <MispronouncedWordCard key={i} word={w} practiceSlug="pronunciation" />
             ))}
@@ -288,13 +290,6 @@ function MispronouncedWordCard({
   word: { word: string; note: string; phoneticHint?: string };
   practiceSlug?: string;
 }) {
-  function speak() {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const utterance = new SpeechSynthesisUtterance(word.word);
-    utterance.rate = 0.85;
-    window.speechSynthesis.speak(utterance);
-  }
-
   return (
     <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
       <div className="flex items-baseline justify-between gap-2">
@@ -303,9 +298,7 @@ function MispronouncedWordCard({
       </div>
       <p className="mt-1 text-sm text-slate-700">{word.note}</p>
       <div className="mt-3 flex gap-2">
-        <button onClick={speak} className="btn-secondary btn-sm">
-          Listen
-        </button>
+        <ListenButton source={{ type: "phrase", text: word.word }} fallbackText={word.word} rate={0.9} />
         {practiceSlug && (
           <Link href={`/practice/${practiceSlug}`} className="btn-primary btn-sm">
             Try again
@@ -402,8 +395,14 @@ function ImproveAnswerSection({
             <p className="mt-1 rounded-md bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">{transcript}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Improved Answer</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Improved Answer</p>
+              <AccentPicker />
+            </div>
             <p className="mt-1 rounded-md bg-brand-50 p-3 text-sm leading-relaxed text-ink-900">{improved.improvedAnswer}</p>
+            <div className="mt-2">
+              <ListenButton source={{ type: "improved-answer", attemptId }} fallbackText={improved.improvedAnswer} label="Hear this answer" />
+            </div>
           </div>
           {activeImprovements.length > 0 && (
             <div>

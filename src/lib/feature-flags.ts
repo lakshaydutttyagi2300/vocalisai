@@ -26,6 +26,11 @@ export const SUBSYSTEM_FEATURES = [
     description: "New exam-taking screen for templates linked to an exam format (timed papers, autosave, review). Off by default.",
   },
   {
+    key: "NATURAL_VOICES",
+    label: "Natural voices (ElevenLabs)",
+    description: "Generating new natural-voice audio. When off, already-made clips still play and everything else uses the device voice.",
+  },
+  {
     key: "skills_all_categories",
     label: "All skill categories",
     description: "Show every skill category (Cognitive, Data Interpretation, Business Communication, Digital Skills), not just the v1 set. Off by default.",

@@ -79,7 +79,18 @@ async function throughEntry(page: Page) {
   await page.goto("/mock-tests");
   await assertClean(page, "mock intro");
   await page.getByRole("button", { name: "Begin system check" }).click();
-  await page.getByRole("button", { name: "Enable camera" }).click();
+  // Right after a reload the previous page can still be holding the (fake)
+  // camera, and the check says "in use by another application" - press
+  // "Enable camera" again, exactly as a candidate would.
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole("button", { name: "Enable camera" }).click();
+    const busy = await page
+      .getByText(/camera appears to be in use/i)
+      .waitFor({ state: "visible", timeout: 3_000 })
+      .then(() => true, () => false);
+    if (!busy) break;
+    await page.waitForTimeout(2_000);
+  }
   await page.getByRole("button", { name: "Enable microphone" }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   const toRules = page.getByRole("button", { name: "Continue to rules" });

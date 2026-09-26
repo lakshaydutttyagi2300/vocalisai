@@ -8,6 +8,7 @@ import { uploadRecording } from "@/lib/upload-recording-client";
 import { StimulusView } from "@/components/questions/StimulusView";
 import { ArrowLeft, ArrowRight, AudioLines, Check, Mic, RotateCcw, Sparkles, Square } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { AccentPicker, ListenButton } from "@/components/speech/ListenButton";
 import type { Stimulus } from "@/lib/question-stimulus";
 import {
   DIFFICULTIES,
@@ -47,6 +48,9 @@ type RecordingState = "idle" | "recording" | "recorded" | "uploading";
 // Only these voice categories support on-demand AI scenario generation
 // (Phase 18) - see gemini-scenario-provider.ts for why MCQ/comprehension
 // categories are excluded.
+// Categories where a natural model reading helps before recording.
+const MODEL_READING_CATEGORIES = new Set(["READING", "PRONUNCIATION"]);
+
 const AI_SCENARIO_CATEGORIES = new Set(["READING", "PRONUNCIATION", "FLUENCY", "SPEAKING", "CUSTOMER_SERVICE"]);
 const MAX_TOPIC_LENGTH = 100;
 
@@ -409,6 +413,19 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         {/* Only the parsed stimulus is ever shown - never the raw passage. */}
         <StimulusView stimulus={currentQuestion.stimulus} resetKey={currentQuestion.id} />
         <h2 className="font-medium text-ink-900">{currentQuestion.prompt}</h2>
+
+        {/* Read-aloud and pronunciation: hear a natural model reading first. */}
+        {MODEL_READING_CATEGORIES.has(mode.category) && currentQuestion.stimulus?.kind === "text" && recordingState === "idle" && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md bg-slate-50 px-3 py-2">
+            <ListenButton
+              key={currentQuestion.id}
+              source={{ type: "question", questionId: currentQuestion.id }}
+              fallbackText={currentQuestion.stimulus.text}
+              label="Hear it first"
+            />
+            <AccentPicker />
+          </div>
+        )}
 
         <div className="mt-6">
           {recordingState === "idle" && (
