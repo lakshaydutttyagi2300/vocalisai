@@ -94,7 +94,7 @@ test("a candidate takes a v2 exam through the real proctored flow, including res
   // Section 2 is forward-only.
   await expect(page.getByRole("heading", { name: "Speaking" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText(/Question 1 of 2 - answers can't be changed/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Back" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Previous" })).toHaveCount(0);
 
   // Each forward step is several real round-trips to the remote test
   // database (save + advance + fresh state), so allow for that latency.

@@ -115,7 +115,7 @@ export default function SignupPage() {
           </p>
         )}
 
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+        <button type="submit" disabled={isSubmitting} data-loading={isSubmitting || undefined} className="btn-primary btn-lg w-full">
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>
       </form>

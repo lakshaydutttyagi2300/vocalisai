@@ -9,6 +9,8 @@ import {
   type PracticeModeDef,
 } from "@/lib/practice-taxonomy";
 import { StimulusView } from "@/components/questions/StimulusView";
+import { ArrowLeft, ArrowRight, Check, RotateCcw } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import type { Stimulus } from "@/lib/question-stimulus";
 
 type Question = {
@@ -160,8 +162,9 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
   if (stage === "pick-difficulty") {
     return (
       <div className="mx-auto max-w-xl px-6 py-16">
-        <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
-          &larr; Back to Practice
+        <Link href="/practice" className="btn-ghost btn-sm -ml-3">
+          <Icon as={ArrowLeft} />
+          Back to Practice
         </Link>
         <h1 className="mt-4 text-2xl font-semibold text-ink-950">{mode.label}</h1>
         <p className="mt-1 text-sm text-slate-600">{mode.description}</p>
@@ -169,12 +172,9 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
         <p className="mt-8 text-sm font-medium text-slate-700">Choose a difficulty</p>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {DIFFICULTIES.map((d) => (
-            <button
-              key={d}
-              onClick={() => startSession(d)}
-              className="btn-secondary justify-center py-3"
-            >
+            <button key={d} onClick={() => startSession(d)} className="btn-secondary btn-lg justify-between">
               {DIFFICULTY_LABELS[d]}
+              <Icon as={ArrowRight} />
             </button>
           ))}
         </div>
@@ -198,6 +198,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
           {errorMessage}
         </p>
         <button onClick={() => setStage("pick-difficulty")} className="btn-secondary mt-4">
+          <Icon as={RotateCcw} />
           Try again
         </button>
       </div>
@@ -226,6 +227,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
         )}
         <div className="mt-8 flex justify-center gap-3">
           <button onClick={() => setStage("pick-difficulty")} className="btn-secondary">
+            <Icon as={RotateCcw} />
             Practice again
           </button>
           <Link href="/dashboard" className="btn-primary">
@@ -265,7 +267,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
                 <button
                   key={opt}
                   onClick={() => setResponseText(opt)}
-                  className={`block w-full rounded-md border px-4 py-2 text-left text-sm transition ${
+                  className={`block w-full rounded-lg border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 ${
                     responseText === opt
                       ? "border-brand-500 bg-brand-50 text-brand-700"
                       : "border-slate-200 hover:border-slate-300"
@@ -310,14 +312,17 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
           {!feedback ? (
             <button
               onClick={() => submitAnswer(false)}
-              disabled={isSubmitting || !responseText.trim()}
+              disabled={!responseText.trim()}
+              data-loading={isSubmitting || undefined}
               className="btn-primary"
             >
               {isSubmitting ? "Submitting..." : "Submit"}
+              <Icon as={Check} />
             </button>
           ) : (
             <button onClick={nextQuestion} className="btn-primary">
               {index + 1 >= questions.length ? "Finish" : "Next question"}
+              <Icon as={ArrowRight} />
             </button>
           )}
         </div>

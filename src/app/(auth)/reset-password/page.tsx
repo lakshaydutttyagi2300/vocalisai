@@ -114,7 +114,7 @@ function ResetPasswordForm() {
           </p>
         )}
 
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+        <button type="submit" disabled={isSubmitting} data-loading={isSubmitting || undefined} className="btn-primary btn-lg w-full">
           {isSubmitting ? "Updating..." : "Update password"}
         </button>
       </form>

@@ -1,4 +1,6 @@
 import { getServerSession } from "next-auth";
+import { Mic } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { countUnanalysedRecordings, listSpeechAnalyses, type SpeechAnalysisRow } from "@/lib/candidate-history";
@@ -46,6 +48,7 @@ export default async function SpeechAnalysisPage() {
           </p>
         </div>
         <Link href="/practice#speaking" className="btn-primary">
+          <Icon as={Mic} />
           Record a new answer
         </Link>
       </div>
@@ -72,6 +75,7 @@ export default async function SpeechAnalysisPage() {
             Record an answer in any speaking practice mode (Read Aloud, Fluency, Speaking, Pronunciation) and your analysis will appear here.
           </p>
           <Link href="/practice#speaking" className="btn-primary mt-5">
+          <Icon as={Mic} />
             Go to speaking practice
           </Link>
         </div>

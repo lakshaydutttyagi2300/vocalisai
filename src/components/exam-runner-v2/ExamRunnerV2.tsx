@@ -8,6 +8,8 @@ import { PassageView } from "./PassageView";
 import { AudioPlayer } from "./AudioPlayer";
 import { TimedSpeaking } from "./TimedSpeaking";
 import { StimulusView } from "@/components/questions/StimulusView";
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ListChecks, RotateCcw, Send } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 type LocalAnswer = { answer: unknown; flagged: boolean };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -203,7 +205,8 @@ export function ExamRunnerV2({
     return (
       <div className="text-center">
         <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{loadError}</p>
-        <button onClick={() => { setLoadError(null); load(); }} className="mt-4 rounded-md border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10">
+        <button onClick={() => { setLoadError(null); load(); }} className="btn-dark btn-sm mt-4">
+          <Icon as={RotateCcw} />
           Try again
         </button>
       </div>
@@ -302,14 +305,17 @@ export function ExamRunnerV2({
           <span />
         ) : (
           <div className="flex gap-2">
-            <button onClick={() => setFreeIndex((i) => Math.max(0, i - 1))} disabled={index === 0 || reviewing} className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white hover:bg-white/10 disabled:opacity-40">
-              Back
+            <button onClick={() => setFreeIndex((i) => Math.max(0, i - 1))} disabled={index === 0 || reviewing} className="btn-dark">
+              <Icon as={ChevronLeft} />
+              Previous
             </button>
-            <button onClick={() => setFreeIndex((i) => Math.min(view.questions.length - 1, i + 1))} disabled={isLast || reviewing} className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white hover:bg-white/10 disabled:opacity-40">
+            <button onClick={() => setFreeIndex((i) => Math.min(view.questions.length - 1, i + 1))} disabled={isLast || reviewing} className="btn-dark">
               Next
+              <Icon as={ChevronRight} />
             </button>
             {paper.allowReview && !reviewing && (
-              <button onClick={() => setReviewing(true)} className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white hover:bg-white/10">
+              <button onClick={() => setReviewing(true)} className="btn-dark">
+                <Icon as={ListChecks} />
                 Review answers
               </button>
             )}
@@ -317,11 +323,13 @@ export function ExamRunnerV2({
         )}
 
         {locked && !isLast ? (
-          <button onClick={advanceLocked} disabled={busy} className="btn-primary">
+          <button onClick={advanceLocked} data-loading={busy || undefined} className="btn-primary">
             {busy ? "Saving..." : "Next question"}
+            <Icon as={ArrowRight} />
           </button>
         ) : (
           <button onClick={() => setConfirmSubmit(true)} disabled={busy} className="btn-primary">
+            <Icon as={Send} />
             Submit section
           </button>
         )}
@@ -335,10 +343,11 @@ export function ExamRunnerV2({
             You won&apos;t be able to come back to this section once it&apos;s submitted.
           </p>
           <div className="mt-3 flex gap-2">
-            <button onClick={submitPaper} disabled={busy} className="btn-primary">
+            <button onClick={submitPaper} data-loading={busy || undefined} className="btn-primary">
+              <Icon as={Check} />
               {busy ? "Submitting..." : "Yes, submit section"}
             </button>
-            <button onClick={() => setConfirmSubmit(false)} className="rounded-md border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10">
+            <button onClick={() => setConfirmSubmit(false)} className="btn-dark">
               Keep working
             </button>
           </div>
@@ -383,6 +392,7 @@ function ReviewScreen({
         })}
       </ul>
       <button onClick={onBack} className="btn-secondary mt-4">
+        <Icon as={ArrowLeft} />
         Back to questions
       </button>
     </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Play, RotateCcw, Volume2 } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useRef, useState } from "react";
 
 // Play-limited audio. Every play is granted by the server first
@@ -54,7 +56,8 @@ export function AudioPlayer({
     <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
       <audio ref={audioRef} onEnded={() => setPlaying(false)} onPause={() => setPlaying(false)} preload="none" />
       <div className="flex items-center justify-between gap-3">
-        <button type="button" onClick={play} disabled={playing || exhausted} className="btn-primary px-3 py-1.5 text-sm">
+        <button type="button" onClick={play} disabled={playing || exhausted} className="btn-primary">
+          <Icon as={playing ? Volume2 : playsUsed === 0 ? Play : RotateCcw} className={playing ? "animate-pulse" : ""} />
           {playing ? "Playing..." : playsUsed === 0 ? "Play recording" : "Play again"}
         </button>
         <span className="text-xs text-slate-500">

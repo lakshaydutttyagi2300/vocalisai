@@ -229,7 +229,7 @@ export default function CoachPage() {
               placeholder="Ask your coach..."
               className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none disabled:opacity-60"
             />
-            <button type="submit" disabled={sending || !draft.trim()} className="btn-primary disabled:opacity-60">
+            <button type="submit" disabled={!draft.trim()} data-loading={sending || undefined} className="btn-primary">
               {sending ? "Sending..." : "Send"}
             </button>
           </form>

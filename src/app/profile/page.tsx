@@ -167,7 +167,7 @@ export default function ProfilePage() {
           </p>
         )}
 
-        <button type="submit" disabled={isSaving} className="btn-primary">
+        <button type="submit" disabled={isSaving} data-loading={isSaving || undefined} className="btn-primary">
           {isSaving ? "Saving..." : "Save changes"}
         </button>
       </form>

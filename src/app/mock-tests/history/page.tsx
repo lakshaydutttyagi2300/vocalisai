@@ -1,4 +1,6 @@
 import { getServerSession } from "next-auth";
+import { Play } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { listMockExams, type MockExamRow } from "@/lib/candidate-history";
@@ -39,6 +41,7 @@ export default async function MockExamHistoryPage() {
           <p className="mt-1 text-sm text-slate-600">Every mock assessment and exam-style practice test you&apos;ve started, newest first.</p>
         </div>
         <Link href="/mock-tests" className="btn-primary">
+          <Icon as={Play} />
           Take a mock exam
         </Link>
       </div>
@@ -50,6 +53,7 @@ export default async function MockExamHistoryPage() {
             Take a timed, proctored mock exam to see your results and track them over time here.
           </p>
           <Link href="/mock-tests" className="btn-primary mt-5">
+          <Icon as={Play} />
             Start your first mock exam
           </Link>
         </div>

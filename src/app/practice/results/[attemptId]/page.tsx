@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { PACE_LABELS, FILLER_WORDS, type PaceClassification } from "@/lib/speech-metrics";
@@ -111,7 +113,7 @@ export default function AttemptResultsPage() {
           Find out exactly how your pronunciation, fluency, grammar and delivery came across - from
           real transcription and AI analysis of your actual recording. It only runs when you ask.
         </p>
-        <button onClick={runAnalysis} disabled={stage === "analyzing"} className="btn-primary mt-6">
+        <button onClick={runAnalysis} data-loading={stage === "analyzing" || undefined} className="btn-primary mt-6">
           {stage === "analyzing" ? "Analyzing... this can take a moment" : "Analyze this recording"}
         </button>
       </div>
@@ -149,8 +151,9 @@ export default function AttemptResultsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
-        &larr; Back to Practice
+      <Link href="/practice" className="btn-ghost btn-sm -ml-3">
+        <Icon as={ArrowLeft} />
+        Back to Practice
       </Link>
       <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">Your Speaking Analysis</h1>
       <p className="mt-1 text-sm text-slate-600">
@@ -300,11 +303,11 @@ function MispronouncedWordCard({
       </div>
       <p className="mt-1 text-sm text-slate-700">{word.note}</p>
       <div className="mt-3 flex gap-2">
-        <button onClick={speak} className="btn-secondary btn-sm text-xs">
+        <button onClick={speak} className="btn-secondary btn-sm">
           Listen
         </button>
         {practiceSlug && (
-          <Link href={`/practice/${practiceSlug}`} className="btn-primary text-xs" style={{ padding: "0.4rem 0.9rem" }}>
+          <Link href={`/practice/${practiceSlug}`} className="btn-primary btn-sm">
             Try again
           </Link>
         )}
@@ -371,7 +374,7 @@ function ImproveAnswerSection({
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold text-ink-900">Improve My Answer</h2>
         {!improved && checked && (
-          <button onClick={generate} disabled={status === "loading"} className="btn-primary btn-sm text-xs disabled:opacity-60">
+          <button onClick={generate} data-loading={status === "loading" || undefined} className="btn-primary btn-sm">
             {status === "loading" ? "Rewriting..." : "Improve My Answer"}
           </button>
         )}
@@ -416,7 +419,7 @@ function ImproveAnswerSection({
             </div>
           )}
           {practiceSlug && (
-            <Link href={`/practice/${practiceSlug}`} className="btn-secondary text-sm">
+            <Link href={`/practice/${practiceSlug}`} className="btn-secondary">
               Practice the improved answer &rarr;
             </Link>
           )}

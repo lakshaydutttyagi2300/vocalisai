@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Play } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
 const TIPS = [
@@ -68,7 +68,8 @@ export function CandidateRules({ onConfirm }: { onConfirm: () => void }) {
         I have read and agree to these rules, and I consent to this session being recorded.
       </label>
 
-      <button onClick={onConfirm} disabled={!agreed} className="btn-primary mt-6 w-full">
+      <button onClick={onConfirm} disabled={!agreed} className="btn-primary btn-lg mt-6 w-full">
+        <Icon as={Play} />
         Start test
       </button>
     </div>

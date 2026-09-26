@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { House, Mic, Video, type LucideIcon } from "lucide-react";
-import { IconBadge } from "@/components/ui/Icon";
+import { ArrowRight, House, Mic, ShieldCheck, Video, type LucideIcon } from "lucide-react";
+import { Icon, IconBadge } from "@/components/ui/Icon";
 import { MockTestSystemCheck } from "@/components/mock-test/MockTestSystemCheck";
 import { CandidateRules } from "@/components/mock-test/CandidateRules";
 import { MockTestSessionShell } from "@/components/mock-test/MockTestSessionShell";
@@ -70,12 +70,14 @@ export function MockTestEntry() {
           confirm the assessment rules.
         </p>
 
-        <button onClick={() => setStage("system-check")} className="btn-primary mt-6">
+        <button onClick={() => setStage("system-check")} className="btn-primary btn-lg mt-6">
+          <Icon as={ShieldCheck} />
           Begin system check
         </button>
         <p className="mt-4 text-sm">
-          <a href="/mock-tests/history" className="font-medium text-brand-600 hover:underline">
-            View my past results &rarr;
+          <a href="/mock-tests/history" className="btn-ghost btn-sm text-brand-700">
+            View my past results
+            <Icon as={ArrowRight} />
           </a>
         </p>
       </div>

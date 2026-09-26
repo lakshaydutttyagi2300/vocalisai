@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { describeMediaError } from "@/lib/media-errors";
 import { useMicLevel } from "@/hooks/useMicLevel";
-import { Check } from "lucide-react";
+import { ArrowRight, Check, Mic, Video } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
 type DeviceStatus = "idle" | "checking" | "ready" | "error";
@@ -116,7 +116,8 @@ export function SystemCheck({
           )}
 
           {cameraStatus !== "ready" && (
-            <button onClick={checkCamera} disabled={cameraStatus === "checking"} className="btn-secondary mt-3">
+            <button onClick={checkCamera} data-loading={cameraStatus === "checking" || undefined} className="btn-secondary btn-sm mt-3">
+              <Icon as={Video} />
               {cameraStatus === "checking" ? "Requesting access..." : "Enable camera"}
             </button>
           )}
@@ -148,14 +149,16 @@ export function SystemCheck({
         )}
 
         {micStatus !== "ready" && (
-          <button onClick={checkMic} disabled={micStatus === "checking"} className="btn-secondary mt-3">
+          <button onClick={checkMic} data-loading={micStatus === "checking" || undefined} className="btn-secondary btn-sm mt-3">
+            <Icon as={Mic} />
             {micStatus === "checking" ? "Requesting access..." : "Enable microphone"}
           </button>
         )}
       </div>
 
-      <button onClick={handleContinue} disabled={!canContinue} className="btn-primary mt-6 w-full">
+      <button onClick={handleContinue} disabled={!canContinue} className="btn-primary btn-lg mt-6 w-full">
         Continue
+        <Icon as={ArrowRight} />
       </button>
       {!canContinue && (
         <p className="mt-2 text-center text-xs text-slate-500">

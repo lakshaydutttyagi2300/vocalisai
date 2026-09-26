@@ -6,6 +6,8 @@ import { useLiveProctoring } from "@/hooks/useLiveProctoring";
 import { describeProctoringEvent } from "@/lib/proctoring-events";
 import { MockTestQuestionRunner } from "@/components/mock-test/MockTestQuestionRunner";
 import { ExamRunnerV2 } from "@/components/exam-runner-v2/ExamRunnerV2";
+import { RotateCcw, SquareX } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 const ACTIVE_V2_SESSION_KEY = "vocalisai:activeExamSession";
 
@@ -42,6 +44,7 @@ export function MockTestSessionShell({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sections, setSections] = useState<TemplateSection[] | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  const [ending, setEnding] = useState(false);
   // Decided server-side (api/mock-tests/sessions): "v2" only for a
   // template linked to an exam format with the exam_runner_v2 flag on.
   // Anything else - including an older server that doesn't send the
@@ -122,6 +125,16 @@ export function MockTestSessionShell({
     }
   }
 
+  // During an exam the site menu scrolls away and this shell's own bar
+  // (timer + End assessment) stays pinned instead - otherwise the sticky
+  // site menu covers End assessment as soon as the candidate scrolls.
+  useEffect(() => {
+    document.documentElement.dataset.examSession = "true";
+    return () => {
+      delete document.documentElement.dataset.examSession;
+    };
+  }, []);
+
   useEffect(() => {
     // Guards against React's dev-mode double-invoke of mount effects
     // creating two session rows for one real test session.
@@ -146,6 +159,7 @@ export function MockTestSessionShell({
   async function endTest() {
     if (endingRef.current || !sessionId) return;
     endingRef.current = true;
+    setEnding(true);
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     await fetch(`/api/mock-tests/sessions/${sessionId}`, { method: "PATCH" });
     if (runner === "v2") forgetActiveV2Session();
@@ -159,13 +173,14 @@ export function MockTestSessionShell({
 
   return (
     <div className="focus-surface min-h-screen">
-      <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-ink-950/95 px-6 py-3 backdrop-blur">
         <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
           <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
           Recording
         </div>
         <div className="font-mono text-sm text-slate-300">{mm}:{ss} elapsed</div>
-        <button onClick={endTest} className="rounded-md border border-white/20 px-3 py-1.5 text-sm font-medium hover:bg-white/10">
+        <button onClick={endTest} data-loading={ending || undefined} className="btn-danger btn-sm">
+          <Icon as={SquareX} />
           End assessment
         </button>
       </div>
@@ -177,10 +192,8 @@ export function MockTestSessionShell({
               <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">
                 {startError}
               </p>
-              <button
-                onClick={startSession}
-                className="mt-4 rounded-md border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10"
-              >
+              <button onClick={startSession} className="btn-dark btn-sm mt-4">
+                <Icon as={RotateCcw} />
                 Try again
               </button>
             </div>

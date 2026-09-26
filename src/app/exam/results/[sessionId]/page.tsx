@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ListChecks } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -109,6 +111,7 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
           Back to dashboard
         </Link>
         <Link href="/mock-tests/history" className="btn-secondary">
+          <Icon as={ListChecks} />
           All my results
         </Link>
       </div>

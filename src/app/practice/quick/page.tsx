@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { getModeBySlug } from "@/lib/practice-taxonomy";
 
 // A small, curated set of fast entry points - not every category, per the
@@ -17,8 +19,9 @@ const QUICK_DRILLS = [
 export default function QuickPracticePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
-        &larr; Back to Practice
+      <Link href="/practice" className="btn-ghost btn-sm -ml-3">
+        <Icon as={ArrowLeft} />
+        Back to Practice
       </Link>
       <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">Quick Practice</h1>
       <p className="mt-1 text-sm text-slate-600">

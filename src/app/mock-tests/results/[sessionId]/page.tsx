@@ -284,7 +284,7 @@ export default function MockTestResultsPage() {
               type="button"
               onClick={generateReport}
               disabled={reportStatus === "loading"}
-              className="btn-primary text-sm disabled:opacity-60"
+              className="btn-primary"
             >
               {reportStatus === "loading" ? "Generating..." : "Generate AI report"}
             </button>

@@ -422,3 +422,21 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
   - the landing hero badge, trust bar and feature cards (each with its own icon), and the list and pricing ticks.
 - Charts (score ring, trend line) are marked `data-chart` and left unchanged. Layout, colours, menus and behaviour are unchanged.
 - **Test:** `tests/e2e/icons.spec.ts` visits every candidate page, the menus, and the mock-test entry and listening screens at 1280px and 390px. It checks that every icon comes from the shared set, uses the same stroke and a standard square size, and that no page errors occur. Screenshots are saved to `test-results/icons/`.
+
+### Candidate buttons: one premium button system
+
+- **`globals.css` button system** replaces the two basic styles:
+  - **Variants:** `.btn-primary` (gradient, soft depth), `.btn-secondary` (white, bordered), `.btn-danger` (end or stop actions), `.btn-ghost` (Back and navigation) and `.btn-dark` (secondary actions on the dark exam screen).
+  - **Sizes:** default 44px (touch-friendly), `.btn-sm` and `.btn-lg`.
+  - **States:** hover, pressed, a `:focus-visible` ring, disabled, and `data-loading="true"` (a spinner that keeps the label and blocks clicks).
+- Existing `btn-primary` / `btn-secondary` markup upgrades automatically. Hand-sized overrides (`px-3 py-1.5 text-xs`, inline padding, `disabled:opacity-60`) and hand-rolled buttons were replaced.
+- **Key actions now use the system, with icons and loading states:**
+  - Begin system check / Continue / Start test
+  - Start section, Start practice (difficulty buttons), Play audio / Play recording
+  - Start recording and Stop (danger), Submit & next, Next question, Previous / Next / Review answers / Submit section on the exam screen
+  - End assessment (danger), Try again, Practice again, Re-record, Back to Practice (ghost)
+  - Sign-in and account forms (loading), coach send, profile save, conversation practice, results pages, landing CTAs
+- The exam screen's "Back" is now **"Previous"** (test updated).
+- **Fix:** during an exam the sticky site menu covered the exam bar (timer + End assessment) once the candidate scrolled. The exam bar is now pinned, and the site menu scrolls away only during an exam (`html[data-exam-session]`).
+- Multiple-choice answer options get a comfortable size and the same focus ring.
+- **Test:** `tests/e2e/buttons.spec.ts` covers the practice, exam-entry, rules, exam-question and sign-in buttons at desktop and phone width: the right variant, consistent heights, disabled until ready, hover change, the focus ring, the loading spinner, and End assessment staying visible and uncovered after scrolling.

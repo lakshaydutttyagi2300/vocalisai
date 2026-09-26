@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
 type CheckResult = "checking" | "pass" | "warn" | "fail";
@@ -98,8 +98,9 @@ export function MockTestSystemCheck({
         )}
       </div>
 
-      <button onClick={() => onReady(camMicReady)} disabled={!canContinue} className="btn-primary mt-6 w-full">
+      <button onClick={() => onReady(camMicReady)} disabled={!canContinue} className="btn-primary btn-lg mt-6 w-full">
         Continue to rules
+        <Icon as={ArrowRight} />
       </button>
       {!mandatoryPassed && extra && (
         <p className="mt-2 text-center text-xs text-red-600">

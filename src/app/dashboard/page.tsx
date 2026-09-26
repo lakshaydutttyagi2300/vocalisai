@@ -6,7 +6,8 @@ import { getModeBySlug, PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import { computeCoachProfile } from "@/lib/coach-profile";
 import { CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { AudioLines, BookOpen, Bot, ClipboardCheck, Target, type LucideIcon } from "lucide-react";
+import { AudioLines, BookOpen, Bot, ClipboardCheck, type LucideIcon, Play, Target } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { IconBadge } from "@/components/ui/Icon";
 import { listMockExams, listSpeechAnalyses } from "@/lib/candidate-history";
 import { listMockTestOptions } from "@/lib/mock-test-options";
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <Link href="/mock-tests" className="btn-primary flex-none">
+            <Icon as={Play} />
             Start Assessment
           </Link>
         </div>

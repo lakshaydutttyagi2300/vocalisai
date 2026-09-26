@@ -26,7 +26,7 @@ function Choice({ options, value, onChange, labels }: { options: string[]; value
           aria-checked={value === opt}
           key={opt}
           onClick={() => onChange(opt)}
-          className={`block w-full rounded-md border px-4 py-2 text-left text-sm transition ${
+          className={`block w-full rounded-lg border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 ${
             value === opt ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 hover:border-slate-300"
           }`}
         >
@@ -153,7 +153,7 @@ export function QuestionInput({
             ))}
           </ol>
           {!Array.isArray(value) && (
-            <button type="button" onClick={() => onChange(current)} className="btn-secondary mt-3 px-3 py-1.5 text-xs">
+            <button type="button" onClick={() => onChange(current)} className="btn-secondary btn-sm mt-3">
               Keep this order as my answer
             </button>
           )}

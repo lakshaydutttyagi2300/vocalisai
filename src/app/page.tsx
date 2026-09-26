@@ -174,12 +174,12 @@ export default async function LandingPage() {
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               {session ? (
-                <Link href="/dashboard" className="btn-primary px-6 py-3 text-base shadow-[var(--shadow-premium)]">
+                <Link href="/dashboard" className="btn-primary btn-lg">
                   Go to your dashboard
                 </Link>
               ) : (
                 <>
-                  <Link href="/signup" className="btn-primary px-6 py-3 text-base shadow-[var(--shadow-premium)]">
+                  <Link href="/signup" className="btn-primary btn-lg">
                     Start Practising
                   </Link>
                   <Link
@@ -534,7 +534,7 @@ export default async function LandingPage() {
                   </ul>
                   <Link
                     href="/signup"
-                    className={`mt-6 text-center ${featured ? "btn-primary" : "btn-secondary"} py-2.5 text-sm`}
+                    className={`mt-6 text-center ${featured ? "btn-primary" : "btn-secondary"} w-full`}
                   >
                     {plan === "FREE" ? "Start free" : `Choose ${PLAN_DISPLAY[plan].label}`}
                   </Link>
@@ -568,7 +568,7 @@ export default async function LandingPage() {
               Create a free account and take your first practice session in minutes.
             </p>
             <div className="mt-8">
-              <Link href="/signup" className="btn-primary px-8 py-3.5 text-base shadow-[var(--shadow-premium)]">
+              <Link href="/signup" className="btn-primary btn-lg">
                 Start Practising Now
               </Link>
             </div>

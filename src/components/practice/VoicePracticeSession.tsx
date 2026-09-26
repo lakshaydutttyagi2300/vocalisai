@@ -6,6 +6,8 @@ import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { uploadRecording } from "@/lib/upload-recording-client";
 import { StimulusView } from "@/components/questions/StimulusView";
+import { ArrowLeft, ArrowRight, AudioLines, Check, Mic, RotateCcw, Sparkles, Square } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import type { Stimulus } from "@/lib/question-stimulus";
 import {
   DIFFICULTIES,
@@ -271,8 +273,9 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
   if (stage === "pick-difficulty") {
     return (
       <div className="mx-auto max-w-xl px-6 py-16">
-        <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
-          &larr; Back to Practice
+        <Link href="/practice" className="btn-ghost btn-sm -ml-3">
+          <Icon as={ArrowLeft} />
+          Back to Practice
         </Link>
         <h1 className="mt-4 text-2xl font-semibold text-ink-950">{mode.label}</h1>
         <p className="mt-1 text-sm text-slate-600">{mode.description}</p>
@@ -280,8 +283,9 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         <p className="mt-8 text-sm font-medium text-slate-700">Choose a difficulty</p>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {DIFFICULTIES.map((d) => (
-            <button key={d} onClick={() => startSession(d)} className="btn-secondary justify-center py-3">
+            <button key={d} onClick={() => startSession(d)} className="btn-secondary btn-lg justify-between">
               {DIFFICULTY_LABELS[d]}
+              <Icon as={ArrowRight} />
             </button>
           ))}
         </div>
@@ -313,9 +317,11 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
                 <button
                   key={d}
                   onClick={() => generateAndStart(d)}
-                  disabled={generating}
-                  className="btn-primary justify-center py-2 text-sm disabled:opacity-60"
+                  disabled={generating && difficulty !== d}
+                  data-loading={(generating && difficulty === d) || undefined}
+                  className="btn-primary btn-sm"
                 >
+                  <Icon as={Sparkles} />
                   {generating && difficulty === d ? "Generating..." : `Generate (${DIFFICULTY_LABELS[d]})`}
                 </button>
               ))}
@@ -342,6 +348,7 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
           {errorMessage}
         </p>
         <button onClick={() => setStage("pick-difficulty")} className="btn-secondary mt-4">
+          <Icon as={RotateCcw} />
           Try again
         </button>
       </div>
@@ -370,6 +377,7 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         )}
         <div className="mt-8 flex justify-center gap-3">
           <button onClick={() => setStage("pick-difficulty")} className="btn-secondary">
+            <Icon as={RotateCcw} />
             Practice again
           </button>
           <Link href="/dashboard" className="btn-primary">
@@ -405,6 +413,7 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         <div className="mt-6">
           {recordingState === "idle" && (
             <button onClick={startRecording} className="btn-primary">
+              <Icon as={Mic} />
               Start recording
             </button>
           )}
@@ -418,7 +427,8 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
               </div>
-              <button onClick={stopRecording} className="btn-secondary mt-4">
+              <button onClick={stopRecording} className="btn-danger mt-4">
+                <Icon as={Square} />
                 Stop recording
               </button>
             </div>
@@ -429,10 +439,12 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
               {audioUrl && <audio controls src={audioUrl} className="w-full" />}
               <div className="mt-4 flex gap-3">
                 <button onClick={reRecord} disabled={recordingState === "uploading"} className="btn-secondary">
+                  <Icon as={RotateCcw} />
                   Re-record
                 </button>
-                <button onClick={submitRecording} disabled={recordingState === "uploading"} className="btn-primary">
+                <button onClick={submitRecording} data-loading={recordingState === "uploading" || undefined} className="btn-primary">
                   {recordingState === "uploading" ? "Saving..." : "Submit"}
+                  <Icon as={Check} />
                 </button>
               </div>
             </div>
@@ -451,14 +463,13 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
                 </p>
               )}
               <div className="mt-4 flex items-center justify-between">
-                <Link
-                  href={`/practice/results/${feedback.attemptId}`}
-                  className="text-sm font-medium text-brand-600 hover:underline"
-                >
-                  View detailed analysis &rarr;
+                <Link href={`/practice/results/${feedback.attemptId}`} className="btn-secondary">
+                  <Icon as={AudioLines} />
+                  View detailed analysis
                 </Link>
                 <button onClick={nextQuestion} className="btn-primary">
                   {index + 1 >= questions.length ? "Finish" : "Next question"}
+                  <Icon as={ArrowRight} />
                 </button>
               </div>
             </div>

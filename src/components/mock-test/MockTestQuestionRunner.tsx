@@ -5,6 +5,8 @@ import { useMicLevel } from "@/hooks/useMicLevel";
 import { getModeByCategory, isVoiceCategory } from "@/lib/practice-taxonomy";
 import { uploadRecording } from "@/lib/upload-recording-client";
 import { StimulusView } from "@/components/questions/StimulusView";
+import { ArrowRight, Check, Mic, Play, RotateCcw, Square } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { questionInstruction } from "@/components/questions/question-instruction";
 import type { Stimulus } from "@/lib/question-stimulus";
 
@@ -195,7 +197,8 @@ export function MockTestQuestionRunner({
         <p role="alert" className="rounded-md bg-red-500/20 px-3 py-2 text-sm text-red-200">
           {error}
         </p>
-        <button onClick={() => setPhase("answering")} className="btn-secondary mt-4">
+        <button onClick={() => setPhase("answering")} className="btn-dark mt-4">
+          <Icon as={RotateCcw} />
           Continue
         </button>
       </div>
@@ -212,7 +215,8 @@ export function MockTestQuestionRunner({
         <h2 className="mt-3 font-display text-xl font-bold">{modeDef?.label ?? section.category}</h2>
         <p className="mt-2 text-sm text-slate-300">{modeDef?.description}</p>
         <p className="mt-1 text-xs text-slate-400">{section.questionCount} question{section.questionCount === 1 ? "" : "s"}</p>
-        <button onClick={startSection} className="btn-primary mt-6">
+        <button onClick={startSection} className="btn-primary btn-lg mt-6">
+          <Icon as={Play} />
           Start section
         </button>
       </div>
@@ -273,7 +277,7 @@ export function MockTestQuestionRunner({
                 <button
                   key={opt}
                   onClick={() => setResponseText(opt)}
-                  className={`block w-full rounded-md border px-4 py-2 text-left text-sm transition ${
+                  className={`block w-full rounded-lg border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 ${
                     responseText === opt ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
@@ -294,6 +298,7 @@ export function MockTestQuestionRunner({
           <div className="mt-4">
             {recordingState === "idle" && (
               <button onClick={startRecording} className="btn-primary">
+                <Icon as={Mic} />
                 Start recording
               </button>
             )}
@@ -306,23 +311,32 @@ export function MockTestQuestionRunner({
                 <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                   <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
                 </div>
-                <button onClick={stopRecording} className="btn-secondary mt-3">
+                <button onClick={stopRecording} className="btn-danger mt-3">
+                  <Icon as={Square} />
                   {isLastQuestion ? "Stop & finish" : "Stop & next"}
                 </button>
               </div>
             )}
-            {recordingState === "uploading" && <p className="text-sm text-slate-500">Saving...</p>}
+            {recordingState === "uploading" && (
+              <button type="button" data-loading="true" className="btn-secondary">
+                Saving your answer...
+              </button>
+            )}
           </div>
         )}
 
         {!voice && (
-          <button
-            onClick={() => submitAnswer(false)}
-            disabled={phase === "submitting" || !responseText.trim()}
-            className="btn-primary mt-6"
-          >
-            {phase === "submitting" ? "Saving..." : isLastQuestion ? "Submit & finish" : "Submit & next"}
-          </button>
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => submitAnswer(false)}
+              disabled={!responseText.trim()}
+              data-loading={phase === "submitting" || undefined}
+              className="btn-primary"
+            >
+              {phase === "submitting" ? "Saving..." : isLastQuestion ? "Submit & finish" : "Submit & next"}
+              <Icon as={isLastQuestion ? Check : ArrowRight} />
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Mic, RotateCcw, Square, Timer } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useEffect, useRef, useState } from "react";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { uploadRecording } from "@/lib/upload-recording-client";
@@ -95,6 +97,7 @@ export function TimedSpeaking({
             You&apos;ll have {formatSeconds(prepSeconds)} to prepare, then {formatSeconds(responseSeconds)} to speak. Recording starts automatically.
           </p>
           <button type="button" onClick={() => { setSecondsLeft(prepSeconds); setPhase("prep"); }} className="btn-primary mt-3">
+            <Icon as={Timer} />
             Start preparation
           </button>
         </div>
@@ -102,7 +105,8 @@ export function TimedSpeaking({
       {phase === "prep" && (
         <div>
           <p className="text-sm font-semibold text-ink-900">Preparation time: {formatSeconds(secondsLeft)}</p>
-          <button type="button" onClick={startRecording} className="btn-secondary mt-3">
+          <button type="button" onClick={startRecording} className="btn-primary mt-3">
+            <Icon as={Mic} />
             I&apos;m ready - start speaking now
           </button>
         </div>
@@ -118,17 +122,23 @@ export function TimedSpeaking({
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
           </div>
-          <button type="button" onClick={stopRecording} className="btn-secondary mt-3">
+          <button type="button" onClick={stopRecording} className="btn-danger mt-3">
+            <Icon as={Square} />
             Finish speaking
           </button>
         </div>
       )}
-      {phase === "uploading" && <p className="text-sm text-slate-500">Saving your recording...</p>}
+      {phase === "uploading" && (
+        <button type="button" data-loading="true" className="btn-secondary">
+          Saving your recording...
+        </button>
+      )}
       {phase === "done" && <p className="text-sm font-medium text-brand-700">Your response has been recorded and saved.</p>}
       {phase === "error" && (
         <div>
           <p role="alert" className="text-sm text-red-600">{error}</p>
           <button type="button" onClick={() => { setError(null); setSecondsLeft(prepSeconds); setPhase("ready"); }} className="btn-secondary mt-3">
+            <Icon as={RotateCcw} />
             Try again
           </button>
         </div>

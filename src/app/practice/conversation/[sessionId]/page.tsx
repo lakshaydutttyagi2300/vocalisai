@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Mic, Square } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
@@ -215,8 +217,9 @@ export default function ConversationPage() {
   if (stage === "complete") {
     return (
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <Link href="/practice/conversation" className="text-sm text-slate-500 hover:text-ink-900">
-          &larr; New conversation
+        <Link href="/practice/conversation" className="btn-ghost btn-sm -ml-3">
+          <Icon as={ArrowLeft} />
+          New conversation
         </Link>
         <h1 className="mt-4 text-2xl font-semibold text-ink-950">Conversation analysis</h1>
 
@@ -328,8 +331,9 @@ export default function ConversationPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <Link href="/practice/conversation" className="text-sm text-slate-500 hover:text-ink-900">
-          &larr; End without saving
+        <Link href="/practice/conversation" className="btn-ghost btn-sm -ml-3">
+          <Icon as={ArrowLeft} />
+          End without saving
         </Link>
         <span className="text-xs font-medium text-slate-500">{role.replace("_", " ")}</span>
       </div>
@@ -360,11 +364,13 @@ export default function ConversationPage() {
 
         {recordingState === "idle" && !aiThinking && (
           <button onClick={startRecording} className="btn-primary">
+                <Icon as={Mic} />
             {turns.length === 1 ? "Start speaking" : "Reply"}
           </button>
         )}
         {recordingState === "recording" && (
-          <button onClick={stopRecording} className="btn-secondary">
+          <button onClick={stopRecording} className="btn-danger">
+                <Icon as={Square} />
             Stop and send
           </button>
         )}

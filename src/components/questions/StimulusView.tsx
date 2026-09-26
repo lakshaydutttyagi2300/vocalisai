@@ -6,7 +6,7 @@
 // every candidate question screen, so no screen ever prints a raw passage.
 
 import { useEffect, useRef, useState } from "react";
-import { Headphones, Image as ImageIcon } from "lucide-react";
+import { Headphones, Image as ImageIcon, Play, RotateCcw, Volume2 } from "lucide-react";
 import type { Stimulus } from "@/lib/question-stimulus";
 import { Icon, IconBadge } from "@/components/ui/Icon";
 
@@ -161,7 +161,6 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
     else speakInBrowser();
   }
 
-  const busy = state === "playing" || state === "loading";
 
   return (
     <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50/60 p-4" aria-label="Listening recording">
@@ -176,18 +175,15 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
             </p>
           </div>
         </div>
-        <button type="button" onClick={play} disabled={busy || playsLeft === 0} className="btn-primary disabled:opacity-60">
-          {state === "loading" ? (
-            "Loading..."
-          ) : state === "playing" ? (
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Playing...
-            </span>
-          ) : playsUsed === 0 ? (
-            "Play audio"
-          ) : (
-            "Play again"
-          )}
+        <button
+          type="button"
+          onClick={play}
+          disabled={state === "playing" || playsLeft === 0}
+          data-loading={state === "loading" || undefined}
+          className="btn-primary"
+        >
+          <Icon as={state === "playing" ? Volume2 : playsUsed === 0 ? Play : RotateCcw} className={state === "playing" ? "animate-pulse" : ""} />
+          {state === "loading" ? "Loading..." : state === "playing" ? "Playing..." : playsUsed === 0 ? "Play audio" : "Play again"}
         </button>
       </div>
       <p className="mt-2 text-xs text-slate-600" aria-live="polite">

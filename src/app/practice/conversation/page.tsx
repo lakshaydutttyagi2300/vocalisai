@@ -1,6 +1,8 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CONVERSATION_ROLES } from "@/lib/conversation-roles";
@@ -42,8 +44,9 @@ function ConversationSetupForm() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
-      <Link href="/practice" className="text-sm text-slate-500 hover:text-ink-900">
-        &larr; Back to Practice
+      <Link href="/practice" className="btn-ghost btn-sm -ml-3">
+        <Icon as={ArrowLeft} />
+        Back to Practice
       </Link>
       <h1 className="mt-4 text-2xl font-semibold text-ink-950">AI Voice Conversation</h1>
       <p className="mt-1 text-sm text-slate-600">
@@ -93,7 +96,7 @@ function ConversationSetupForm() {
         </p>
       )}
 
-      <button onClick={start} disabled={!role || !difficulty || isStarting} className="btn-primary mt-8 w-full">
+      <button onClick={start} disabled={!role || !difficulty} data-loading={isStarting || undefined} className="btn-primary btn-lg mt-8 w-full">
         {isStarting ? "Starting..." : "Start conversation"}
       </button>
     </div>

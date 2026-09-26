@@ -126,7 +126,7 @@ export default function BillingPage() {
               <button
                 onClick={() => handleUpgrade(p.priceId)}
                 disabled={!paddleReady}
-                className="btn-primary mt-4 w-full disabled:opacity-60"
+                className="btn-primary mt-4 w-full"
               >
                 {usage?.plan === p.plan ? "Current plan" : "Upgrade"}
               </button>
