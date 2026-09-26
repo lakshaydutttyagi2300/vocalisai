@@ -1,8 +1,3 @@
 {
-  "framework": "nextjs",
-  "git": {
-    "deploymentEnabled": {
-      "feat/skills-platform": false
-    }
-  }
+  "framework": "nextjs"
 }
