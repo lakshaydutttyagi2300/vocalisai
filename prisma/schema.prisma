@@ -38,6 +38,116 @@ model User {
   subscription        Subscription?
   usageEvents         UsageEvent[]
   passwordResetTokens PasswordResetToken[]
+  skillMastery        UserSkillMastery[]
+}
+
+// ---------------------------------------------------------------------------
+// Skills platform (Phase 1). Questions belong to skills; exams, drills,
+// mocks and Goal Tracks are recipes over skills. Seeded from
+// src/lib/skills/taxonomy.ts. Additive only - nothing existing references
+// these tables except through new nullable columns.
+// ---------------------------------------------------------------------------
+
+// The 12-category tree: depth 1 = category (ENG), 2 = subcategory (ENG.GRM),
+// 3 = skill (ENG.GRM.TENSES). `enabled` hides whole categories in the UI.
+model Skill {
+  id           String  @id // dotted path, e.g. "ENG.GRM.TENSES"
+  code         String
+  name         String
+  depth        Int
+  parentId     String?
+  parent       Skill?  @relation("SkillTree", fields: [parentId], references: [id])
+  children     Skill[] @relation("SkillTree")
+  categoryCode String
+  sortOrder    Int     @default(0)
+  enabled      Boolean @default(false)
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  questions  PracticeQuestion[]
+  attempts   PracticeAttempt[]
+  mastery    UserSkillMastery[]
+  goalTracks GoalTrackSkill[]
+
+  @@index([parentId])
+  @@index([categoryCode, depth])
+}
+
+// Scoring rubric for open (writing/speaking/role-play) items.
+model Rubric {
+  id             String  @id @default(cuid())
+  key            String  @unique // e.g. "SPEAKING_6D", "EMAIL_REPLY"
+  name           String
+  method         String  // key | rubric_llm | speech_ai | hybrid
+  maxPoints      Int     @default(100)
+  dimensionsJson String  // JSON: [{ key, label, weight, descriptor }]
+  createdAt      DateTime @default(now())
+
+  questions PracticeQuestion[]
+}
+
+// Running mastery per user per skill node (0-100). band: WEAK / DEVELOPING /
+// PROFICIENT / MASTERED / UNRATED (fewer than 5 attempts).
+model UserSkillMastery {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId       String
+  skill         Skill    @relation(fields: [skillId], references: [id])
+  score         Float    @default(0)
+  band          String   @default("UNRATED")
+  attempts      Int      @default(0)
+  correct       Int      @default(0)
+  levelsSeen    String   @default("[]") // JSON array of levels attempted
+  lastAttemptAt DateTime?
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, skillId])
+  @@index([userId, band])
+}
+
+// Goal Tracks: a pre-set bundle of skill weights (BPO is one track).
+model GoalTrack {
+  id          String  @id @default(cuid())
+  slug        String  @unique // GENERAL_ENGLISH | BPO_SUPPORT | INTERVIEW_PREP | CAMPUS | STUDY_ABROAD
+  name        String
+  description String?
+  enabled     Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+
+  skills     GoalTrackSkill[]
+  profiles   Profile[]
+  blueprints ExamBlueprint[]
+}
+
+model GoalTrackSkill {
+  goalTrackId String
+  goalTrack   GoalTrack @relation(fields: [goalTrackId], references: [id], onDelete: Cascade)
+  skillId     String
+  skill       Skill     @relation(fields: [skillId], references: [id])
+  weight      Float     @default(1)
+
+  @@id([goalTrackId, skillId])
+}
+
+// A recipe for a mock/diagnostic: sections -> skill filters, counts,
+// level mix and timing (sectionsJson). May point at an existing mock-test
+// template so current exams stay reachable from a track.
+model ExamBlueprint {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  name               String
+  description        String?
+  kind               String   // diagnostic | mock | drill
+  goalTrackId        String?
+  goalTrack          GoalTrack? @relation(fields: [goalTrackId], references: [id])
+  mockTestTemplateId String?  // existing exam this blueprint maps to, if any
+  sectionsJson       String   @default("[]")
+  enabled            Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 // Kept separate from User so Phase 3+ (practice/assessment data) can extend
@@ -48,6 +158,10 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   targetRole String?
+
+  // Skills platform: the candidate's chosen Goal Track (null = not chosen).
+  goalTrackId String?
+  goalTrack   GoalTrack? @relation(fields: [goalTrackId], references: [id])
   bio        String?
 
   updatedAt DateTime @updatedAt
@@ -116,10 +230,27 @@ model PracticeQuestion {
   examPartId String?
   examPart   ExamPart? @relation(fields: [examPartId], references: [id], onDelete: SetNull)
 
+  // Skills platform (Phase 1) - all nullable/additive; null means the
+  // question predates the taxonomy and behaves exactly as before.
+  // skillId: the node it belongs to (a category, subcategory or skill - see
+  // skillPrecision). level: blueprint L1-L6. format: blueprint format key.
+  skillId           String?
+  skill             Skill?  @relation(fields: [skillId], references: [id])
+  skillPrecision    String? // "skill" | "subcategory" | "category"
+  skillSource       String? // "legacy-auto" | "classified" | "author"
+  level             Int?
+  format            String?
+  distractorReasons String? // JSON: { optionText: reason }
+  hint              String?
+  rubricId          String?
+  rubric            Rubric? @relation(fields: [rubricId], references: [id])
+  bankStatus        String? // draft | review | live | retired (null = legacy, live)
+
   @@index([category, difficulty])
   @@index([category, difficulty, isActive])
   @@index([itemGroupId, orderInGroup])
   @@index([examPartId])
+  @@index([skillId, level])
 }
 
 // P1-B: a shared stimulus multiple PracticeQuestion rows can point at -
@@ -196,9 +327,16 @@ model PracticeAttempt {
 
   analysis SpeechAnalysis?
 
+  // Skills platform (Phase 1): copied from the question at answer time so
+  // mastery history survives later re-tagging. Null on older attempts.
+  skillId String?
+  skill   Skill?  @relation(fields: [skillId], references: [id])
+  level   Int?
+
   @@index([userId, createdAt])
   @@index([userId, category])
   @@index([mockTestSessionId])
+  @@index([userId, skillId])
 }
 
 // Real, on-demand analysis of one voice attempt's recording - triggered only
