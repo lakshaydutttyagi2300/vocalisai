@@ -82,10 +82,13 @@ test("the practice tests are offered only while the new exam is on, next to the 
   const user = await candidate(page, "options");
   const defaultTemplate = await db.mockTestTemplate.findFirstOrThrow({ where: { isDefault: true } });
 
-  // OFF: only today's default - the page has nothing to choose between.
+  // OFF: only standard tests - today's default first, plus each Goal Track's
+  // own exam (Phase 4) - and no practice tests.
   await setFlag(false);
   const off = (await (await page.request.get("/api/mock-tests/options")).json()).options as Option[];
-  expect(off).toEqual([expect.objectContaining({ templateId: defaultTemplate.id, kind: "standard", isDefault: true })]);
+  expect(off[0]).toMatchObject({ templateId: defaultTemplate.id, kind: "standard", isDefault: true });
+  expect(off.every((o) => o.kind === "standard")).toBe(true);
+  expect(off.some((o) => seededTemplateIds.includes(o.templateId))).toBe(false);
   // ...and a practice test can't be requested directly.
   const refused = await page.request.post("/api/mock-tests/sessions", { data: { templateId: seededTemplateIds[0] } });
   expect(refused.status()).toBe(400);

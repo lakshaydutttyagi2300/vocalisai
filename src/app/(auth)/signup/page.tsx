@@ -48,7 +48,8 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard");
+      // New accounts start by choosing a goal (they can skip to the dashboard).
+      router.push("/goal/choose?welcome=1");
       router.refresh();
     } catch {
       setIsSubmitting(false);

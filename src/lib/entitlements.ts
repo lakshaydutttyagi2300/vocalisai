@@ -139,7 +139,14 @@ function isPlan(value: string): value is Plan {
 export async function getEffectivePlan(userId: string): Promise<Plan> {
   let sub = await db.subscription.findUnique({ where: { userId } });
   if (!sub) {
-    sub = await db.subscription.create({ data: { userId, plan: "FREE", status: "ACTIVE" } });
+    try {
+      sub = await db.subscription.create({ data: { userId, plan: "FREE", status: "ACTIVE" } });
+    } catch (err) {
+      // Two requests for a brand-new user can both get here at once (a page
+      // asking twice in parallel); the other one created the row first.
+      sub = await db.subscription.findUnique({ where: { userId } });
+      if (!sub) throw err;
+    }
   }
 
   if (sub.status !== "ACTIVE") return "FREE";

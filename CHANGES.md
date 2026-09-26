@@ -664,3 +664,35 @@ How it chooses:
 - Every Listen button, "Hear it first" and the AI conversation voice play with the **best voice on the student's device** for the chosen accent (`pickDeviceVoice`). It prefers the exact accent (en-IN, en-US or en-GB), then the high-quality neural voices many browsers include, such as Edge "Online (Natural)" and Chrome "Google …".
 - In this mode no "not set up" note is shown. A note appears only when natural voices are on but a clip can't be made (daily limit, credits, provider error).
 - To turn natural voices on later, add the key. No code change is needed.
+
+## Hotfix (26 Sep 2026, 19:36 IST): live site "Internal Server Error"
+
+**What happened:** `DATABASE_URL` disappeared from Vercel's Production settings, most likely during the attempt to add a Preview variable. Every signed-in page then failed, from the 17:04 deploy until 19:36.
+
+**Fixes:**
+- **`src/lib/db.ts` `resolveDatabaseUrl`:** uses DATABASE_URL when set (unchanged). Otherwise it derives Neon's pooled host from `DATABASE_URL_UNPOOLED`, which was still set. Verified against the test DB with no `.env` present. Production's compute woke at the moment of the fix deploy.
+- **`GET /api/health`** (public, no details): checks that the database is reachable. It's now part of every release check, because signed-out smoke checks can't see this failure.
+
+## Skills platform - Phase 4: Goal Tracks and onboarding (branch `feat/skills-platform`)
+
+No DB migration: this uses Phase 1's `GoalTrack`, `GoalTrackSkill`, `Profile.goalTrackId` and `ExamBlueprint`.
+
+- **Goals:** General English, BPO / Customer Support and Interview Preparation. Campus and Study Abroad stay hidden (`enabled=false`).
+- **Onboarding:** after sign-up, candidates go to `/goal/choose?welcome=1` ("What are you preparing for?") and can skip. Existing candidates see a "Choose my goal" card at the top of the dashboard. They can change goal any time.
+- **`/goal` (My goal plan), built by `src/lib/goal-tracks.ts`:**
+  - **Readiness:** weighted by the track's skill weights, over rated areas only, with coverage shown.
+  - **Next steps:** the biggest weighted gaps first, then important untried areas; mastered areas are skipped.
+  - **Actions:** each area links to a Quick Drill, or to the right practice mode (read-aloud, fluency, role-play, interview, writing…).
+  - **Exams:** the goal's own exams. **The BPO (Workplace Communication) assessment sits inside the BPO track**, General English has its assessment, and Interview Prep and BPO also get the live AI mock interview.
+- **Dashboard card:** the goal, its readiness, and the next step.
+- **Menu:** "Find my focus" is now **My goal plan**. The old `/practice/goals` redirects to `/goal`.
+- **Mock Exams:**
+  - each enabled track's exam is offered, e.g. the General English assessment, labelled "For General English";
+  - `/mock-tests?template=<id>` pre-selects a test;
+  - with the new-exam flag off, only standard tests are offered (no practice tests).
+- **Bug fixed:** `getEffectivePlan` could crash with a unique-constraint error when a brand-new user's page asked for their plan twice at once. The dashboard goal card made that likely.
+- **Tests:**
+  - `goal-tracks.test.ts` (8): readiness maths, next-step order, practice links, only enabled goals, `/api/goal`, the BPO plan and its exam link, track exams in the chooser, and the parallel plan-lookup race.
+  - `goals.spec.ts`: full browser journey.
+  - `auth.spec.ts`: sign-up now asks for a goal.
+  - `exam-demo.spec.ts`: standard tests only while the flag is off.

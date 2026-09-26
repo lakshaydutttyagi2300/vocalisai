@@ -77,7 +77,7 @@ export default function PracticeHubPage() {
       </p>
 
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
-        <Link href="/practice/goals" className="font-medium text-brand-600 hover:underline">
+        <Link href="/goal" className="font-medium text-brand-600 hover:underline">
           Not sure where to start? Tell us what you&apos;re preparing for &rarr;
         </Link>
         <span className="text-slate-300">|</span>

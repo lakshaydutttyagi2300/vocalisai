@@ -6,11 +6,12 @@ import { getModeBySlug, PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import { computeCoachProfile } from "@/lib/coach-profile";
 import { CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { AudioLines, BookOpen, Bot, ClipboardCheck, type LucideIcon, Play, Target } from "lucide-react";
+import { ArrowRight, AudioLines, BookOpen, Bot, ClipboardCheck, Flag, type LucideIcon, Play, Target } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { IconBadge } from "@/components/ui/Icon";
 import { listMockExams, listSpeechAnalyses } from "@/lib/candidate-history";
 import { listMockTestOptions } from "@/lib/mock-test-options";
+import { buildTrackPlan, getUserTrack, type TrackPlan } from "@/lib/goal-tracks";
 
 function categoryToSlug(category: string): string {
   return PRACTICE_MODES.find((m) => m.category === category)?.slug ?? "practice";
@@ -28,7 +29,8 @@ export default async function DashboardPage() {
   const firstName = session?.user.name?.split(" ")[0] ?? "there";
   const userId = session!.user.id;
 
-  const [recentAttempts, totalAttempts, coach, exams, analyses, options] = await Promise.all([
+  const track = await getUserTrack(userId);
+  const [recentAttempts, totalAttempts, coach, exams, analyses, options, plan] = await Promise.all([
     db.practiceAttempt.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -40,6 +42,7 @@ export default async function DashboardPage() {
     listMockExams(userId, 5),
     listSpeechAnalyses(userId, 20),
     listMockTestOptions(),
+    track ? buildTrackPlan(userId, track) : Promise.resolve(null),
   ]);
   const examChoices = options.length;
 
@@ -51,6 +54,8 @@ export default async function DashboardPage() {
         {greeting()}, {firstName}
       </h1>
       <p className="mt-1 text-sm text-slate-600">Here&apos;s your English and interview readiness at a glance.</p>
+
+      <GoalCard plan={plan} />
 
       {/* Readiness */}
       {coach.sessionsCompleted === 0 ? (
@@ -261,5 +266,50 @@ function ActionCard({ title, description, href, cta, icon }: { title: string; de
       <p className="mt-1 flex-1 text-sm text-slate-600">{description}</p>
       <span className="mt-3 text-sm font-semibold text-brand-600 group-hover:underline">{cta} &rarr;</span>
     </Link>
+  );
+}
+
+// Phase 4: the candidate's goal at the top of the dashboard - or an invite to
+// choose one.
+function GoalCard({ plan }: { plan: TrackPlan | null }) {
+  if (!plan) {
+    return (
+      <div className="card mt-6 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center">
+        <IconBadge as={Flag} />
+        <div className="flex-1">
+          <h2 className="font-display text-base font-bold text-ink-950">What are you preparing for?</h2>
+          <p className="mt-0.5 text-sm text-slate-600">Choose a goal - General English, BPO / Customer Support or Interview Prep - and get a plan built around it.</p>
+        </div>
+        <Link href="/goal/choose" className="btn-primary flex-none">
+          Choose my goal
+          <Icon as={ArrowRight} />
+        </Link>
+      </div>
+    );
+  }
+  const next = plan.nextSteps[0];
+  return (
+    <div className="card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+      <IconBadge as={Flag} />
+      <div className="flex-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">My goal</p>
+        <h2 className="font-display text-base font-bold text-ink-950">{plan.track.name}</h2>
+        <p className="mt-0.5 text-sm text-slate-600">
+          {plan.readiness === null ? "Readiness: not rated yet" : `Readiness: ${plan.readiness}%`}
+          {next ? ` · Next: ${next.name}` : ""}
+        </p>
+      </div>
+      <div className="flex flex-none flex-wrap gap-2">
+        {next && (
+          <Link href={next.action.href} className="btn-secondary">
+            {next.action.label}
+          </Link>
+        )}
+        <Link href="/goal" className="btn-primary">
+          Open my plan
+          <Icon as={ArrowRight} />
+        </Link>
+      </div>
+    </div>
   );
 }

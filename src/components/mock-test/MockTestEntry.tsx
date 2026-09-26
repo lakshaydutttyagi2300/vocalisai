@@ -28,7 +28,11 @@ export function MockTestEntry() {
     fetch("/api/mock-tests/options")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (!cancelled && Array.isArray(data?.options)) setOptions(data.options);
+        if (cancelled || !Array.isArray(data?.options)) return;
+        setOptions(data.options);
+        // A goal plan links straight to its exam: /mock-tests?template=<id>.
+        const wanted = new URLSearchParams(window.location.search).get("template");
+        if (wanted && data.options.some((o: MockTestOption) => o.templateId === wanted)) setChosenId(wanted);
       })
       .catch(() => {});
     return () => {
@@ -137,7 +141,10 @@ function TestChoice({ option, selected, onSelect }: { option: MockTestOption; se
         </span>
       </span>
       {option.kind === "standard" ? (
-        <span className="mt-1 block text-sm text-slate-600">Our standard assessment: speaking, listening, reading and workplace communication.</span>
+        <>
+          {option.trackName && <span className="mt-1 inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">For {option.trackName}</span>}
+          <span className="mt-1 block text-sm text-slate-600">Our standard assessment: speaking, listening, reading and workplace communication.</span>
+        </>
       ) : (
         <>
           <span className="mt-1 block text-sm text-slate-600">

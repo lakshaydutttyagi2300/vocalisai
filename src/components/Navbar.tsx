@@ -29,7 +29,7 @@ const CANDIDATE_NAV: CandidateEntry[] = [
       { href: "/practice", label: "Practice library", hint: "Grammar, speaking, aptitude, interviews and more" },
       { href: "/practice/conversation", label: "AI conversation", hint: "Talk live with an AI customer or interviewer" },
       { href: "/practice/quick", label: "Quick practice", hint: "A short drill when you're short on time" },
-      { href: "/practice/goals", label: "Find my focus", hint: "Tell us your goal, get a practice plan" },
+      { href: "/goal", label: "My goal plan", hint: "Your goal, your readiness and your next steps" },
     ],
   },
   {
