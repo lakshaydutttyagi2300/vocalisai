@@ -18,7 +18,7 @@ import { DEMO_DIFFICULTY, DEMO_FAMILY_SLUG, DEMO_SCORE_SCALE, PRACTICE_TESTS } f
 
 // Neon endpoints this seed may write to without further ado: the
 // project's development and test branches.
-export const ALLOWED_DB_HOST_PREFIXES = ["ep-spring-breeze-b4yfk9e8", "ep-flat-salad-b4wht0vo", "localhost", "127.0.0.1"];
+export const ALLOWED_DB_HOST_PREFIXES = ["ep-spring-breeze-b4yfk9e8", "ep-flat-salad-b4wht0vo", "ep-wispy-firefly-b4l47um3" /* staging */, "localhost", "127.0.0.1"];
 
 // The production endpoint - accepted ONLY when the caller passes
 // allowProduction (the CLI's explicit --production flag). Never by default.

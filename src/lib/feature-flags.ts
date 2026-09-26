@@ -25,13 +25,18 @@ export const SUBSYSTEM_FEATURES = [
     label: "Exam Runner v2",
     description: "New exam-taking screen for templates linked to an exam format (timed papers, autosave, review). Off by default.",
   },
+  {
+    key: "skills_all_categories",
+    label: "All skill categories",
+    description: "Show every skill category (Cognitive, Data Interpretation, Business Communication, Digital Skills), not just the v1 set. Off by default.",
+  },
 ] as const;
 
 // Flags that are OFF until an admin explicitly turns them on - the
 // opposite of the fail-open default every other flag uses. Only new,
 // not-yet-launched features belong here; every pre-existing flag keeps
 // its original "missing row = enabled" behaviour exactly.
-export const DEFAULT_OFF_FEATURES = new Set<string>(["exam_runner_v2"]);
+export const DEFAULT_OFF_FEATURES = new Set<string>(["exam_runner_v2", "skills_all_categories"]);
 
 export function defaultEnabled(key: string): boolean {
   return !DEFAULT_OFF_FEATURES.has(key);

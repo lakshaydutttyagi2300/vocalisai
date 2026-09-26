@@ -440,3 +440,39 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
 - **Fix:** during an exam the sticky site menu covered the exam bar (timer + End assessment) once the candidate scrolled. The exam bar is now pinned, and the site menu scrolls away only during an exam (`html[data-exam-session]`).
 - Multiple-choice answer options get a comfortable size and the same focus ring.
 - **Test:** `tests/e2e/buttons.spec.ts` covers the practice, exam-entry, rules, exam-question and sign-in buttons at desktop and phone width: the right variant, consistent heights, disabled until ready, hover change, the focus ring, the loading spinner, and End assessment staying visible and uncovered after scrolling.
+
+## Skills platform - Phase 1: data model & taxonomy (branch `feat/skills-platform`)
+
+**Principle:** questions belong to skills (category → subcategory → skill); exams, mocks, drills and Goal Tracks are recipes over skills. This follows blueprint rev. 2 (26 Sep 2026): no coding content, no personality tests.
+
+**Taxonomy** (`src/lib/skills/taxonomy.ts`): 12 categories, 77 subcategories, 213 skills (302 nodes), with the L1–L6 ladder.
+- **Enabled in v1:** ENG, SPK, QNT, REA, VRB, CSV, SJT and INV. REA and QNT were added by the owner; SJT was added because it already has 241+ questions.
+- **Hidden:** COG, DIN, BIZ and DGT, behind the `skills_all_categories` flag (default OFF).
+
+**Migration `skills_platform_phase1`** (additive only, reversible with `down.sql`):
+- **New tables:** Skill, Rubric, UserSkillMastery, GoalTrack, GoalTrackSkill, ExamBlueprint.
+- **New nullable columns:**
+  - PracticeQuestion: skillId, skillPrecision, skillSource, level, format, distractorReasons, hint, rubricId, bankStatus.
+  - PracticeAttempt: skillId, level.
+  - Profile: goalTrackId.
+- Applied to the **test, dev and staging** Neon branches only. **Production has not been migrated** and is waiting for "ship to production".
+- **Reversibility proven on test:** down.sql removed all 6 tables and the new columns, with every existing row unchanged; re-applying and re-seeding then worked.
+
+**Seed / legacy migration** (`npm run seed:skills`; idempotent; `--dry-run`; `--production` required for live):
+- Syncs the skill tree.
+- Adds 4 rubrics: SPEAKING_6D, ROLEPLAY_CALL, EMAIL_REPLY and INTERVIEW_STAR.
+- Adds 5 Goal Tracks with skill weights; CAMPUS and STUDY_ABROAD are hidden.
+- Adds exam blueprints, including links from the **existing** BPO ("Workplace Communication Assessment") and General English mock tests to their tracks, plus 8 category diagnostics.
+- Maps questions: old category/type → skill node, and old difficulty → level (BEGINNER=L2, INTERMEDIATE=L3, ADVANCED=L4, EXPERT=L5). It never overwrites a question that already has a skill.
+- Copies each question's skill and level onto its past attempts.
+- **Staging result (a copy of live):** 3,455 of 3,455 questions mapped, none unmapped, 67 attempts tagged.
+  - Precision: 155 exact skill, 2,817 subcategory, 483 category.
+  - Exact skills for the rest need a reviewed classification pass; that isn't guessed.
+- **Staging** is a separate Neon branch copied from production, for Vercel Preview deployments. It is not connected until Preview's `DATABASE_URL` is set in Vercel.
+
+**Tests:** `tests/unit/skills-phase1.test.ts` (11):
+- taxonomy integrity (12 categories, unique ids and parents, the v1 flags, no coding or personality content, the ladder);
+- the mapping covers every existing practice category with an enabled node;
+- goal-track weights reference real skills;
+- the seed is idempotent, never overwrites an author tag, and tags new legacy questions and past attempts;
+- tracks and blueprints link the existing exams.

@@ -257,8 +257,9 @@ export const TAXONOMY: SkillNode[] = [
   },
 ];
 
-// v1 launch scope (owner-approved + SJT, which already has 241+ questions).
-export const V1_ENABLED_CATEGORIES = ["ENG", "SPK", "INV", "CSV", "VRB", "SJT"] as const;
+// v1 launch scope: owner-approved ENG/SPK/INV/CSV/VRB, plus SJT (241+
+// questions already exist) and REA/QNT (added by the owner, 26 Sep 2026).
+export const V1_ENABLED_CATEGORIES = ["ENG", "SPK", "QNT", "REA", "VRB", "CSV", "SJT", "INV"] as const;
 
 // Feature flag that reveals every category (default OFF).
 export const ALL_CATEGORIES_FLAG = "skills_all_categories";

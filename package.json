@@ -17,6 +17,7 @@
     "seed:exam-demo": "node prisma/seed-exam-demo.mjs",
     "generate:question-audio": "node prisma/generate-question-audio.mjs",
     "fix:speaker-labels": "node prisma/fix-speaker-labels.mjs",
+    "seed:skills": "node --no-warnings prisma/seed-skills.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
