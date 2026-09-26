@@ -4,7 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { isFeatureEnabled } from "@/lib/feature-flags";
-import { selectWithCooldown, shuffleArray, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
+import { shuffleArray } from "@/lib/question-selection";
+import { lastSeenByUser, pickFresh } from "@/lib/question-freshness";
 import { LEGACY_QUESTION_TYPES } from "@/lib/question-validation";
 import { candidateStimulus } from "@/lib/question-stimulus";
 
@@ -57,17 +58,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No questions available for this selection yet." }, { status: 404 });
   }
 
-  // Most-recently-answered-first, so selectWithCooldown excludes the
-  // freshest repeats first when the pool is too small to avoid all of them.
-  const recentAttempts = await db.practiceAttempt.findMany({
-    where: { userId: session.user.id, category, difficulty },
-    orderBy: { createdAt: "desc" },
-    take: RECENT_HISTORY_LIMIT,
-    select: { questionId: true },
-  });
-  const recentlySeenIds = [...new Set(recentAttempts.map((a) => a.questionId))];
-
-  const picked = selectWithCooldown(pool, recentlySeenIds, count);
+  // Fresh first: questions this candidate has never met (in practice,
+  // drills, mock tests or exams) before any repeat; repeats only once the
+  // pool is used up, oldest-seen first. See src/lib/question-freshness.ts.
+  const lastSeen = await lastSeenByUser(session.user.id, pool.map((q) => q.id));
+  const picked = pickFresh(pool, lastSeen, count);
   // Shuffled fresh on every fetch (i.e. every new attempt) - the client
   // stores whatever order it receives here in local state for the rest of
   // that session, so this is also what keeps a single attempt's option

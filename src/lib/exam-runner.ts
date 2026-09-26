@@ -9,6 +9,7 @@
 // AI, no invented numbers. Nothing here touches PracticeAttempt, usage
 // counting, or the existing mock-test scoring engine.
 
+import { lastSeenByUser } from "@/lib/question-freshness";
 import { db } from "@/lib/db";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { getQuestionTypeDef, type GradeResult } from "@/lib/question-types";
@@ -98,7 +99,13 @@ interface PoolQuestion {
 // questions. A group that would overshoot the count is skipped in favour
 // of smaller units; if nothing fits at all, the first unit is taken
 // anyway so a section is never silently empty.
-export function selectQuestionUnits(pool: PoolQuestion[], count: number, seed: string, exclude: Set<string>): string[] {
+export function selectQuestionUnits(
+  pool: PoolQuestion[],
+  count: number,
+  seed: string,
+  exclude: Set<string>,
+  lastSeen?: Map<string, Date>
+): string[] {
   const available = pool.filter((q) => !exclude.has(q.id));
   const groups = new Map<string, PoolQuestion[]>();
   const singles: PoolQuestion[][] = [];
@@ -115,7 +122,13 @@ export function selectQuestionUnits(pool: PoolQuestion[], count: number, seed: s
     ...[...groups.values()].map((g) => [...g].sort((a, b) => (a.orderInGroup ?? 0) - (b.orderInGroup ?? 0))),
     ...singles,
   ];
-  const shuffled = seededShuffle(units, seed);
+  let shuffled = seededShuffle(units, seed);
+  // Fresh first (when the candidate's history is known): units with no
+  // question they've met before come first, then the least-recently-seen.
+  if (lastSeen && lastSeen.size > 0) {
+    const seenAt = (unit: PoolQuestion[]) => Math.max(0, ...unit.map((q) => lastSeen.get(q.id)?.getTime() ?? 0));
+    shuffled = shuffled.map((u, i) => ({ u, i, t: seenAt(u) })).sort((a, b) => a.t - b.t || a.i - b.i).map((x) => x.u);
+  }
 
   const picked: string[] = [];
   for (const unit of shuffled) {
@@ -162,7 +175,7 @@ export async function runnerForTemplate(template: { examVariantId: string | null
   return (await isExamRunnerV2Enabled()) ? "v2" : "v1";
 }
 
-export async function buildPlan(templateId: string, seed: string): Promise<ExamPlan> {
+export async function buildPlan(templateId: string, seed: string, lastSeen?: Map<string, Date>): Promise<ExamPlan> {
   const sections = await db.mockTestTemplateSection.findMany({
     where: { templateId, examPartId: { not: null } },
     include: { examPart: { include: { paper: true } } },
@@ -216,7 +229,7 @@ export async function buildPlan(templateId: string, seed: string): Promise<ExamP
             where: { category: section.category, difficulty: section.difficulty, isActive: true, examPartId: null },
             select,
           });
-    const ids = selectQuestionUnits(pool, section.questionCount, `${seed}:${section.id}`, used);
+    const ids = selectQuestionUnits(pool, section.questionCount, `${seed}:${section.id}`, used, lastSeen);
     for (const id of ids) {
       used.add(id);
       planPaper.questions.push({ questionId: id, partId: part.id });
@@ -367,7 +380,7 @@ export async function startOrResume(sessionId: string): Promise<{ error: string 
   if (!session?.template?.examVariantId) return { error: "This assessment isn't set up for the new exam runner." };
   if (session.endedAt) return { error: "This assessment has already ended." };
 
-  const plan = await buildPlan(session.template.id, sessionId);
+  const plan = await buildPlan(session.template.id, sessionId, await lastSeenByUser(session.userId));
   if (plan.papers.length === 0) return { error: "No questions are available for this exam yet. Ask an admin to check its setup." };
 
   const now = new Date();

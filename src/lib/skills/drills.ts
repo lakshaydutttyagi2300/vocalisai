@@ -9,6 +9,7 @@ import { getEffectivePlan, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { candidateStimulus } from "@/lib/question-stimulus";
 import { shuffleArray } from "@/lib/question-selection";
+import { lastSeenByUser, orderByFreshness } from "@/lib/question-freshness";
 import { ALL_CATEGORIES_FLAG, displayName, V1_ENABLED_CATEGORIES } from "@/lib/skills/taxonomy";
 
 export const DRILL_MIN = 5;
@@ -104,16 +105,6 @@ function toCandidate(q: PoolQuestion) {
   };
 }
 
-async function recentQuestionIds(userId: string, nodeId: string): Promise<string[]> {
-  const recent = await db.practiceAttempt.findMany({
-    where: { userId, OR: [{ skillId: nodeId }, { skillId: { startsWith: `${nodeId}.` } }] },
-    orderBy: { createdAt: "desc" },
-    take: 40,
-    select: { questionId: true, level: true, isCorrect: true },
-  });
-  return recent.map((a) => a.questionId);
-}
-
 /** The level to aim at: half a step above the levels this user recently got right (L2 if new). */
 export async function targetLevel(userId: string, nodeId: string): Promise<number> {
   const recent = await db.practiceAttempt.findMany({
@@ -150,16 +141,20 @@ export async function countDrillable(nodeId: string, userId: string | null): Pro
 export async function pickDrill(userId: string, nodeId: string, count: number): Promise<DrillQuestion[]> {
   const pool = await db.practiceQuestion.findMany({ where: await drillableWhere(nodeId, userId), select: QUESTION_SELECT });
   if (pool.length === 0) return [];
-  const recent = new Set((await recentQuestionIds(userId, nodeId)).slice(0, Math.max(0, pool.length - count)));
-  const target = await targetLevel(userId, nodeId);
-  const ranked = pool
-    .map((q) => ({ q, rank: (recent.has(q.id) ? 100 : 0) + Math.abs((q.level ?? 3) - target) + Math.random() * 1.5 }))
+  const [lastSeen, target] = await Promise.all([lastSeenByUser(userId, pool.map((q) => q.id)), targetLevel(userId, nodeId)]);
+  // Never-seen questions first, the ones nearest the target level among
+  // them; only when those run out, seen ones (oldest-seen first).
+  const unseen = pool
+    .filter((q) => !lastSeen.has(q.id))
+    .map((q) => ({ q, rank: Math.abs((q.level ?? 3) - target) + Math.random() * 1.5 }))
     .sort((a, b) => a.rank - b.rank)
+    .map((r) => r.q);
+  const seen = orderByFreshness(pool.filter((q) => lastSeen.has(q.id)), lastSeen);
+  return [...unseen, ...seen]
     .slice(0, count)
-    .map((r) => r.q)
     // Easiest first, as a warm-up.
-    .sort((a, b) => (a.level ?? 3) - (b.level ?? 3));
-  return ranked.map(toCandidate);
+    .sort((a, b) => (a.level ?? 3) - (b.level ?? 3))
+    .map(toCandidate);
 }
 
 type DiagnosticSection = { name?: string; skillIds: string[]; perSkill: number; levels: number[] };
@@ -175,8 +170,8 @@ export async function pickDiagnostic(userId: string, categoryCode: string): Prom
   }
 
   const pool = await db.practiceQuestion.findMany({ where: await drillableWhere(categoryCode, userId), select: QUESTION_SELECT });
-  const recent = new Set(await recentQuestionIds(userId, categoryCode));
-  const fresh = (list: PoolQuestion[]) => [...shuffleArray(list.filter((q) => !recent.has(q.id))), ...shuffleArray(list.filter((q) => recent.has(q.id)))];
+  const lastSeen = await lastSeenByUser(userId, pool.map((q) => q.id));
+  const fresh = (list: PoolQuestion[]) => orderByFreshness(list, lastSeen);
 
   const chosen: PoolQuestion[] = [];
   const taken = new Set<string>();

@@ -7,7 +7,7 @@ import { getRoleDef } from "@/lib/conversation-roles";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
-import { selectWithCooldown, RECENT_HISTORY_LIMIT } from "@/lib/question-selection";
+import { lastSeenByUser, pickFresh } from "@/lib/question-freshness";
 import { LEGACY_QUESTION_TYPES } from "@/lib/question-validation";
 
 export async function POST(req: Request) {
@@ -48,15 +48,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No scenarios available for this selection yet." }, { status: 404 });
   }
 
-  const recentSessions = await db.conversationSession.findMany({
-    where: { userId: session.user.id, role: roleDef.role, questionId: { not: null } },
-    orderBy: { startedAt: "desc" },
-    take: RECENT_HISTORY_LIMIT,
-    select: { questionId: true },
-  });
-  const recentlySeenIds = [...new Set(recentSessions.map((s) => s.questionId!))];
-
-  const [question] = selectWithCooldown(pool, recentlySeenIds, 1);
+  // Fresh first - a scenario this candidate hasn't met anywhere yet.
+  const [question] = pickFresh(pool, await lastSeenByUser(session.user.id, pool.map((q) => q.id)), 1);
   // Never a raw production spec (see question-stimulus.ts).
   const openingLine = stimulusText(question.passage) ?? question.prompt;
 

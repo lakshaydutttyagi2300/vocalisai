@@ -10,9 +10,12 @@ export interface StarterQuestionRow {
   difficulty: string;
   type: string;
   prompt: string;
-  options: string;
-  correctAnswer: string;
-  explanation: string;
+  passage: string | null;
+  options: string | null;
+  correctAnswer: string | null;
+  expectedAnswer: string | null;
+  explanation: string | null;
+  scoringCriteria: string | null;
   timeLimitSeconds: number;
   source: string;
   skillId: string;
@@ -20,14 +23,15 @@ export interface StarterQuestionRow {
   skillSource: string;
   level: number;
   format: string;
-  distractorReasons: string;
+  distractorReasons: string | null;
   hint: string | null;
   bankStatus: string;
 }
 
 export function starterQuestions(): StarterQuestionRow[];
+export function bankKey(q: { prompt: string; passage?: string | null }): string;
 
 export function seedStarterContent(
   db: PrismaClient,
   opts?: { dryRun?: boolean; log?: (m: string) => void }
-): Promise<{ total: number; created: number; updated: number; retired: number }>;
+): Promise<{ total: number; created: number; updated: number; retired: number; skipped: number }>;

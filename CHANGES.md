@@ -548,3 +548,56 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
 - `question-import.test.ts` fix: its cleanup deleted every GRAMMAR question created during its run, including other test files' questions when they ran in parallel. It now deletes only its own.
 
 **Noted, not changed:** in the existing Practice library flow, *each answered question* uses one of a FREE user's 5 lifetime "practice sessions", so 5 questions use up the whole free allowance. Skill Drills avoid this with the token above. The existing flow is unchanged pending a decision.
+
+## Shipped to production (26 Sep 2026)
+
+Phases 1 and 2 are live on vocalisai.vercel.app. The owner gave the go-ahead with "ship to production".
+
+**Order of release:**
+1. Neon backup branch `backup-production-before-skills-platform`.
+2. `prisma migrate deploy` applied the one pending migration, `skills_platform_phase1`.
+3. `seed:skills --production`:
+   - 3,455 of 3,455 questions mapped to skills;
+   - 87 past attempts tagged.
+4. `seed:skills-content --production` added 176 questions.
+5. `main` fast-forwarded to `feat/skills-platform` and pushed. Vercel production deploy is Ready; smoke checks passed.
+
+## Large question bank + fresh-first selection (branch `feat/skills-platform`)
+
+**Fresh-first selection** (`src/lib/question-freshness.ts`), used by every place a candidate is served questions:
+- Solo practice and v1 mock tests (`/api/practice/questions`).
+- New-style v2 exams (`buildPlan` / `selectQuestionUnits`).
+- Skill Drills and "I'm weak in…" diagnostics.
+- AI conversations.
+
+How it chooses:
+- Questions the candidate has **never** met come first, in random order.
+- Repeats only happen once that area and level is used up, least-recently-seen first.
+- "Met" counts any activity: practice, drill or mock answers (PracticeAttempt), v2 exam items (ItemResponse, even when skipped) and AI conversations (ConversationSession).
+- This replaces the old per-category "last 50 answers" cooldown.
+
+**Bank:** `npm run seed:skills-content` now loads 2,318 questions, 2,141 of them new. Identity is prompt + passage. The loader is idempotent, retires removed items, and skips copies of questions already in the bank.
+- **Numerical Aptitude: 1,004.** Generated; covers all 35 QNT skills with every answer computed from the question's own numbers. About 100 are Expert multi-step questions.
+- **Logical Reasoning: 802.** Generated: series, odd one out, classification, analogies, rules, coding, blood relations, directions, ranking, and linear, circular, floor and schedule puzzles. Puzzles are solved by brute force and kept only when the answer is unique. It also covers:
+  - syllogisms checked against every Venn model;
+  - cubes, Venn counts, input-output, data sufficiency;
+  - real-calendar weekday questions and clock angles.
+- **Verbal Reasoning: 194.** Hand-written:
+  - 20 passages × 3 true/false/cannot-say statements;
+  - sentence completion, sentence ordering and critical reasoning;
+  - argument evaluation;
+  - a fact-vs-opinion set built from two hand-checked lists.
+
+  Plus 11 statements-and-conclusions, assumptions, and cause-and-effect items (these sit under Logical Reasoning).
+- **Situational judgement: 38 new** (+ existing 241), across all 7 SJT skills.
+- **Open prompts: 40 each** (10 per level) for Read Aloud, Fluency, Supervisor, Casual Conversation, Customer-Service role-play, Interview and Writing. Each is tagged to an exact skill and scored by the existing speech and writing analysis.
+- Loaded into test, dev and staging. **Live DB gets it on the next ship.**
+
+**Tests:**
+- `question-freshness.test.ts`: fresh-first ordering; v2 exams prefer unseen units; 3 practice rounds on a private 12-question pool never repeat until it's used up, then repeat oldest first; conversations count as seen.
+- `skills-phase2.test.ts` bank checks:
+  - over 2,000 questions, the same on every run, no duplicates;
+  - at least 15 MCQs per level in each aptitude area;
+  - every MCQ's answer is among its options and every wrong option has a reason;
+  - open prompts have no fixed answer;
+  - every floor puzzle is re-solved independently and has exactly one answer.

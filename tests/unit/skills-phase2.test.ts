@@ -13,7 +13,7 @@ import {
 } from "@/lib/skills/mastery";
 import { drillTokenCovers, issueDrillToken } from "@/lib/skills/drill-token";
 import { speechOverallScore } from "@/lib/skills/mastery-store";
-import { starterQuestions, seedStarterContent, difficultyForLevel } from "../../prisma/seed-skills-content.mjs";
+import { bankKey, starterQuestions, seedStarterContent, difficultyForLevel } from "../../prisma/seed-skills-content.mjs";
 
 // Skills platform, Phase 2: mastery maths, the starter question bank, the
 // one-charge-per-drill token, and the drill -> answer -> mastery flow
@@ -88,16 +88,23 @@ describe("mastery score", () => {
   });
 });
 
-describe("starter question bank (Numerical, Reasoning, Verbal)", () => {
+describe("question bank content", () => {
   const bank = starterQuestions();
+  const mcqs = bank.filter((q) => q.type === "MULTIPLE_CHOICE");
+  const prompts = bank.filter((q) => q.type !== "MULTIPLE_CHOICE");
   const skills = new Map(skillRows().map((r) => [r.id, r]));
 
-  it("has a real bank across the three new categories", () => {
-    expect(bank.length).toBeGreaterThanOrEqual(150);
-    const cats = new Set(bank.map((q) => q.category));
-    expect([...cats].sort()).toEqual(["LOGICAL_REASONING", "NUMERICAL_APTITUDE", "VERBAL_REASONING"]);
-    for (const c of cats) expect(PRACTICE_MODES.some((m) => m.category === c && m.questionType === "MULTIPLE_CHOICE")).toBe(true);
-    expect(new Set(bank.map((q) => q.prompt)).size).toBe(bank.length);
+  it("is large, deterministic, has no duplicates, and only uses real practice categories", () => {
+    expect(bank.length).toBeGreaterThanOrEqual(2000);
+    expect(JSON.stringify(starterQuestions())).toBe(JSON.stringify(bank)); // same bank every run
+    expect(new Set(bank.map(bankKey)).size).toBe(bank.length);
+    for (const c of new Set(bank.map((q) => q.category))) expect(PRACTICE_MODES.some((m) => m.category === c), c).toBe(true);
+    // Every level of the three aptitude areas has enough questions for many sessions without repeats.
+    for (const c of ["NUMERICAL_APTITUDE", "LOGICAL_REASONING", "VERBAL_REASONING"]) {
+      for (const d of ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]) {
+        expect(mcqs.filter((q) => q.category === c && q.difficulty === d).length, `${c}/${d}`).toBeGreaterThanOrEqual(15);
+      }
+    }
   });
 
   it("tags every question with an exact, enabled skill and a level that matches its difficulty", () => {
@@ -109,14 +116,25 @@ describe("starter question bank (Numerical, Reasoning, Verbal)", () => {
       expect(q.level).toBeGreaterThanOrEqual(1);
       expect(q.level).toBeLessThanOrEqual(6);
       expect(q.difficulty).toBe(difficultyForLevel(q.level));
-      expect(q).toMatchObject({ type: "MULTIPLE_CHOICE", skillPrecision: "skill", skillSource: "author", bankStatus: "live" });
+      expect(["MULTIPLE_CHOICE", "SHORT_ANSWER"]).toContain(q.type);
+      expect(q).toMatchObject({ skillPrecision: "skill", skillSource: "author", bankStatus: "live" });
     }
   });
 
-  it("every question: answer is one of 3-4 distinct options; every wrong option has a reason", () => {
-    for (const q of bank) {
-      const options = JSON.parse(q.options) as string[];
-      const reasons = JSON.parse(q.distractorReasons) as Record<string, string>;
+  it("open prompts have no fixed answer; read-aloud prompts carry the exact text to read", () => {
+    expect(prompts.length).toBeGreaterThanOrEqual(250);
+    for (const q of prompts) {
+      expect(q.options, q.prompt).toBeNull();
+      expect(q.correctAnswer, q.prompt).toBeNull();
+      expect(q.scoringCriteria, q.prompt).toBeTruthy();
+      if (q.category === "READING") expect(q.expectedAnswer).toBe(q.passage);
+    }
+  });
+
+  it("every MCQ: answer is one of 3-4 distinct options; every wrong option has a reason", () => {
+    for (const q of mcqs) {
+      const options = JSON.parse(q.options!) as string[];
+      const reasons = JSON.parse(q.distractorReasons!) as Record<string, string>;
       expect(options.length, q.prompt).toBeGreaterThanOrEqual(3);
       expect(options.length, q.prompt).toBeLessThanOrEqual(4);
       expect(new Set(options).size, q.prompt).toBe(options.length);
@@ -124,7 +142,38 @@ describe("starter question bank (Numerical, Reasoning, Verbal)", () => {
       expect(Object.keys(reasons).sort(), q.prompt).toEqual(options.filter((o) => o !== q.correctAnswer).sort());
       for (const r of Object.values(reasons)) expect(r.length).toBeGreaterThan(10);
       for (const o of options) expect(o, q.prompt).not.toMatch(/NaN|undefined|Infinity|null/);
-      expect(q.explanation.length).toBeGreaterThan(10);
+      expect(q.explanation!.length).toBeGreaterThan(10);
+      expect(`${q.prompt} ${q.explanation}`, q.prompt).not.toMatch(/NaN|undefined|Infinity/);
+    }
+  });
+
+  it("puzzle answers are really unique: re-solving each seating/floor/schedule puzzle gives one answer", () => {
+    const perms = (a: number[]): number[][] => (a.length <= 1 ? [a] : a.flatMap((x, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map((p) => [x, ...p])));
+    const floors = mcqs.filter((q) => q.skillId === "REA.ARR.PUZZLES");
+    expect(floors.length).toBeGreaterThan(10);
+    for (const q of floors) {
+      const names = q.prompt.split(" each live on")[0].replace(" and ", ", ").split(", ");
+      const clues = q.prompt.split("the top). ")[1].split(/(?<=\.) /).slice(0, -1);
+      const floorOf = (p: number[], n: string) => p[names.indexOf(n)] + 1;
+      const ok = (p: number[]) =>
+        clues.every((c) => {
+          let m;
+          if ((m = c.match(/^(\w+) lives on the top floor\.$/))) return floorOf(p, m[1]) === 5;
+          if ((m = c.match(/^(\w+) lives on the ground floor\.$/))) return floorOf(p, m[1]) === 1;
+          if ((m = c.match(/^(\w+) lives on an even-numbered floor\.$/))) return floorOf(p, m[1]) % 2 === 0;
+          if ((m = c.match(/^(\w+) lives on an odd-numbered floor\.$/))) return floorOf(p, m[1]) % 2 === 1;
+          if ((m = c.match(/^(\w+) lives on the floor immediately above (\w+)\.$/))) return floorOf(p, m[1]) === floorOf(p, m[2]) + 1;
+          if ((m = c.match(/^(\w+) lives somewhere below (\w+)\.$/))) return floorOf(p, m[1]) < floorOf(p, m[2]);
+          if ((m = c.match(/^There (?:is exactly one floor|are exactly (\d+) floors) between (\w+) and (\w+)\.$/)))
+            return Math.abs(floorOf(p, m[2]) - floorOf(p, m[3])) - 1 === (m[1] ? Number(m[1]) : 1);
+          throw new Error(`unparsed clue: ${c}`);
+        });
+      const sols = perms([0, 1, 2, 3, 4]).filter(ok);
+      expect(sols.length, q.prompt).toBe(1);
+      const ask = q.prompt.match(/On which floor does (\w+) live\?$/);
+      const who = q.prompt.match(/Who lives on floor (\d)\?$/);
+      if (ask) expect(q.correctAnswer).toBe(`Floor ${floorOf(sols[0], ask[1])}`);
+      if (who) expect(q.correctAnswer).toBe(names.find((n) => floorOf(sols[0], n) === Number(who[1])));
     }
   });
 
@@ -139,9 +188,9 @@ describe("starter question bank (Numerical, Reasoning, Verbal)", () => {
     expect(together.length).toBeGreaterThan(0);
     for (const q of together) {
       const [a, b] = q.prompt.match(/\d+/g)!.map(Number);
-      expect(parseFloat(q.correctAnswer)).toBeCloseTo((a * b) / (a + b), 1);
+      expect(parseFloat(q.correctAnswer!)).toBeCloseTo((a * b) / (a + b), 1);
     }
-    const series = bank.filter((q) => q.skillId === "REA.SER.NUM" && q.explanation.includes("add "));
+    const series = bank.filter((q) => q.skillId === "REA.SER.NUM" && q.explanation!.includes("add "));
     for (const q of series) {
       const nums = q.prompt.match(/-?\d+/g)!.map(Number);
       const d = nums[1] - nums[0];
@@ -200,7 +249,7 @@ describe("drill -> answer -> mastery on the test database", { timeout: 180_000 }
   }, 60_000);
 
   it("re-seeding the starter bank changes nothing", async () => {
-    expect(await seedStarterContent(db)).toMatchObject({ created: 0, updated: 0 });
+    expect(await seedStarterContent(db)).toMatchObject({ created: 0, updated: 0, retired: 0 });
   });
 
   it("serves a drill without answers, charges one session, and answers update mastery with reasons", async () => {
