@@ -6,7 +6,9 @@
 // every candidate question screen, so no screen ever prints a raw passage.
 
 import { useEffect, useRef, useState } from "react";
+import { Headphones, Image as ImageIcon } from "lucide-react";
 import type { Stimulus } from "@/lib/question-stimulus";
+import { Icon, IconBadge } from "@/components/ui/Icon";
 
 export function StimulusView({ stimulus, resetKey }: { stimulus: Stimulus | null | undefined; resetKey: string }) {
   if (!stimulus || stimulus.kind === "none") return null;
@@ -21,11 +23,7 @@ function PictureTask({ description, features }: { description: string; features:
   return (
     <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4" aria-label="Picture">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="16" rx="2" />
-          <circle cx="8.5" cy="9.5" r="1.5" />
-          <path d="m21 16-5-5L5 20" />
-        </svg>
+        <Icon as={ImageIcon} />
         The picture
       </div>
       <p className="mt-2 text-sm font-medium leading-relaxed text-ink-900">{description}</p>
@@ -169,12 +167,7 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
     <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50/60 p-4" aria-label="Listening recording">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-              <path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z" />
-            </svg>
-          </span>
+          <IconBadge as={Headphones} tone="solid" />
           <div>
             <p className="text-sm font-semibold text-ink-900">Listening task</p>
             <p className="text-xs text-slate-600">

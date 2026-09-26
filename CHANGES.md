@@ -403,3 +403,22 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
 **Tests:**
 - `tests/unit/speaker-labels.test.ts` (9): dialogue parsing parity with the repair script, the rewrite by speaking order, refusal to guess an unknown label, spec conversion, and the import rule.
 - `raw-data-guard.spec.ts`: adds a plain "S1:/S2:" dialogue, which plays as 2 speakers with no labels on screen or in what is spoken, and an import refusal for "What is S2's view".
+
+### Candidate icons: one consistent set
+
+- **Problem:** icons mixed a filled 20px style with outlined ones at different stroke weights. Some were distorted: the mock-test "Camera" icon was drawn outside its frame. Others didn't match their feature: every landing feature card showed the same checkmark, and the "progress starts here" card used a download arrow.
+- **Fix:** all candidate icons now use `lucide-react` (ISC licence) through one component, `src/components/ui/Icon.tsx`:
+  - a single stroke weight of 1.75;
+  - fixed sizes of 12, 16, 18, 20 and 28 px;
+  - `IconBadge` for feature tiles.
+- **Replaced:**
+  - the menu arrows, phone menu button (now toggles to a close icon) and logo mic;
+  - the mock-test prep icons (Video, Mic, House);
+  - the system-check and rules ticks;
+  - the results ticks;
+  - the sign-in page ticks;
+  - the listening and picture task icons;
+  - the dashboard icons (Target, plus a feature icon on each card);
+  - the landing hero badge, trust bar and feature cards (each with its own icon), and the list and pricing ticks.
+- Charts (score ring, trend line) are marked `data-chart` and left unchanged. Layout, colours, menus and behaviour are unchanged.
+- **Test:** `tests/e2e/icons.spec.ts` visits every candidate page, the menus, and the mock-test entry and listening screens at 1280px and 390px. It checks that every icon comes from the shared set, uses the same stroke and a standard square size, and that no page errors occur. Screenshots are saved to `test-results/icons/`.

@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth";
 import { PLAN_LIMITS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
 import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import Reveal from "@/components/Reveal";
+import { AudioLines, CircleCheck, ClipboardCheck, Lock, Scale, Sparkles, TrendingUp, Video } from "lucide-react";
+import { Icon, IconBadge } from "@/components/ui/Icon";
 
 // Unsplash License (free to use, no permission required) - chosen for
 // direct relevance to online assessment/proctoring, not generic stock.
@@ -154,9 +156,7 @@ export default async function LandingPage() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 sm:py-32 lg:grid-cols-[1.1fr_0.9fr] lg:py-40">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-              <svg className="h-3.5 w-3.5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 1.5a1 1 0 01.894.553l1.53 3.1 3.42.497a1 1 0 01.554 1.706l-2.475 2.412.584 3.406a1 1 0 01-1.451 1.054L10 12.48l-3.056 1.748a1 1 0 01-1.451-1.054l.584-3.406-2.475-2.412a1 1 0 01.554-1.706l3.42-.497 1.53-3.1A1 1 0 0110 1.5z" clipRule="evenodd" />
-              </svg>
+              <Icon as={Sparkles} className="text-amber-400" />
               AI-Powered English Practice &amp; Proctored Assessment Platform
             </span>
             <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -246,19 +246,19 @@ export default async function LandingPage() {
       <div className="border-b border-slate-200 bg-white py-4">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-2 px-6 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <span className="flex items-center gap-1.5">
-            <svg className="h-4 w-4 text-brand-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a5 5 0 00-5 5v2H4a1 1 0 00-1 1v8a2 2 0 002 2h10a2 2 0 002-2V9a1 1 0 00-1-1h-1V6a5 5 0 00-5-5zm3 7V6a3 3 0 10-6 0v2h6z" clipRule="evenodd" /></svg>
+            <Icon as={Lock} className="text-brand-600" />
             Private &amp; secure
           </span>
           <span className="flex items-center gap-1.5">
-            <svg className="h-4 w-4 text-brand-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" /></svg>
+            <Icon as={Video} className="text-brand-600" />
             Real proctored format
           </span>
           <span className="flex items-center gap-1.5">
-            <svg className="h-4 w-4 text-brand-600" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2H4z" /></svg>
+            <Icon as={AudioLines} className="text-brand-600" />
             AI-analyzed feedback
           </span>
           <span className="flex items-center gap-1.5">
-            <svg className="h-4 w-4 text-brand-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+            <Icon as={Scale} className="text-brand-600" />
             Honest, grounded scoring
           </span>
         </div>
@@ -293,17 +293,13 @@ export default async function LandingPage() {
             </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               {[
-                { title: "AI-powered practice", text: "Every exercise is built around the real demands of language tests, assessments, and interviews - not generic drills." },
-                { title: "Realistic assessments", text: "Timed, proctored mock exams with camera and microphone checks - the real format, not a preview of it." },
-                { title: "Real speech analysis", text: "Feedback grounded in your actual audio and transcript, never a generic estimate." },
-                { title: "Progress tracking", text: "Your real scores across every mock exam, tracked over time." },
+                { title: "AI-powered practice", icon: Sparkles, text: "Every exercise is built around the real demands of language tests, assessments, and interviews - not generic drills." },
+                { title: "Realistic assessments", icon: ClipboardCheck, text: "Timed, proctored mock exams with camera and microphone checks - the real format, not a preview of it." },
+                { title: "Real speech analysis", icon: AudioLines, text: "Feedback grounded in your actual audio and transcript, never a generic estimate." },
+                { title: "Progress tracking", icon: TrendingUp, text: "Your real scores across every mock exam, tracked over time." },
               ].map((v) => (
                 <div key={v.title}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+                  <IconBadge as={v.icon} />
                   <h3 className="mt-3 font-display font-bold text-ink-900">{v.title}</h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{v.text}</p>
                 </div>
@@ -488,9 +484,7 @@ export default async function LandingPage() {
         <div className="mt-10 space-y-6">
           {WHY_CANDIDATES.map((w) => (
             <div key={w.title} className="flex gap-4">
-              <svg className="mt-1 h-5 w-5 flex-none text-brand-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-              </svg>
+              <Icon as={CircleCheck} size="lg" className="mt-0.5 text-brand-600" />
               <div>
                 <h3 className="font-display font-bold text-ink-900">{w.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-slate-600">{w.text}</p>
@@ -524,9 +518,7 @@ export default async function LandingPage() {
                   <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink-700">
                     {PLAN_HIGHLIGHT_FEATURES.map((feature) => (
                       <li key={feature} className="flex items-start gap-2">
-                        <svg className="mt-0.5 h-4 w-4 flex-none text-brand-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                        </svg>
+                        <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
                         <span>
                           {limits[feature]} {FEATURE_LABELS_PLURAL[feature]}
                           {plan === "FREE" ? " (lifetime)" : "/month"}
@@ -534,9 +526,7 @@ export default async function LandingPage() {
                       </li>
                     ))}
                     <li className="flex items-start gap-2">
-                      <svg className="mt-0.5 h-4 w-4 flex-none text-brand-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                      </svg>
+                      <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
                       <span>
                         {difficulties.length === 4 ? "All difficulty levels" : `${difficulties.map((d) => d.charAt(0) + d.slice(1).toLowerCase()).join(" & ")} difficulty`}
                       </span>

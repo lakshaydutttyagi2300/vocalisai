@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { House, Mic, Video, type LucideIcon } from "lucide-react";
+import { IconBadge } from "@/components/ui/Icon";
 import { MockTestSystemCheck } from "@/components/mock-test/MockTestSystemCheck";
 import { CandidateRules } from "@/components/mock-test/CandidateRules";
 import { MockTestSessionShell } from "@/components/mock-test/MockTestSessionShell";
@@ -154,24 +156,16 @@ function TestChoice({ option, selected, onSelect }: { option: MockTestOption; se
   );
 }
 
-const PREP_ICONS: Record<string, ReactNode> = {
-  Camera: (
-    <path d="M23 7l-7 5 7 5V7z M1 5h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
-  ),
-  Microphone: (
-    <path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z M6 11v1a6 6 0 0 0 12 0v-1 M12 19v3" />
-  ),
-  Environment: <path d="M3 12l9-9 9 9 M5 10v10h14V10 M9 21v-6h6v6" />,
+const PREP_ICONS: Record<string, LucideIcon> = {
+  Camera: Video,
+  Microphone: Mic,
+  Environment: House,
 };
 
 function PrepItem({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center gap-2 text-center">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          {PREP_ICONS[label]}
-        </svg>
-      </span>
+      <IconBadge as={PREP_ICONS[label]} />
       <span className="text-xs font-semibold text-ink-700">{label}</span>
     </div>
   );

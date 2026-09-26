@@ -6,6 +6,8 @@ import { getModeBySlug, PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import { computeCoachProfile } from "@/lib/coach-profile";
 import { CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { AudioLines, BookOpen, Bot, ClipboardCheck, Target, type LucideIcon } from "lucide-react";
+import { IconBadge } from "@/components/ui/Icon";
 import { listMockExams, listSpeechAnalyses } from "@/lib/candidate-history";
 import { listMockTestOptions } from "@/lib/mock-test-options";
 
@@ -52,11 +54,7 @@ export default async function DashboardPage() {
       {/* Readiness */}
       {coach.sessionsCompleted === 0 ? (
         <div className="card mt-6 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:text-left">
-          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
+          <IconBadge as={Target} size="lg" />
           <div className="flex-1">
             <h2 className="font-display text-lg font-bold text-ink-950">Your progress starts here</h2>
             <p className="mt-1 text-sm text-slate-600">
@@ -120,12 +118,14 @@ export default async function DashboardPage() {
           }
           href={focusCategory ? `/practice/${categoryToSlug(focusCategory)}` : "/practice"}
           cta="Start practicing"
+          icon={BookOpen}
         />
         <ActionCard
           title="Mock Exams"
           description={exams.some((e) => e.kind === "exam") || examChoices > 1 ? "Proctored assessments and full exam-style practice tests." : "A full, timed, proctored assessment."}
           href="/mock-tests"
           cta="Take a mock exam"
+          icon={ClipboardCheck}
         />
         <ActionCard
           title="Speech Analysis"
@@ -136,8 +136,9 @@ export default async function DashboardPage() {
           }
           href="/speech-analysis"
           cta="See my analyses"
+          icon={AudioLines}
         />
-        <ActionCard title="AI Coach" description="Ask for advice based on your real results." href="/coach" cta="Talk to my coach" />
+        <ActionCard title="AI Coach" description="Ask for advice based on your real results." href="/coach" cta="Talk to my coach" icon={Bot} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -250,9 +251,10 @@ export default async function DashboardPage() {
   );
 }
 
-function ActionCard({ title, description, href, cta }: { title: string; description: string; href: string; cta: string }) {
+function ActionCard({ title, description, href, cta, icon }: { title: string; description: string; href: string; cta: string; icon: LucideIcon }) {
   return (
     <Link href={href} className="card group flex flex-col p-5 transition hover:border-brand-300 hover:shadow-md">
+      <IconBadge as={icon} className="mb-3" />
       <h2 className="font-display font-bold text-ink-900">{title}</h2>
       <p className="mt-1 flex-1 text-sm text-slate-600">{description}</p>
       <span className="mt-3 text-sm font-semibold text-brand-600 group-hover:underline">{cta} &rarr;</span>

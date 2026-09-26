@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { CircleCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 const TIPS = [
   "Stay visible on camera for the full assessment",
@@ -32,9 +34,7 @@ export function CandidateRules({ onConfirm }: { onConfirm: () => void }) {
       <ul className="card mt-6 space-y-3 p-6">
         {TIPS.map((tip) => (
           <li key={tip} className="flex gap-3 text-sm text-ink-700">
-            <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-            </svg>
+            <Icon as={CircleCheck} className="mt-0.5 text-brand-600" />
             {tip}
           </li>
         ))}

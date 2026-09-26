@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { CircleCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 const BRAND_POINTS = [
   "Realistic, proctored mock speaking assessments",
@@ -20,17 +22,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <ul className="mt-8 space-y-4">
             {BRAND_POINTS.map((point) => (
               <li key={point} className="flex items-start gap-3 text-sm text-slate-300">
-                <svg
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <Icon as={CircleCheck} className="mt-0.5 text-brand-400" />
                 {point}
               </li>
             ))}

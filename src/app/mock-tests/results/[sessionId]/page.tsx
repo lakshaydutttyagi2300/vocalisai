@@ -6,6 +6,8 @@ import Link from "next/link";
 import { getModeByCategory } from "@/lib/practice-taxonomy";
 import { SCORE_CATEGORIES, CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { CircleCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 interface SectionSummary {
   category: string;
@@ -207,9 +209,7 @@ export default function MockTestResultsPage() {
                     <ul className="mt-1.5 space-y-1 text-sm text-ink-900">
                       {strongAreas.map((c) => (
                         <li key={c.cat} className="flex items-center gap-1.5">
-                          <svg className="h-3.5 w-3.5 flex-none text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 111.4-1.4L8.99 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                          </svg>
+                          <Icon as={CircleCheck} className="text-green-600" />
                           {CATEGORY_LABELS[c.cat]}
                         </li>
                       ))}

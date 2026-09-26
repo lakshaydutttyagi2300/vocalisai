@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { ChevronDown, Menu, Mic, X } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 
 // Candidate menu, grouped by what a candidate is trying to do. Each group's
 // `match` decides when it's highlighted (any page inside that area).
@@ -86,9 +88,7 @@ function CandidateDropdown({ entry, pathname }: { entry: Extract<CandidateEntry,
         }`}
       >
         {entry.label}
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${open ? "rotate-180" : ""}`}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-        </svg>
+        <Icon as={ChevronDown} className={`transition-transform ${open ? "rotate-180" : ""}`} />
         {active && <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-brand-600" />}
       </button>
       {open && (
@@ -190,9 +190,7 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
         className={`${ADMIN_ITEM} ${active ? ADMIN_ITEM_ACTIVE : open ? ADMIN_ITEM_OPEN : ADMIN_ITEM_IDLE}`}
       >
         {label}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${open ? "rotate-180" : ""}`}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-        </svg>
+        <Icon as={ChevronDown} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 rounded-xl border border-slate-600 bg-ink-900 p-2 shadow-2xl">
@@ -224,20 +222,7 @@ function BrandGlyph({ tone }: { tone: "teal" | "amber" }) {
         tone === "teal" ? "bg-gradient-to-br from-brand-500 to-brand-700" : "bg-amber-500"
       }`}
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z"
-          fill={tone === "teal" ? "white" : "#13191c"}
-          fillOpacity={tone === "teal" ? 0.95 : 1}
-        />
-        <path
-          d="M6 11v1a6 6 0 0 0 12 0v-1"
-          stroke={tone === "teal" ? "white" : "#13191c"}
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        <path d="M12 19v3" stroke={tone === "teal" ? "white" : "#13191c"} strokeWidth="1.6" strokeLinecap="round" />
-      </svg>
+      <Icon as={Mic} size="md" className={tone === "teal" ? "text-white" : "text-ink-950"} />
     </span>
   );
 }
@@ -297,9 +282,7 @@ export function Navbar() {
               aria-expanded={mobileOpen}
               className="rounded-md border border-slate-400 p-2 text-white md:hidden"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <Icon as={mobileOpen ? X : Menu} size="md" />
             </button>
           </div>
         </div>
@@ -378,9 +361,7 @@ export function Navbar() {
                 aria-expanded={mobileOpen}
                 className="rounded-md border border-slate-300 p-2 lg:hidden"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Icon as={mobileOpen ? X : Menu} size="md" />
               </button>
             </>
           ) : (

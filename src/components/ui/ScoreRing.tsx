@@ -61,7 +61,7 @@ export function ScoreRing({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ transform: "rotate(-90deg)" }}>
+      <svg data-chart="score-ring" width={size} height={size} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ transform: "rotate(-90deg)" }}>
         <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none" stroke="var(--color-slate-100)" strokeWidth={STROKE} />
         {value !== null && (
           <circle
