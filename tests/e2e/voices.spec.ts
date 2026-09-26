@@ -4,13 +4,12 @@ import { createTestUser, loginAs } from "./helpers";
 
 // Phase 3 in a real browser: the results page offers natural-voice Listen
 // buttons (model answer + mispronounced word) and an accent picker that is
-// remembered. The test environment has no ElevenLabs key, so this also
-// proves the graceful fallback: playback switches to the device's voice
-// with a one-line note, never an error.
+// remembered. The test environment has no ElevenLabs key - the free mode -
+// so playback uses the device's voice quietly: no error, no "not set up" note.
 const password = "correct-horse-battery-staple";
 const SHOTS = process.env.E2E_SCREENSHOT_DIR;
 
-test("results page: Listen buttons, accent picker, and the device-voice fallback", async ({ page }) => {
+test("results page: Listen buttons, accent picker, and the free device-voice mode", async ({ page }) => {
   test.setTimeout(120_000);
   const email = `e2e-voices-${Date.now()}@example.test`;
   const user = await createTestUser(email, password);
@@ -73,9 +72,12 @@ test("results page: Listen buttons, accent picker, and the device-voice fallback
     await page.reload();
     await expect(page.getByRole("button", { name: /Hear this answer \(British English\)/ })).toBeVisible({ timeout: 30_000 });
 
-    // No ElevenLabs key in tests: it falls back to the device voice, with a note.
+    // No ElevenLabs key (free mode): the server says so and the device voice plays, without any note.
+    const ttsReply = page.waitForResponse((r) => r.url().endsWith("/api/tts") && r.request().method() === "POST");
     await page.getByRole("button", { name: /Hear this answer/ }).click();
-    await expect(page.getByText(/Playing with your device's voice instead/)).toBeVisible({ timeout: 15_000 });
+    expect(await (await ttsReply).json()).toMatchObject({ ok: false, reason: "not_configured", fallbackText: expect.stringContaining("particularly") });
+    await page.waitForTimeout(1_000);
+    await expect(page.getByText(/device's voice instead|aren't set up/)).toHaveCount(0);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/voices-results.png`, fullPage: true });
     expect(errors).toEqual([]);
   } finally {

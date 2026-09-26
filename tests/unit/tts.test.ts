@@ -231,3 +231,23 @@ describe("the ElevenLabs key stays on the server", () => {
     }
   });
 });
+
+describe("free device-voice mode", () => {
+  it("picks the best voice the device has for the chosen accent", async () => {
+    const { pickDeviceVoice } = await import("@/components/speech/speech");
+    const v = (name: string, lang: string, localService = true) => ({ name, lang, localService, default: false, voiceURI: name }) as SpeechSynthesisVoice;
+    const voices = [
+      v("Microsoft David - English (United States)", "en-US"),
+      v("Microsoft Heera - English (India)", "en-IN"),
+      v("Microsoft Neerja Online (Natural) - English (India)", "en-IN", false),
+      v("Google UK English Female", "en-GB", false),
+      v("Microsoft Hazel - English (United Kingdom)", "en-GB"),
+      v("Google हिन्दी", "hi-IN", false),
+    ];
+    expect(pickDeviceVoice(voices, "en-IN")?.name).toMatch(/Neerja Online \(Natural\)/); // natural beats basic
+    expect(pickDeviceVoice(voices, "en-GB")?.name).toBe("Google UK English Female");
+    expect(pickDeviceVoice(voices, "en-US")?.name).toBe("Microsoft David - English (United States)");
+    expect(pickDeviceVoice([v("Google UK English Male", "en_GB", false)], "en-IN")?.name).toBe("Google UK English Male"); // any English beats nothing
+    expect(pickDeviceVoice([v("Google हिन्दी", "hi-IN", false)], "en-IN")).toBeNull();
+  });
+});

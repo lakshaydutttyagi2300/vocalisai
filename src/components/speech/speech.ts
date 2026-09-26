@@ -50,9 +50,22 @@ export function useAccent(): [AccentCode, (a: AccentCode) => void] {
 export interface PlayHandle {
   stop: () => void;
   /** Resolves when playback starts: natural = ElevenLabs clip; otherwise the device voice (with the reason). */
-  started: Promise<{ natural: boolean; message?: string }>;
+  started: Promise<{ natural: boolean; reason?: string; message?: string }>;
   /** Resolves when playback finishes or is stopped. */
   ended: Promise<void>;
+}
+
+// The best free voice this device has for an accent: the exact accent
+// first (en-IN / en-US / en-GB), and within that the high-quality neural
+// voices many browsers ship (Edge "Online (Natural)", Chrome "Google ...").
+export function pickDeviceVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | null {
+  const norm = (l: string) => l.replace("_", "-").toLowerCase();
+  const want = norm(lang);
+  const quality = (v: SpeechSynthesisVoice) => (/natural|neural|online|google|premium|enhanced/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
+  const exact = voices.filter((v) => norm(v.lang) === want).sort((a, b) => quality(b) - quality(a));
+  if (exact.length) return exact[0];
+  const english = voices.filter((v) => norm(v.lang).startsWith("en")).sort((a, b) => quality(b) - quality(a));
+  return english[0] ?? null;
 }
 
 function speakWithDevice(text: string, accent: AccentCode, rate: number, onEnd: () => void): () => void {
@@ -65,7 +78,7 @@ function speakWithDevice(text: string, accent: AccentCode, rate: number, onEnd: 
   const u = new SpeechSynthesisUtterance(text);
   const lang = accentLang(accent);
   u.lang = lang;
-  const voice = synth.getVoices().find((v) => v.lang === lang) ?? synth.getVoices().find((v) => v.lang.startsWith("en"));
+  const voice = pickDeviceVoice(synth.getVoices(), lang);
   if (voice) u.voice = voice;
   u.rate = rate;
   u.onend = onEnd;
@@ -90,7 +103,7 @@ export function playSpeech(opts: { source: SpeechSource; fallbackText: string; a
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ source: opts.source, accent: opts.accent, gender: opts.gender ?? "female" }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string; message?: string; fallbackText?: string };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string; reason?: string; message?: string; fallbackText?: string };
       if (stopped) return { natural: false };
       if (res.ok && data.ok && data.url) {
         const audio = new Audio(data.url);
@@ -105,7 +118,7 @@ export function playSpeech(opts: { source: SpeechSource; fallbackText: string; a
         return { natural: true };
       }
       stopFn = speakWithDevice(data.fallbackText || opts.fallbackText, opts.accent, opts.rate ?? 0.95, finish);
-      return { natural: false, message: data.message };
+      return { natural: false, reason: data.reason, message: data.message };
     } catch {
       if (stopped) return { natural: false };
       stopFn = speakWithDevice(opts.fallbackText, opts.accent, opts.rate ?? 0.95, finish);

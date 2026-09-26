@@ -6,9 +6,13 @@ import { Icon } from "@/components/ui/Icon";
 import { ACCENTS } from "@/lib/tts/accents";
 import { playSpeech, useAccent, type PlayHandle, type SpeechSource } from "@/components/speech/speech";
 
-// "Listen" in a natural voice, in the candidate's chosen accent. Falls back
-// to the device's voice (with a one-line note) when a natural clip isn't
-// available - it never fails silently.
+// "Listen" in the candidate's chosen accent: a natural (ElevenLabs) voice
+// when that's switched on, otherwise the best voice on their device. The
+// device voice is the normal, free mode, so it plays without comment; a
+// one-line note appears only when natural voices are on but a clip couldn't
+// be made right now (daily limit, credits, provider error).
+const NOTE_REASONS = new Set(["daily_limit", "budget", "provider_error"]);
+
 export function ListenButton({
   source,
   fallbackText,
@@ -42,7 +46,9 @@ export function ListenButton({
     const started = await h.started;
     if (handle.current !== h) return;
     setState("playing");
-    if (!started.natural) setNote(`${started.message ?? "Natural voice unavailable."} Playing with your device's voice instead.`);
+    if (!started.natural && started.reason && NOTE_REASONS.has(started.reason)) {
+      setNote(`${started.message ?? "Natural voice unavailable."} Playing with your device's voice instead.`);
+    }
     await h.ended;
     if (handle.current === h) setState("idle");
   }

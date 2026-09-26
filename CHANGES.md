@@ -659,3 +659,8 @@ How it chooses:
   - route ownership and allow-list;
   - no client file imports the ElevenLabs code or the key.
 - `tests/e2e/voices.spec.ts`: Listen buttons and the remembered accent on the results page, plus the device-voice fallback when there's no key.
+
+**Free mode (owner decision, 26 Sep 2026: no spending for now).** ElevenLabs stays switched off; there is no `ELEVENLABS_API_KEY`.
+- Every Listen button, "Hear it first" and the AI conversation voice play with the **best voice on the student's device** for the chosen accent (`pickDeviceVoice`). It prefers the exact accent (en-IN, en-US or en-GB), then the high-quality neural voices many browsers include, such as Edge "Online (Natural)" and Chrome "Google …".
+- In this mode no "not set up" note is shown. A note appears only when natural voices are on but a clip can't be made (daily limit, credits, provider error).
+- To turn natural voices on later, add the key. No code change is needed.
