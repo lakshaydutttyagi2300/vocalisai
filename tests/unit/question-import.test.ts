@@ -24,7 +24,9 @@ afterAll(async () => {
 
 async function idsCreatedSince(before: Date) {
   const rows = await db.practiceQuestion.findMany({
-    where: { category: CATEGORY, createdAt: { gte: before } },
+    // Only this file's rows: other test files create GRAMMAR questions in
+    // parallel, and "every GRAMMAR row since `before`" would delete theirs.
+    where: { category: CATEGORY, createdAt: { gte: before }, prompt: { contains: `[TEST ${RUN_ID}]` } },
     select: { id: true },
   });
   return rows.map((r) => r.id);

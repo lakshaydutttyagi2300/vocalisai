@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
+import { drillTokenCovers } from "@/lib/skills/drill-token";
+import { masteryAfterAttempt, saveMastery } from "@/lib/skills/mastery-store";
+import { BAND_LABELS, type MasteryResult } from "@/lib/skills/mastery";
 
 // Every attempt is written scoped to session.user.id - never a client-
 // supplied id - and scored here, server-side, against the real
@@ -19,12 +22,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { questionId, responseText, recordingId, timeTakenSeconds, mockTestSessionId } = body as {
+  const { questionId, responseText, recordingId, timeTakenSeconds, mockTestSessionId, drillToken } = body as {
     questionId?: string;
     responseText?: string;
     recordingId?: string;
     timeTakenSeconds?: number;
     mockTestSessionId?: string;
+    drillToken?: string;
   };
 
   if (!questionId || typeof timeTakenSeconds !== "number") {
@@ -70,10 +74,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const feature = validatedRecordingId ? "VOICE_RECORDING" : "PRACTICE_SESSION";
-    const usage = await checkAndRecordUsage(session.user.id, feature);
-    if (!usage.allowed) {
-      return NextResponse.json({ error: upgradeMessage(usage, feature) }, { status: 403 });
+    // A Skill Drill / diagnostic was already charged once when it started
+    // (see src/lib/skills/drill-token.ts), so its answers are not charged again.
+    const coveredByDrill = !validatedRecordingId && drillTokenCovers(drillToken, session.user.id, question.id);
+    if (!coveredByDrill) {
+      const feature = validatedRecordingId ? "VOICE_RECORDING" : "PRACTICE_SESSION";
+      const usage = await checkAndRecordUsage(session.user.id, feature);
+      if (!usage.allowed) {
+        return NextResponse.json({ error: upgradeMessage(usage, feature) }, { status: 403 });
+      }
     }
   }
 
@@ -97,8 +106,39 @@ export async function POST(req: Request) {
       isCorrect,
       score,
       timeTakenSeconds,
+      // Skills platform: copied at answer time so history survives re-tagging.
+      skillId: question.skillId,
+      level: question.level,
     },
   });
+
+  // Mastery is a bonus on top of saving the answer - it must never make
+  // answering fail or slow it down: the new scores are worked out here (one
+  // query) and stored after the response has gone. The My Skills page
+  // re-checks everything, so a missed save is caught up there. (Voice
+  // answers get theirs once they are analysed.)
+  let mastery: MasteryResult | null = null;
+  if (question.skillId && isCorrect !== null) {
+    try {
+      const userId = session.user.id;
+      const results = await masteryAfterAttempt(userId, question.skillId);
+      mastery = results.get(question.skillId) ?? null;
+      await afterResponse(() => saveMastery(userId, results));
+    } catch (err) {
+      console.error("mastery update failed", err);
+    }
+  }
+
+  // Why the chosen wrong option is wrong, when the question records it.
+  let distractorReason: string | null = null;
+  if (isCorrect === false && question.distractorReasons) {
+    try {
+      const reasons = JSON.parse(question.distractorReasons) as Record<string, string>;
+      distractorReason = reasons[(responseText ?? "").trim()] ?? null;
+    } catch {
+      distractorReason = null;
+    }
+  }
 
   return NextResponse.json({
     attemptId: attempt.id,
@@ -107,5 +147,22 @@ export async function POST(req: Request) {
     correctAnswer: question.correctAnswer,
     explanation: question.explanation,
     scoringCriteria: question.scoringCriteria,
+    distractorReason,
+    skillId: question.skillId,
+    mastery: mastery
+      ? { score: mastery.score, band: mastery.band, bandLabel: BAND_LABELS[mastery.band], attempts: mastery.attempts }
+      : null,
   });
+}
+
+// Runs a task once the response is sent (Next's after()). Outside a real
+// request - e.g. a unit test calling this handler directly - after() isn't
+// available, so the task simply runs before returning.
+async function afterResponse(task: () => Promise<void>): Promise<void> {
+  const safe = () => task().catch((err) => console.error("mastery save failed", err));
+  try {
+    after(safe);
+  } catch {
+    await safe();
+  }
 }

@@ -77,6 +77,7 @@ test("the candidate menu groups every section, highlights where you are, and wor
     // Every group's items are reachable and navigate.
     const groups: [string, string, RegExp][] = [
       ["Practice", "AI conversation", /\/practice\/conversation$/],
+      ["Practice", "My skills", /\/skills$/],
       ["Mock Exams", "My results", /\/mock-tests\/history$/],
       ["Account", "Plan & billing", /\/billing$/],
     ];
@@ -100,7 +101,7 @@ test("the candidate menu groups every section, highlights where you are, and wor
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "Toggle menu" }).click();
     const mobile = page.getByRole("navigation", { name: "Main" });
-    for (const name of ["Dashboard", "Practice library", "AI conversation", "Quick practice", "Find my focus", "Take a mock exam", "My results", "Speech Analysis", "Progress", "AI Coach", "Profile", "Plan & billing"]) {
+    for (const name of ["Dashboard", "My skills", "Practice library", "AI conversation", "Quick practice", "Find my focus", "Take a mock exam", "My results", "Speech Analysis", "Progress", "AI Coach", "Profile", "Plan & billing"]) {
       await expect(mobile.getByRole("link", { name, exact: true })).toBeVisible();
     }
     await page.screenshot({ path: "test-results/candidate/phone-menu.png", fullPage: true });

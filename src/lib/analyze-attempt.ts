@@ -13,6 +13,7 @@ import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider
 import { createGeminiAnalysisProvider } from "@/lib/providers/gemini-analysis-provider";
 import { estimateTranscriptionCostUsd, estimateAnalysisCostUsd } from "@/lib/providers/pricing";
 import { computeDeterministicMetrics } from "@/lib/speech-metrics";
+import { updateMasteryAfterAttempt } from "@/lib/skills/mastery-store";
 import type { PracticeAttempt, PracticeQuestion, PracticeRecording } from "@prisma/client";
 
 type AttemptWithRecordingAndQuestion = PracticeAttempt & {
@@ -100,6 +101,16 @@ export async function analyzeAttempt(attempt: AttemptWithRecordingAndQuestion): 
       estimatedCostUsd,
     },
   });
+
+  // Skills platform: a voice answer counts towards its skill once it has a
+  // real analysis. Never allowed to fail the analysis itself.
+  if (attempt.skillId) {
+    try {
+      await updateMasteryAfterAttempt(attempt.userId, attempt.skillId);
+    } catch (err) {
+      console.error("mastery update failed", err);
+    }
+  }
 
   return { ok: true };
 }

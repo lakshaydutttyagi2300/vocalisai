@@ -23,9 +23,10 @@ const CANDIDATE_NAV: CandidateEntry[] = [
   {
     kind: "group",
     label: "Practice",
-    match: ["/practice"],
+    match: ["/practice", "/skills"],
     items: [
-      { href: "/practice", label: "Practice library", hint: "Grammar, speaking, writing, interviews and more" },
+      { href: "/skills", label: "My skills", hint: "Your strengths, weak spots and quick skill drills" },
+      { href: "/practice", label: "Practice library", hint: "Grammar, speaking, aptitude, interviews and more" },
       { href: "/practice/conversation", label: "AI conversation", hint: "Talk live with an AI customer or interviewer" },
       { href: "/practice/quick", label: "Quick practice", hint: "A short drill when you're short on time" },
       { href: "/practice/goals", label: "Find my focus", hint: "Tell us your goal, get a practice plan" },

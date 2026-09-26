@@ -54,6 +54,7 @@ export const config = {
     "/billing/:path*",
     "/admin/:path*",
     "/exam/:path*", // P1-E exam runner v2 results
+    "/skills/:path*", // Skills platform: dashboard, drills, diagnostics
     // API equivalents - a suspended account or a candidate probing for
     // admin access must be blocked by calling the endpoint directly, not
     // just by the page around it being unreachable. /api/auth/*,
@@ -68,5 +69,6 @@ export const config = {
     "/api/billing/:path*",
     "/api/admin/:path*",
     "/api/exam-sessions/:path*", // P1-E exam runner v2
+    "/api/skills/:path*",
   ],
 };

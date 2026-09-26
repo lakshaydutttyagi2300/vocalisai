@@ -27,6 +27,12 @@ const GROUPS: { id: string; title: string; blurb: string; categories: string[]; 
     categories: ["WRITING"],
   },
   {
+    id: "aptitude-reasoning",
+    title: "Aptitude & Reasoning",
+    blurb: "Numerical aptitude, logical and verbal reasoning - the aptitude rounds of campus and job assessments.",
+    categories: ["NUMERICAL_APTITUDE", "LOGICAL_REASONING", "VERBAL_REASONING"],
+  },
+  {
     id: "interview-preparation",
     title: "Interview Preparation",
     blurb: "Practice written answers to common interview questions, or do a full live AI interview below.",

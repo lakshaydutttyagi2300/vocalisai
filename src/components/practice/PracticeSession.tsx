@@ -258,7 +258,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
         {/* Only the parsed stimulus is ever shown - never the raw passage. */}
         <StimulusView stimulus={currentQuestion.stimulus} resetKey={currentQuestion.id} />
 
-        <h2 className="font-medium text-ink-900">{currentQuestion.prompt}</h2>
+        <h2 className="whitespace-pre-line font-medium text-ink-900">{currentQuestion.prompt}</h2>
 
         {!feedback ? (
           isChoice ? (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { getModeBySlug } from "@/lib/practice-taxonomy";
 
@@ -14,6 +14,14 @@ const QUICK_DRILLS = [
   { slug: "grammar", label: "Quick Grammar Drill", minutes: 5 },
   { slug: "vocabulary", label: "Quick Vocabulary Drill", minutes: 5 },
   { slug: "writing", label: "Quick Writing Drill", minutes: 10 },
+];
+
+// Skills platform: instantly-marked drills on one skill area, aimed at the
+// candidate's level (see /skills for every skill).
+const SKILL_DRILLS = [
+  { skillId: "QNT", label: "Numerical Aptitude Drill", description: "Percentages, ratios, averages, interest, time and distance." },
+  { skillId: "REA", label: "Logical Reasoning Drill", description: "Series, coding, directions, blood relations, syllogisms." },
+  { skillId: "VRB", label: "Verbal Reasoning Drill", description: "True / false / cannot say, critical reasoning, sentence order." },
 ];
 
 export default function QuickPracticePage() {
@@ -47,6 +55,28 @@ export default function QuickPracticePage() {
             </Link>
           );
         })}
+      </div>
+
+      <div className="mt-10 flex items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-lg font-bold text-ink-950">Quick Skill Drills</h2>
+          <p className="mt-0.5 text-sm text-slate-600">5-10 questions, instant feedback, pitched at your level.</p>
+        </div>
+        <Link href="/skills" className="btn-ghost btn-sm flex-none">
+          All my skills
+          <Icon as={ArrowRight} />
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {SKILL_DRILLS.map((drill) => (
+          <Link key={drill.skillId} href={`/skills/drill/${drill.skillId}`} className="card block p-5 transition hover:border-brand-300 hover:shadow-md">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-display font-bold text-ink-900">{drill.label}</h3>
+              <span className="badge badge-neutral flex-none">~5 min</span>
+            </div>
+            <p className="mt-1.5 text-sm text-slate-600">{drill.description}</p>
+          </Link>
+        ))}
       </div>
     </div>
   );

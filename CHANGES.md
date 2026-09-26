@@ -476,3 +476,75 @@ The mock test printed `passage` as-is, and its "Play audio" button read the whol
 - goal-track weights reference real skills;
 - the seed is idempotent, never overwrites an author tag, and tags new legacy questions and past attempts;
 - tracks and blueprints link the existing exams.
+
+## Skills platform - Phase 2: skill practice & weak-area engine (branch `feat/skills-platform`)
+
+**No database migration.** Phase 2 uses only the Phase 1 tables and columns.
+
+**Mastery** (`src/lib/skills/mastery.ts`, stored by `mastery-store.ts` in UserSkillMastery):
+- Each skill gets a 0–100 score from weighted accuracy, recency and difficulty. There is no IRT.
+  - **Recency:** a 14-day half-life.
+  - **Difficulty:** factor 0.75 + 0.1 × (level − 1). A correct answer at a harder level earns more; a miss at a harder level costs less.
+  - **History:** only the latest 50 answers count.
+  - **Roll-up:** a skill's score also counts towards its subcategory and category.
+- **Bands:** Weak <50, Developing 50–74, Proficient 75–89, Mastered ≥90. A band needs at least 5 answers, and Mastered also needs 2 or more levels seen.
+- **Voice answers** count once analysed, using the same "Overall" as the results page (average of 5 AI ratings plus pace).
+- **Backfill:** the dashboard reconciles each user's history, so answers from before Phase 2 count too. Only changed rows are written.
+
+**Answering (existing `/api/practice/attempts`, extended additively):**
+- Copies the question's skill and level onto the attempt.
+- Works out the new mastery (one extra query) and **saves it after the response is sent** (`after()`), so answering is no slower. This can never fail the answer.
+- Returns `distractorReason` (why the chosen wrong option is wrong) and the new mastery.
+- The speech-analysis save also updates mastery.
+
+**Quick Drills** (`/skills/drill/[skill]`, `GET /api/skills/drill`):
+- 5–10 instantly-marked questions for any skill, subcategory or category node, easiest first.
+- Aimed half a level above what the candidate recently got right, with recently seen questions held back.
+- Filtered to the difficulties the candidate's plan includes.
+- Instant feedback: right or wrong, why the chosen option is wrong, how to get it, and an optional hint.
+
+**Usage:** a drill or diagnostic counts as **one** practice session. The start route issues a signed token (`drill-token.ts`, HMAC with NEXTAUTH_SECRET). Answers carrying a valid token aren't charged again; all other answers are charged exactly as before.
+
+**"I'm weak in X"** (`/skills/diagnostic/[category]`, `GET /api/skills/diagnostic`):
+- Follows the category's diagnostic blueprint: 2 questions per subcategory at L2–L4, one per level first, at most 12.
+- Categories whose older questions sit at category level (SJT) are topped up from the whole category.
+- Results are shown per subcategory, with recommended drills for the weakest.
+- Speaking-type categories (SPK, CSV, INV) point to their recorded-practice modes instead.
+
+**My Skills dashboard** (`/skills`):
+- An "I'm weak in…" entry point.
+- Recommended drills: the weakest rated areas that have questions.
+- Per-category cards showing the band, score and bar, subcategory rows with a Drill link, and "Check my level".
+- Short candidate-facing category names (`CATEGORY_SHORT_NAMES`); the full blueprint names stay for admin.
+- **Visibility:** candidates see the v1 categories only. The `skills_all_categories` flag reveals all 12 on every skills screen and route (`visibleSkillWhere` / `findVisibleSkill`).
+- Works at phone width.
+
+**Entry points:**
+- "My skills" is first in the Practice menu.
+- The Practice library has a new **Aptitude & Reasoning** group.
+- Quick practice has a **Quick Skill Drills** section.
+- `/skills` and `/api/skills` sit behind the sign-in guard.
+
+**Starter content** (`npm run seed:skills-content`; idempotent; `--production` required for live). It adds 176 original questions in three new practice categories: NUMERICAL_APTITUDE, LOGICAL_REASONING and VERBAL_REASONING.
+- **136 are computer-generated** (`prisma/skills-content/generated.mjs`, fixed seed, so they're the same on every run). Answers are computed from the question's own numbers, so they're correct by construction. They cover:
+  - percentages, profit/loss, ratio, averages, interest, time and work, speed and distance, LCM/HCF, discounts;
+  - number and letter series, coding-decoding, directions, ranking, clocks and calendars.
+- **40 are hand-written** (`authored.mjs`):
+  - true/false/cannot say, sentence completion and ordering, critical reasoning (strengthen, weaken, assumption, inference, flaw), fact vs opinion, argument evaluation;
+  - syllogisms, blood relations, statements and conclusions.
+- Every question has an exact skill, a level, a hint and a reason for every wrong option.
+- Loaded into **test, dev and staging only**.
+- Starter questions later removed from the source files are retired (isActive=false), never deleted.
+
+**Tests:**
+- `tests/unit/skills-phase2.test.ts` (18):
+  - mastery maths: recency, difficulty, bands, the 50-answer window, roll-up, voice score;
+  - bank integrity, with answers recomputed from the question text;
+  - drill-token forgery, expiry and wrong-user checks;
+  - the full drill → answer → mastery flow on the test DB: one charge per drill, no answers leaked, distractor reasons, and the 3-level roll-up;
+  - the diagnostic spread, the voice redirect, and hidden categories returning 404.
+- `tests/unit/skills-visibility.test.ts` (2): hidden categories stay hidden until the flag is on, then all 12 appear.
+- `tests/e2e/skills.spec.ts` (3): the dashboard, a drill with feedback, the diagnostic with recommendations, the new entry points, and no horizontal overflow at 390px.
+- `question-import.test.ts` fix: its cleanup deleted every GRAMMAR question created during its run, including other test files' questions when they ran in parallel. It now deletes only its own.
+
+**Noted, not changed:** in the existing Practice library flow, *each answered question* uses one of a FREE user's 5 lifetime "practice sessions", so 5 questions use up the whole free allowance. Skill Drills avoid this with the token above. The existing flow is unchanged pending a decision.

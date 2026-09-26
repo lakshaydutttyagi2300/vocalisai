@@ -69,6 +69,32 @@ export const PRACTICE_MODES: PracticeModeDef[] = [
     questionType: "MULTIPLE_CHOICE",
     requiresVoice: false,
   },
+  // Skills platform (Phase 2): aptitude and reasoning. Every question in
+  // these carries an exact skill id, so they also power Skill Drills.
+  {
+    slug: "numerical-aptitude",
+    category: "NUMERICAL_APTITUDE",
+    label: "Numerical Aptitude",
+    description: "Percentages, profit and loss, ratios, averages, interest, time and work, speed and distance.",
+    questionType: "MULTIPLE_CHOICE",
+    requiresVoice: false,
+  },
+  {
+    slug: "logical-reasoning",
+    category: "LOGICAL_REASONING",
+    label: "Logical Reasoning",
+    description: "Series, coding-decoding, directions, rankings, blood relations, syllogisms, clocks and calendars.",
+    questionType: "MULTIPLE_CHOICE",
+    requiresVoice: false,
+  },
+  {
+    slug: "verbal-reasoning",
+    category: "VERBAL_REASONING",
+    label: "Verbal Reasoning",
+    description: "True / false / cannot say, sentence completion and ordering, critical reasoning, fact vs opinion.",
+    questionType: "MULTIPLE_CHOICE",
+    requiresVoice: false,
+  },
   {
     slug: "interview",
     category: "INTERVIEW",

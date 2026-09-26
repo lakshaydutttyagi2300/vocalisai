@@ -264,6 +264,28 @@ export const V1_ENABLED_CATEGORIES = ["ENG", "SPK", "QNT", "REA", "VRB", "CSV", 
 // Feature flag that reveals every category (default OFF).
 export const ALL_CATEGORIES_FLAG = "skills_all_categories";
 
+// Short, candidate-facing category names (the full blueprint names above
+// are kept for admin and reporting).
+export const CATEGORY_SHORT_NAMES: Record<string, string> = {
+  ENG: "English",
+  SPK: "Speaking & Accent",
+  QNT: "Numerical Aptitude",
+  REA: "Logical Reasoning",
+  VRB: "Verbal Reasoning",
+  COG: "Cognitive Ability",
+  DIN: "Data Interpretation",
+  BIZ: "Business Communication",
+  CSV: "Customer Service",
+  SJT: "Workplace Judgement",
+  INV: "Interview Readiness",
+  DGT: "Digital Skills",
+};
+
+/** The name to show a candidate: short for categories, the node's own name otherwise. */
+export function displayName(node: { id: string; name: string }): string {
+  return CATEGORY_SHORT_NAMES[node.id] ?? node.name;
+}
+
 export interface SkillRow {
   id: string;
   code: string;

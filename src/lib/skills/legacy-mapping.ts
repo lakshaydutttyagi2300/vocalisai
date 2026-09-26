@@ -29,6 +29,11 @@ const BY_CATEGORY: Record<string, LegacyMapping> = {
   INTERVIEW: { skillId: "INV", precision: "category" },
   SITUATIONAL_JUDGEMENT: { skillId: "SJT", precision: "category" },
   SUPERVISOR: { skillId: "SJT", precision: "category", note: "supervisor conversations filed under workplace behaviour" },
+  // Phase 2 categories - their own questions carry exact skill ids; this is
+  // only the fallback for one an admin adds without choosing a skill.
+  NUMERICAL_APTITUDE: { skillId: "QNT", precision: "category" },
+  LOGICAL_REASONING: { skillId: "REA", precision: "category" },
+  VERBAL_REASONING: { skillId: "VRB", precision: "category" },
 };
 
 // Type-level refinements where the old question type pins down the skill.

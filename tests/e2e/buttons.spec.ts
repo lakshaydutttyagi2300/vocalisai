@@ -106,6 +106,8 @@ test("key candidate actions use the premium button system, with every state, on 
       // Proctored exam: End assessment (danger), Start section, question actions.
       await expectButton(page.getByRole("button", { name: "End assessment" }), "btn-danger", "sm");
       const startSection = page.getByRole("button", { name: "Start section" });
+      // The section intro loads from the server; late in a full run the dev server can take >5s.
+      await expect(startSection).toBeVisible({ timeout: 30_000 });
       await expectButton(startSection, "btn-primary", "lg");
       await shoot(page, `${vp.name}-section-intro`);
       await startSection.click();
