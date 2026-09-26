@@ -4,13 +4,27 @@
     {
       "name": "proacting-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
     },
     {
       "name": "proacting-prod",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start"],
+      "runtimeArgs": [
+        "run",
+        "start"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "staging-test",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/dev-staging.mjs"
+      ],
       "port": 3000
     }
   ]
