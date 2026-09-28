@@ -1,4 +1,4 @@
-# Next steps: prioritised roadmap (28 Sep 2026)
+# Next steps: prioritised roadmap (updated 28 Sep 2026, 22:30 IST)
 
 Everything here comes from the existing project, the owner's stated requirements and the issues found in inspection. It's not new wish-list items. Rules for all of it:
 - work on `feat/skills-platform`;
@@ -12,20 +12,11 @@ Everything here comes from the existing project, the owner's stated requirements
 2. **Read the handover:** `CLAUDE_NEW_ACCOUNT_START.md`, `CURRENT_STATE.md`, `docs/handover/*`.
 3. **Run the gate** on the branch:
    1. `npx tsc --noEmit`
-   2. `npm test` (expect 316 passing)
+   2. `npm test` (expect 330 passing)
    3. `npm run build`
    4. `E2E_SERVER=start npx playwright test` (see CURRENT_STATE.md for the last result, and re-check the exam specs listed there)
-4. **Before shipping the new sign-up:**
-   1. The owner creates a Gmail App Password (Google Account, Security, 2-Step Verification on, then App passwords).
-   2. Add `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER=<gmail>` and `SMTP_PASSWORD=<app password>` to Vercel Production (`vercel env add <NAME> production`).
-   3. Without these, nobody can register once the code step is live.
-5. **Ask the owner about shipping** Phase 5, the exam library and email verification. All of it is ready but not live: no more "100" for empty exams, phone layout fixes, question auto-tagging, 25 new exams and sign-up codes. When the owner says **"ship to production"**, follow the release runbook in `docs/handover/GIT_AND_DEPLOYMENT.md`:
-   - backup branch;
-   - **one additive migration**, `20260928120000_email_verification_exam_descriptions` (`prisma migrate deploy` against production);
-   - `npm run seed:exam-library -- --production`;
-   - fast-forward `main` and push;
-   - `/api/health` and `vercel logs` checks;
-   - then **sign up once with a real inbox** to confirm the code email arrives.
+4. ~~Gmail sending for sign-up codes~~ **Done 28 Sep** (vocalisai.examia@gmail.com; `SMTP_*` settings in Vercel).
+5. ~~Ship Phase 5, the exam library, email verification and the one-person camera check~~ **All live since 28 Sep** (see CURRENT_STATE.md).
 
 ## High priority
 
@@ -45,7 +36,7 @@ Everything here comes from the existing project, the owner's stated requirements
 
 14. The CAMPUS and STUDY_ABROAD goal tracks (hidden, no content).
 15. Content for the hidden skill categories (COG, DIN, BIZ, DGT), then turn on `skills_all_categories`.
-16. Real exam content for the other exam families (SELT, PTE, Cambridge, Aptitude, Employment); only the catalogue exists.
+16. Real exam content for the remaining exam families (SELT, PTE, Cambridge, Employment); only the catalogue exists. (Aptitude and 11 other types now have exams.)
 17. ElevenLabs natural voices, if the owner decides to pay: add `ELEVENLABS_API_KEY`, no code change.
 18. Clean-ups:
     - delete the unused `src/lib/question-selection.ts`;
