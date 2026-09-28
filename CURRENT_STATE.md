@@ -28,7 +28,15 @@
 - **Phase 4:** Goal Tracks and onboarding (General English, BPO / Customer Support, Interview Prep), My goal plan, track exams.
 - **Listening:** no raw JSON or S1/S2 labels ever shown; two-voice playback.
 
-## Completed on the branch, NOT live yet (Phase 5 QA)
+## SHIPPED TO PRODUCTION 28 Sep 2026, 21:22 IST (main @ `086fe44`)
+
+Everything below, Phase 5 plus the exam library and email-verified sign-up, is **live**.
+- Backup branch: `backup-production-before-exam-library-otp` (`br-little-sky-b426mvzt`).
+- Migration applied; `seed:exam-library --production` loaded 12 types and 25 exams (28 exams offered, `exam_runner_v2` on).
+- Gmail SMTP is set in Vercel (`SMTP_HOST/PORT/USER/PASSWORD`, `EMAIL_FROM`).
+- Checks: `/api/health` ok, pages ok, `vercel logs` clean, live sign-up sent a code (HTTP 202), fake domain rejected (400).
+
+## Phase 5 QA (now live)
 - New or edited questions are auto-tagged with skill and level (import, duplicate, AI scenarios, admin edit).
 - An exam ended with no answers is unscored. It used to show "100 - interview ready".
 - Phone fixes: admin Templates buttons, Coach page jump, conversation difficulty buttons.
@@ -36,7 +44,7 @@
 - `tests/e2e/walkthrough.spec.ts`: opens 43 pages at laptop and phone size. Final review: **no errors, no server failures, no sideways scrolling**.
 - Test fix: the v2 exam UI test now retries the camera step after a reload.
 
-## Also on the branch, NOT live yet: exam library and email-verified sign-up (28 Sep)
+## Exam library and email-verified sign-up (28 Sep; now live)
 - **Sign-up needs an emailed 6-digit code.** The account is created only after the right code; there's expiry, resend, attempt limits and rate limits. The code is never stored in plain form or sent to the browser (`src/lib/email-verification.ts`).
 - **Email is sent by Gmail (free, owner's choice).** SMTP settings are needed in Vercel **before** shipping, or nobody can sign up (`src/lib/email.ts`).
 - **Mock Exams:**
@@ -94,9 +102,8 @@ Details and where to set each: `docs/handover/SERVICES_AND_SECRETS.md`.
   - production, development, staging, test;
   - backups before-phase4-goals, before-question-bank, before-skills-platform, before-speaker-label-fix.
   - The free-plan limit is 10.
-- **Pending for production:**
-  1. migration `20260928120000_email_verification_exam_descriptions` (additive; applied to dev/test only);
-  2. `npm run seed:exam-library -- --production`.
+- **No migrations pending.** `20260928120000_email_verification_exam_descriptions` is applied everywhere, including production (28 Sep).
+- **Neon branches: 9** (a new backup added). The limit is 10, so delete an old backup, with the owner's OK, before the next release.
 
 ## Immediate next steps
 1. The new Claude session reads `CLAUDE_NEW_ACCOUNT_START.md`.
