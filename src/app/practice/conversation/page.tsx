@@ -78,7 +78,7 @@ function ConversationSetupForm() {
       )}
 
       <p className="mt-8 text-sm font-medium text-slate-700">Difficulty</p>
-      <div className="mt-3 grid grid-cols-4 gap-3">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {DIFFICULTIES.map((d) => (
           <button
             key={d}

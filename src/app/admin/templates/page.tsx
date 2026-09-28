@@ -208,9 +208,9 @@ export default function AdminTemplatesPage() {
           <div className="mt-4 space-y-3">
             {templates.map((t) => (
               <div key={t.id} className="rounded-md border border-slate-200 p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium text-ink-900">{t.name}</p>
                       {t.isDefault && <span className="badge badge-skill">Default</span>}
                       {t.examVariantId && (
@@ -224,7 +224,7 @@ export default function AdminTemplatesPage() {
                       {t.sessionsUsingIt === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {!t.isDefault && (
                       <button
                         type="button"

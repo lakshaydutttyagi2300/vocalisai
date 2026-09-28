@@ -34,6 +34,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       timeLimitSeconds: source.timeLimitSeconds,
       source: "SEEDED",
       isActive: false,
+      // Skills platform: same skill tags as the original.
+      skillId: source.skillId,
+      skillPrecision: source.skillPrecision,
+      skillSource: source.skillSource,
+      level: source.level,
+      format: source.format,
+      distractorReasons: source.distractorReasons,
+      hint: source.hint,
+      rubricId: source.rubricId,
+      bankStatus: source.bankStatus,
     },
   });
 

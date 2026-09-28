@@ -47,7 +47,7 @@ interface ImprovedAnswer {
   summary: string;
 }
 
-type Stage = "loading" | "not-analyzed" | "analyzing" | "ready" | "error";
+type Stage = "loading" | "not-analyzed" | "analyzing" | "ready" | "error" | "no-recording" | "not-found";
 
 const IMPROVEMENT_LABELS: Record<keyof ImprovedAnswer["improvements"], string> = {
   grammar: "Grammar",
@@ -65,13 +65,14 @@ export default function AttemptResultsPage() {
 
   useEffect(() => {
     fetch(`/api/practice/attempts/${params.attemptId}/analyze`)
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        if (res.status === 404) return setStage("not-found");
+        const data = await res.json();
         if (data.analyzed) {
           setResult(data.result);
           setStage("ready");
         } else {
-          setStage("not-analyzed");
+          setStage(data.hasRecording === false ? "no-recording" : "not-analyzed");
         }
       })
       .catch(() => setStage("error"));
@@ -101,6 +102,31 @@ export default function AttemptResultsPage() {
       <div className="mx-auto max-w-2xl px-6 py-16">
         <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
         <div className="mt-6 h-32 animate-pulse rounded-lg bg-slate-200" />
+      </div>
+    );
+  }
+
+  // Only spoken answers have a speech analysis - typed and multiple-choice
+  // answers are marked on the spot, so there is nothing to analyse here.
+  if (stage === "no-recording" || stage === "not-found") {
+    return (
+      <div className="mx-auto max-w-lg px-6 py-16 text-center">
+        <h1 className="font-display text-2xl font-bold text-ink-950">
+          {stage === "not-found" ? "We couldn't find this result" : "No recording for this answer"}
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          {stage === "not-found"
+            ? "It may belong to another account, or the link is incomplete."
+            : "Speech analysis is for spoken answers. Typed and multiple-choice answers are marked straight away while you practise."}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/progress" className="btn-secondary">
+            See my progress
+          </Link>
+          <Link href="/practice" className="btn-primary">
+            Back to Practice
+          </Link>
+        </div>
       </div>
     );
   }

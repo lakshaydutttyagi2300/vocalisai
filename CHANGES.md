@@ -696,3 +696,38 @@ No DB migration: this uses Phase 1's `GoalTrack`, `GoalTrackSkill`, `Profile.goa
   - `goals.spec.ts`: full browser journey.
   - `auth.spec.ts`: sign-up now asks for a goal.
   - `exam-demo.spec.ts`: standard tests only while the flag is off.
+
+## Skills platform - Phase 5: QA and fixes (branch `feat/skills-platform`)
+
+No DB migration.
+
+- **Live data audit (read-only):**
+  - 5,772 active questions, all skill-tagged and levelled, none on hidden skills.
+  - Every attempt is tagged; 302 skills.
+  - Goal tracks, track exams and feature flags are as expected.
+- **Gap fixed: new questions weren't skill-tagged.** Questions added after Phase 1 now get the same automatic skill and level as the Phase 1 mapping (`src/lib/skills/question-tags.ts`). This covers:
+  - bulk import;
+  - Duplicate;
+  - AI-generated scenarios;
+  - admin edits that change category or difficulty (hand-set tags are kept).
+- **Page walk-through (`tests/e2e/walkthrough.spec.ts`):**
+  - Opens 43 public, candidate and admin pages at laptop and phone width.
+  - Collects crashes, 5xx responses, error pages and sideways scrolling.
+  - Saves full-page screenshots to `test-results/walkthrough/`.
+  - `E2E_SERVER=start` (after `npm run build`) runs e2e against the production build. This machine needs it: the dev server ran out of memory compiling every page.
+- **Fixed from the screenshot review:**
+  - **Empty exam scored 100.** An exam ended with nothing answered showed "100 - You're interview ready", because a clean proctoring record was the only number.
+    - Proctoring integrity now only qualifies a score built from real answers. With no answers the session is unscored ("-").
+    - Results are recalculated whenever they are opened, so an old wrong score corrects itself the next time it is viewed. Dashboard, Progress and Coach show the stored figure until then.
+  - **Admin Mock Test Templates:** the row buttons ran off the side of a phone screen.
+  - **AI Coach:** opening it on a phone scrolled the page past the title. Only the chat box scrolls now.
+  - **AI Voice Conversation:** the four difficulty buttons were cramped on a phone. They are now 2 x 2.
+  - **Speech-analysis page:** opened for a typed or multiple-choice answer, or an unknown link, it offered to "analyse the recording". It now says there is no recording, or that the result wasn't found.
+- **Tests:**
+  - `question-tags.test.ts` (4).
+  - `scoring-engine.test.ts` updated.
+  - The walk-through spec, which also checks the fixes above.
+- **Test fix:** `exam-runner-v2-ui.spec.ts` now presses "Enable camera" again if the fake camera is still busy after a reload, the same retry as `raw-data-guard.spec.ts`.
+- **Handover package (28 Sep 2026)** for moving to a new Claude account:
+  - `CLAUDE_NEW_ACCOUNT_START.md`, `CURRENT_STATE.md`, `MIGRATION_CHECKLIST.md`, `NEXT_STEPS.md`;
+  - `docs/handover/`: architecture, services and secrets (placeholders only), Claude Code setup, git and deployment, feature status, known issues, question bank, listening system, decision log, setup guide, DO NOT BREAK.

@@ -24,7 +24,9 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev",
+    // E2E_SERVER=start runs against a production build (`npm run build` first) -
+    // far lighter on memory than the dev server compiling every page.
+    command: process.env.E2E_SERVER === "start" ? "npm run start" : "npm run dev",
     url: "http://localhost:3000",
     // Always false, even locally: an already-running dev server on :3000
     // (e.g. a manual preview) would otherwise be reused as-is, silently

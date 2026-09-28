@@ -38,7 +38,7 @@ export default function CoachPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const threadEndRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -64,9 +64,12 @@ export default function CoachPage() {
     load();
   }, []);
 
+  // Scroll the chat box only - scrollIntoView also scrolled the whole page,
+  // which on a phone pushed the title off screen as soon as it loaded.
   useEffect(() => {
-    threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const thread = threadRef.current;
+    if (thread) thread.scrollTo({ top: thread.scrollHeight, behavior: "smooth" });
+  }, [messages, sending]);
 
   async function sendMessage() {
     const content = draft.trim();
@@ -179,7 +182,7 @@ export default function CoachPage() {
 
       {loaded && !loadError && (
         <div className="card mt-4 flex h-[28rem] flex-col p-5">
-          <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+          <div ref={threadRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
             {messages.length === 0 && (
               <p className="text-sm text-slate-400">
                 Say hello, or ask something like &quot;what should I focus on next?&quot;
@@ -203,7 +206,6 @@ export default function CoachPage() {
                 </div>
               </div>
             )}
-            <div ref={threadEndRef} />
           </div>
 
           {error && (

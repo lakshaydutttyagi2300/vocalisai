@@ -1,3 +1,4 @@
+import { autoSkillTags } from "@/lib/skills/question-tags";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -132,6 +133,7 @@ export async function POST(req: Request) {
       timeLimitSeconds: assembled.timeLimitSeconds,
       source: "AI_GENERATED",
       estimatedCostUsd,
+      ...autoSkillTags({ category, type: "SHORT_ANSWER", difficulty }),
     },
   });
 

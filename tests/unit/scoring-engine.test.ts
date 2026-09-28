@@ -16,7 +16,7 @@ function voiceResult(overrides: Partial<VoiceAnalysisResult> = {}): VoiceAnalysi
 }
 
 describe("computeScoreReport", () => {
-  it("has only PROCTORING_INTEGRITY (a clean 100, no flags) when there is no other data at all", () => {
+  it("is not scored at all when nothing was answered - integrity alone never becomes a 100", () => {
     const report = computeScoreReport({
       analyzedVoiceAttempts: [],
       mcqAttempts: [],
@@ -26,10 +26,10 @@ describe("computeScoreReport", () => {
 
     expect(report.categories.PRONUNCIATION.score).toBeNull();
     expect(report.categories.LISTENING.score).toBeNull();
-    expect(report.categories.PROCTORING_INTEGRITY.score).toBe(100);
-    // PROCTORING_INTEGRITY is the only category with a real number, so it
-    // alone determines the overall weighted average.
-    expect(report.overallScore).toBe(100);
+    // Phase 5 QA: an exam ended with no answers used to read "100 - interview
+    // ready" because a clean proctoring record was the only number.
+    expect(report.categories.PROCTORING_INTEGRITY.score).toBeNull();
+    expect(report.overallScore).toBeNull();
   });
 
   it("scores LISTENING and COMPREHENSION purely from MCQ correctness", () => {
@@ -51,7 +51,7 @@ describe("computeScoreReport", () => {
   it("deducts fixed, known points per proctoring flag and never goes below 0", () => {
     const report = computeScoreReport({
       analyzedVoiceAttempts: [],
-      mcqAttempts: [],
+      mcqAttempts: [{ category: "LISTENING", score: 100 }],
       unanalyzedVoiceCount: 0,
       proctoringEvents: [{ eventType: "FULLSCREEN_EXIT" }, { eventType: "TAB_HIDDEN" }],
     });
@@ -61,7 +61,7 @@ describe("computeScoreReport", () => {
 
     const heavilyFlagged = computeScoreReport({
       analyzedVoiceAttempts: [],
-      mcqAttempts: [],
+      mcqAttempts: [{ category: "LISTENING", score: 100 }],
       unanalyzedVoiceCount: 0,
       proctoringEvents: Array.from({ length: 20 }, () => ({ eventType: "MULTIPLE_FACES" })),
     });
@@ -104,9 +104,10 @@ describe("computeScoreReport", () => {
 
     // Only LISTENING (0) and PROCTORING_INTEGRITY (100, no flags) have
     // real scores. Default weight 1 averages them: (0 + 100) / 2 = 50.
-    // Weight 0 excludes LISTENING, leaving PROCTORING_INTEGRITY alone: 100.
+    // Weight 0 excludes LISTENING, leaving only PROCTORING_INTEGRITY - which
+    // never stands alone, so the session is unscored rather than 100.
     expect(withDefault.overallScore).toBe(50);
-    expect(withZeroWeight.overallScore).toBe(100);
+    expect(withZeroWeight.overallScore).toBeNull();
   });
 
   it("only credits CUSTOMER_HANDLING for CUSTOMER_SERVICE responses the AI itself flagged as applicable", () => {

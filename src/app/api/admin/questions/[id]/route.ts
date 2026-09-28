@@ -1,3 +1,4 @@
+import { tagsAfterEdit } from "@/lib/skills/question-tags";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -82,6 +83,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       scoringCriteria: merged.scoringCriteria,
       timeLimitSeconds: merged.timeLimitSeconds,
       isActive: merged.isActive,
+      // Skills platform: an automatic skill tag follows a category/type
+      // change; the level follows the difficulty.
+      ...tagsAfterEdit(
+        { skillId: existing.skillId, skillPrecision: existing.skillPrecision, skillSource: existing.skillSource, level: existing.level },
+        { category: merged.category, type: merged.type, difficulty: merged.difficulty }
+      ),
     },
   });
 

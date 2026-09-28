@@ -70,7 +70,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (!attempt) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (!attempt.analysis) {
-    return NextResponse.json({ analyzed: false });
+    return NextResponse.json({ analyzed: false, hasRecording: Boolean(attempt.recording) });
   }
   return NextResponse.json({
     analyzed: true,

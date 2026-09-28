@@ -338,13 +338,19 @@ export function computeScoreReport({
       flagCount += 1;
     }
   }
-  const proctoringIntegrity: CategoryScore = {
-    score: Math.max(0, 100 - deduction),
-    basis:
-      flagCount > 0
-        ? `100 minus fixed deductions for ${flagCount} proctoring flag${flagCount === 1 ? "" : "s"} this session.`
-        : "No proctoring flags this session.",
-  };
+  // Integrity only qualifies a score built from real answers - with nothing
+  // answered it would stand alone as "100, interview ready". Flags are still
+  // stored as events for review either way.
+  const answered = mcqAttempts.length > 0 || analyzedVoiceAttempts.length > 0;
+  const proctoringIntegrity: CategoryScore = !answered
+    ? { score: null, basis: "Not scored - no answers were scored in this session." }
+    : {
+        score: Math.max(0, 100 - deduction),
+        basis:
+          flagCount > 0
+            ? `100 minus fixed deductions for ${flagCount} proctoring flag${flagCount === 1 ? "" : "s"} this session.`
+            : "No proctoring flags this session.",
+      };
 
   const categories: Record<ScoreCategory, CategoryScore> = {
     PRONUNCIATION: pronunciation,
@@ -360,9 +366,10 @@ export function computeScoreReport({
     PROCTORING_INTEGRITY: proctoringIntegrity,
   };
 
-  const overallScore = weightedAvg(
-    SCORE_CATEGORIES.map((c) => ({ score: categories[c].score, weight: categoryWeights?.[c] ?? 1 }))
-  );
+  // Same rule for the overall: at least one answer-based category must count.
+  const weighted = SCORE_CATEGORIES.map((c) => ({ category: c, score: categories[c].score, weight: categoryWeights?.[c] ?? 1 }));
+  const fromAnswers = weighted.some((p) => p.category !== "PROCTORING_INTEGRITY" && p.score !== null && p.weight > 0);
+  const overallScore = fromAnswers ? weightedAvg(weighted) : null;
 
   return { overallScore, categories };
 }

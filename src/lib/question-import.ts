@@ -5,6 +5,7 @@
 // real thing, so preview and reality can never drift apart.
 
 import { db } from "@/lib/db";
+import { autoSkillTags } from "@/lib/skills/question-tags";
 import { validateQuestionFields } from "@/lib/question-validation";
 import { validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
 import { findSimilar, questionSignature } from "@/lib/question-dedup";
@@ -156,6 +157,8 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
         source: "SEEDED",
         itemGroupId: q.itemGroupId || null,
         orderInGroup: q.itemGroupId ? (q.orderInGroup ?? null) : null,
+        // Skills platform: tagged on the way in, so imports appear in drills and mastery.
+        ...autoSkillTags(q),
       })),
     });
     insertedCount = toInsert.length;
