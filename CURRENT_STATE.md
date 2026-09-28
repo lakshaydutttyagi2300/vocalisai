@@ -28,6 +28,9 @@
 - **Phase 4:** Goal Tracks and onboarding (General English, BPO / Customer Support, Interview Prep), My goal plan, track exams.
 - **Listening:** no raw JSON or S1/S2 labels ever shown; two-voice playback.
 
+## SHIPPED TO PRODUCTION 28 Sep 2026, 22:13 IST (main @ `bc6d888`): exam camera allows only one person in frame
+- Real on-device face detection (MediaPipe full-range), a warning banner and a flag per episode. There were no DB changes, so no backup was needed. Health, pages, detector files and logs were checked. See the end of `CHANGES.md`.
+
 ## SHIPPED TO PRODUCTION 28 Sep 2026, 21:22 IST (main @ `086fe44`)
 
 Everything below, Phase 5 plus the exam library and email-verified sign-up, is **live**.
