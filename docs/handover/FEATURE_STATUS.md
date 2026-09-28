@@ -24,7 +24,7 @@ Phase 5 fixes (the unscored empty exam and others) are on branch `feat/skills-pl
 | **Exam-type categorisation** (exam catalogue, 7 families, templates, blueprints) | MOSTLY COMPLETE | `exam-catalogue.ts`, admin exam screens. Only General English, BPO and the 3 IELTS-style practice tests have real exams; the other families (SELT, PTE, Cambridge, Aptitude, Employment) have **no exam content yet**. |
 | Skill categorisation (12 categories, 302 skills) | MOSTLY COMPLETE | 8 visible. COG, DIN, BIZ and DGT are hidden with **no content**. |
 | **Mock tests v1** (proctored, sections, report) | COMPLETE | `mock-test*.spec.ts`. Phase 5 fixed the "100 with nothing answered" scoring. |
-| **Exam runner v2** (IELTS-style timed papers) | COMPLETE, **NEEDS TESTING** after this run | `exam-runner.ts`, `exam-runner-v2*.spec.ts`. See CURRENT_STATE.md for the 28 Sep browser-test results. |
+| **Exam runner v2** (IELTS-style timed papers) | COMPLETE | `exam-runner.ts`, `exam-runner-v2*.spec.ts`, `exam-demo.spec.ts` (all passing on 28 Sep) |
 | **Listening tests** (player, play limits, two voices) | COMPLETE | LISTENING_SYSTEM.md, `raw-data-guard.spec.ts`, `mock-test-rendering.spec.ts` |
 | **Listening dialogue presentation** (no raw JSON, no S1/S2) | COMPLETE | `question-stimulus.ts`. Gap: import doesn't reject an unplayable listening spec. |
 | **Audio generation** (pre-generated listening files) | PARTIALLY IMPLEMENTED | The script exists (`generate:question-audio`, Windows voices). Not every listening question has a generated file; the rest fall back to browser voices. |

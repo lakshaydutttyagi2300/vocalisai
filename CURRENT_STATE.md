@@ -44,16 +44,13 @@
   - The 5 failures: `exam-demo` (Practice Test 2), `exam-runner-v2` (flag off), `exam-runner-v2-ui`, `buttons`, `walkthrough`.
   - **Cause: a second, leftover test run** from the interrupted previous session was still running at the same time, against the same test database. It flipped the `exam_runner_v2` flag, changed the default exam template and deleted its own test exams mid-run. File timestamps prove the overlap; see KNOWN_ISSUES.md.
   - Before any e2e run, make sure no other `node`/Playwright process is running (Task Manager, or `Get-Process node` in PowerShell).
-- **Re-run of those 5 specs alone** (no other runner active): **4 of the 4 specs finished so far now PASS**:
+- **Re-run of those 5 specs alone** (no other runner active): **8 / 8 tests PASSED** (12.5 min):
   - `buttons`;
   - `exam-demo` (both tests);
-  - `exam-runner-v2` (flag off).
-
-  This confirms the interference diagnosis. The remaining v2 exam specs and the walk-through were still running when this commit was made. If they aren't recorded in a later commit, re-run them:
-
-  ```bash
-  E2E_SERVER=start npx playwright test tests/e2e/exam-runner-v2-ui.spec.ts tests/e2e/walkthrough.spec.ts
-  ```
+  - `exam-runner-v2` (all 3);
+  - `exam-runner-v2-ui`;
+  - `walkthrough` ("No problems found").
+- **Effective result: all 39 browser tests pass.** The earlier failures were test interference, not app bugs.
 
 ## Known bugs / gaps (top items; the full list is in `docs/handover/KNOWN_ISSUES.md`)
 1. **Vercel Production has no `DATABASE_URL`.** The site runs on the `DATABASE_URL_UNPOOLED` fallback. Re-add it.

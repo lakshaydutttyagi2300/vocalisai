@@ -12,8 +12,8 @@
 | Branch | Commit | State |
 |---|---|---|
 | `main` | `e477b8c` Phase 4: Goal Tracks and onboarding | = origin/main = **live site** |
-| `feat/skills-platform` | `e477b8c` (the same commit) plus **uncommitted Phase 5 work** | current working branch; tracks origin |
-| `design/premium-dashboard-concept` | local `cfe9fe0`, origin `6fed26b` | an old dashboard *visual concept* that was never merged into `main`. The local branch is **1 commit ahead** of GitHub (`cfe9fe0`): the "Listening Comprehension had no audio" fix. That fix is **already in `main`** as `d5cbfd1`. Optional: `git push origin design/premium-dashboard-concept` to keep the concept on GitHub. Nothing else depends on it. |
+| `feat/skills-platform` | `a3cb08e` Phase 5 + handover, then a small follow-up commit with the final test results | current working branch; **pushed**, in sync with GitHub |
+| `design/premium-dashboard-concept` | `cfe9fe0` | an old dashboard *visual concept* that was never merged into `main`. **Pushed** on 28 Sep. Its last commit (the "Listening Comprehension had no audio" fix) is already in `main` as `d5cbfd1`. Nothing depends on this branch. |
 
 No stashes.
 
@@ -33,7 +33,7 @@ c4451a3 Mock test: never show raw question data; real two-voice listening audio 
 ... (P1-A to P1-H: exam catalogue, item groups, question types, v2 runner, admin screens)
 ```
 
-## Uncommitted work at handover (Phase 5 QA)
+## Work in the handover commit (`a3cb08e`, Phase 5 QA; committed and pushed 28 Sep)
 
 ### 1. Complete; should be committed
 | File | Change |
@@ -55,7 +55,7 @@ c4451a3 Mock test: never show raw question data; real two-voice listening audio 
 | `.env.test.example` | **currently untracked** because `.gitignore` has `.env*`. It is placeholders only and should be committed: `git add -f .env.test.example` |
 
 ### 2. Unfinished
-- None in code. See CURRENT_STATE.md for the browser-test results of this work.
+- None. All 39 browser tests pass (see CURRENT_STATE.md).
 
 ### 3. Must NOT be committed (already ignored)
 - `.env`, `.env.local`, `.env.staging`, `.env.test`: **real secrets**.
@@ -70,7 +70,7 @@ c4451a3 Mock test: never show raw question data; real two-voice listening audio 
 
 `next-env.d.ts` is sometimes rewritten by `next dev`/`next build`. If it shows as modified, it's harmless; commit it or `git checkout next-env.d.ts`.
 
-## Commands to commit and push before leaving
+## Commands to commit and push (already done on 28 Sep; kept for reference)
 
 Pushing the **branch** does not deploy. Only `main` deploys.
 

@@ -14,7 +14,7 @@ Tick each box as you go. Details are in `docs/handover/`. Placeholders like `<NE
   - `git status -sb` must say `## feat/skills-platform...origin/feat/skills-platform` with **no** `[ahead N]`.
   - If files are listed as modified, see `docs/handover/GIT_AND_DEPLOYMENT.md`, section "Commands to commit and push".
 - [ ] **No secrets were committed.** `git ls-files | grep -E "^\.env"` must list only `.env.example` and `.env.test.example`.
-- [ ] Optional: keep the old design concept on GitHub with `git push origin design/premium-dashboard-concept`.
+- [x] The old design-concept branch is pushed too (done 28 Sep).
 - [ ] **Back up your private settings files.** Copy these files from the project folder to a safe private place (a password manager, or an encrypted USB drive; **not** GitHub, email or chat):
   - `.env` (development keys and database)
   - `.env.test` (test database)
