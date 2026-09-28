@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ProctoringEventType } from "@/lib/proctoring-events";
+import { createFaceSampler, type FaceSampler } from "@/lib/proctoring/face-detector";
+import { countFaces, PeopleMonitor, SAMPLE_INTERVAL_MS, type PeopleState } from "@/lib/proctoring/people-monitor";
 
 export interface LoggedProctoringEvent {
   eventType: ProctoringEventType;
@@ -14,13 +16,15 @@ type Availability = "ok" | "warning" | "unavailable";
 export interface LiveProctoringStatus {
   face: Availability;
   faceDetail: string;
+  /** Steady people-in-frame state; null until the camera check is running. */
+  people: PeopleState | null;
+  peopleCount: number;
   tabFocus: Availability;
   fullscreen: Availability;
   mic: Availability;
 }
 
 const FLUSH_INTERVAL_MS = 5000;
-const FACE_POLL_INTERVAL_MS = 3000;
 const SILENCE_THRESHOLD_LEVEL = 4; // out of 0-100 from useMicLevel's scale
 const SILENCE_DURATION_MS = 8000;
 
@@ -44,6 +48,8 @@ export function useLiveProctoring({
   const [status, setStatus] = useState<LiveProctoringStatus>({
     face: "unavailable",
     faceDetail: "Checking...",
+    people: null,
+    peopleCount: 0,
     tabFocus: "ok",
     fullscreen: expectFullscreen ? "warning" : "unavailable",
     mic: "ok",
@@ -219,57 +225,71 @@ export function useLiveProctoring({
     };
   }, [micStream]);
 
-  // Face presence, using the native Shape Detection API where it exists.
-  // This is Chromium-only and inconsistently available even there - when
-  // absent, we say so plainly instead of faking a result.
+  // People in frame: on-device face detection once a second for as long as
+  // the exam is on screen (src/lib/proctoring/*). PeopleMonitor smooths the
+  // raw counts, so one noisy frame never raises a warning; each episode is
+  // logged once, with how long it lasted.
   useEffect(() => {
     if (!cameraStream) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const FaceDetectorCtor = (window as any).FaceDetector;
-    if (!FaceDetectorCtor) {
-      setStatus((s) => ({ ...s, face: "unavailable", faceDetail: "Face detection isn't available in this browser." }));
-      return;
-    }
+    let cancelled = false;
+    let sampler: FaceSampler | null = null;
+    let timer: ReturnType<typeof setInterval> | undefined;
 
     const video = document.createElement("video");
     video.srcObject = cameraStream;
     video.muted = true;
+    video.playsInline = true;
     video.play().catch(() => {});
+    const monitor = new PeopleMonitor();
+    setStatus((s) => ({ ...s, face: "unavailable", faceDetail: "Starting the camera check...", people: null }));
 
-    const detector = new FaceDetectorCtor({ fastMode: true, maxDetectedFaces: 4 });
-    let lastState: "none" | "one" | "multiple" = "one";
-
-    const interval = setInterval(async () => {
-      if (video.readyState < 2) return;
-      try {
-        const faces = await detector.detect(video);
-        const count = faces.length;
-        let nextState: "none" | "one" | "multiple" = count === 0 ? "none" : count === 1 ? "one" : "multiple";
-
-        if (nextState !== lastState) {
-          if (nextState === "none") logEvent("FACE_NOT_DETECTED");
-          else if (nextState === "multiple") logEvent("MULTIPLE_FACES", `${count} faces`);
-          else logEvent("FACE_REAPPEARED");
-          lastState = nextState;
-        }
-
-        setStatus((s) => ({
-          ...s,
-          face: nextState === "one" ? "ok" : "warning",
-          faceDetail:
-            nextState === "one"
-              ? "One face detected."
-              : nextState === "none"
-                ? "No face detected."
-                : `${count} faces detected.`,
-        }));
-      } catch {
-        // Detection call itself failed - report as unavailable rather than guessing.
-        setStatus((s) => ({ ...s, face: "unavailable", faceDetail: "Face detection isn't working in this browser." }));
+    createFaceSampler().then((found) => {
+      if (cancelled) {
+        found?.close();
+        return;
       }
-    }, FACE_POLL_INTERVAL_MS);
+      if (!found) {
+        setStatus((s) => ({ ...s, face: "unavailable", faceDetail: "The camera check isn't available in this browser.", people: null }));
+        return;
+      }
+      sampler = found;
+      let busy = false;
+      timer = setInterval(async () => {
+        if (busy || video.readyState < 2 || !video.videoWidth) return;
+        busy = true;
+        try {
+          const count = countFaces(await found.detect(video), video.videoWidth);
+          const change = monitor.push(count);
+          if (change?.kind === "multiple-started") logEvent("MULTIPLE_FACES", `${change.people} people in view`);
+          else if (change?.kind === "multiple-ended") logEvent("MULTIPLE_FACES_CLEARED", `after ${change.seconds}s`);
+          else if (change?.kind === "face-lost") logEvent("FACE_NOT_DETECTED");
+          else if (change?.kind === "face-back") logEvent("FACE_REAPPEARED");
 
-    return () => clearInterval(interval);
+          const people = monitor.state;
+          const shown = people === "multiple" ? Math.max(monitor.peak, count) : count;
+          setStatus((s) => ({
+            ...s,
+            people,
+            peopleCount: shown,
+            face: people === "one" ? "ok" : "warning",
+            faceDetail: people === "multiple" ? `${shown} people detected.` : people === "none" ? "Face not visible." : "Only you are visible.",
+          }));
+        } catch {
+          // The detection call itself failed - say so rather than guess.
+          setStatus((s) => ({ ...s, face: "unavailable", faceDetail: "The camera check stopped working in this browser.", people: null }));
+        } finally {
+          busy = false;
+        }
+      }, SAMPLE_INTERVAL_MS);
+    });
+
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+      sampler?.close();
+      video.srcObject = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraStream]);
 
   return { events, status, flush };

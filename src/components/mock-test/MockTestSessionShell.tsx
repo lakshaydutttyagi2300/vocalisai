@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLiveProctoring } from "@/hooks/useLiveProctoring";
+import { useLiveProctoring, type LiveProctoringStatus } from "@/hooks/useLiveProctoring";
 import { describeProctoringEvent } from "@/lib/proctoring-events";
 import { MockTestQuestionRunner } from "@/components/mock-test/MockTestQuestionRunner";
 import { ExamRunnerV2 } from "@/components/exam-runner-v2/ExamRunnerV2";
-import { RotateCcw, SquareX } from "lucide-react";
+import { RotateCcw, ScanFace, SquareX, UsersRound } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
 const ACTIVE_V2_SESSION_KEY = "vocalisai:activeExamSession";
@@ -176,16 +176,19 @@ export function MockTestSessionShell({
 
   return (
     <div className="focus-surface min-h-screen">
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/10 bg-ink-950/95 px-6 py-3 backdrop-blur">
-        <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-          Recording
+      <div className="sticky top-0 z-30">
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-ink-950/95 px-6 py-3 backdrop-blur">
+          <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            Recording
+          </div>
+          <div className="font-mono text-sm text-slate-300">{mm}:{ss} elapsed</div>
+          <button onClick={endTest} data-loading={ending || undefined} className="btn-danger btn-sm">
+            <Icon as={SquareX} />
+            End assessment
+          </button>
         </div>
-        <div className="font-mono text-sm text-slate-300">{mm}:{ss} elapsed</div>
-        <button onClick={endTest} data-loading={ending || undefined} className="btn-danger btn-sm">
-          <Icon as={SquareX} />
-          End assessment
-        </button>
+        <CameraWarning status={status} />
       </div>
 
       <div className="mx-auto grid max-w-5xl gap-8 px-6 py-10 lg:grid-cols-[1fr_240px]">
@@ -256,6 +259,33 @@ export function MockTestSessionShell({
       </div>
     </div>
   );
+}
+
+// Shown the moment the camera check sees someone else in frame (or nobody),
+// and gone as soon as that's resolved. Logging happens in useLiveProctoring.
+function CameraWarning({ status }: { status: LiveProctoringStatus }) {
+  if (status.people === "multiple") {
+    return (
+      <div role="alert" className="flex items-start gap-3 bg-red-600 px-6 py-3 text-white shadow-lg">
+        <Icon as={UsersRound} size="md" className="mt-0.5 shrink-0" />
+        <div>
+          <p className="font-semibold">Multiple people detected. Only the candidate should be visible.</p>
+          <p className="text-sm text-red-100">
+            {status.peopleCount} people are in view of your camera. This has been recorded, and the warning clears as soon as only you are in view.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (status.people === "none") {
+    return (
+      <div role="status" className="flex items-start gap-3 bg-amber-500 px-6 py-3 text-ink-950 shadow-lg">
+        <Icon as={ScanFace} size="md" className="mt-0.5 shrink-0" />
+        <p className="font-semibold">We can&apos;t see your face. Please sit facing the camera.</p>
+      </div>
+    );
+  }
+  return null;
 }
 
 function StatusRow({

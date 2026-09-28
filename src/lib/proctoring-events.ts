@@ -10,7 +10,8 @@
 
 export const PROCTORING_EVENT_LABELS: Record<string, string> = {
   FACE_NOT_DETECTED: "No face detected",
-  MULTIPLE_FACES: "Multiple faces detected",
+  MULTIPLE_FACES: "Multiple people detected",
+  MULTIPLE_FACES_CLEARED: "Only the candidate visible again",
   FACE_REAPPEARED: "Face visible again",
   TAB_HIDDEN: "Tab or window switched away",
   TAB_VISIBLE: "Returned to the assessment tab",

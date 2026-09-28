@@ -130,6 +130,12 @@ Do any "Rotate?" step only if you think a key has leaked. Moving to a new **Clau
   - the `NATURAL_VOICES` flag;
   - cached clips in R2 (`tts/`).
 
+### 10a. MediaPipe face detection (exam camera)
+- **What:** the exam camera check (one person in frame) loads Google MediaPipe from **cdn.jsdelivr.net** and the BlazeFace full-range model from **storage.googleapis.com** when an exam starts.
+- **Cost and keys:** free, no key or account.
+- **Privacy:** detection runs on the candidate's device, and no video is uploaded.
+- **If either site is blocked,** the exam still runs, and the live status says the camera check isn't available.
+
 ### 10. Unsplash images
 - `next.config.mjs` allows `images.unsplash.com` for landing-page photos.
 - No key is needed.

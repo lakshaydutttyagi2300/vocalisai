@@ -41,6 +41,7 @@ Phase 5 fixes (the unscored empty exam and others) are on branch `feat/skills-pl
 | Progress page | COMPLETE | |
 | **Billing (Paddle)** | PARTIALLY IMPLEMENTED | Webhook and page exist; production lacks the client token, price IDs and webhook secret, so **checkout isn't live**. Admins set plans by hand. |
 | **Admin view** (all screens) | COMPLETE | `admin-*.spec.ts`, walkthrough. The Candidates list has no paging (it gets long). |
+| **Exam proctoring: one person in frame** | COMPLETE on the branch, **not live** | Real on-device detection (MediaPipe), a warning banner, and flags. `proctoring-people.spec.ts` covers the full flow with the real detector. |
 | **UI/UX** (icons, buttons, phone layout) | COMPLETE | `icons.spec.ts`, `buttons.spec.ts`, walkthrough |
 | **Publishing / deployment** | COMPLETE, with a caveat | Vercel auto-deploy from `main`; `/api/health`. **Vercel Production is missing `DATABASE_URL`** (running on the fallback). Preview deploys don't work (no env vars). |
 | Lint (`npm run lint`) | BUGGY (tooling) | fails: `typescript-eslint` doesn't support TypeScript 7 |

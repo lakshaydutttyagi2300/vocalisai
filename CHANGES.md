@@ -780,3 +780,20 @@ Applied to **development and test only**; production waits for "ship to producti
   - `exam-library.spec.ts`: filters, a 15-minute grammar exam started, speaking and writing types, admin custom type;
   - `exam-demo.spec.ts`: practice tests as one card with 3 versions.
 - **Harness:** `playwright.config.ts` sets `EMAIL_DELIVERY=log`; `global-setup.ts` clears all `signup*` rate-limit keys.
+
+## Exam proctoring: only one person in frame (branch `feat/skills-platform`)
+
+- **Root cause:** face checks used the browser's built-in `FaceDetector`, which is switched off in almost every browser, including standard Chrome. For nearly every candidate the check never ran. Multiple people could never be detected, and nothing was shown on screen.
+- **Fix: real on-device detection.**
+  - MediaPipe's BlazeFace (`@mediapipe/tasks-vision`) runs in the candidate's browser, so no video leaves the device and it costs nothing. The library loads from jsDelivr and the model from Google's model storage, only when an exam starts. The browser's own `FaceDetector` is the fallback where it exists; otherwise the exam says "The camera check isn't available in this browser".
+  - It uses the **full-range** model. In testing on real photos it found 1, 2 and 3 people exactly, with no extra person invented; the short-range model missed smaller faces (`src/lib/proctoring/face-detector.ts`).
+- **Steady decisions** (`src/lib/proctoring/people-monitor.ts`):
+  - one sample a second for as long as the exam is on screen;
+  - faces below 0.6 confidence, tiny detections and double-detected faces are ignored;
+  - multiple people are confirmed when 2 of the last 3 samples show 2+ faces (about 2 s), and cleared after 3 samples in a row with at most one face;
+  - "face not visible" needs 6 seconds in a row, so looking down to write isn't flagged.
+- **Warning:** a red banner under the exam bar (both exam styles) reads "Multiple people detected. Only the candidate should be visible." plus how many people are in view. It clears when only the candidate is visible. An amber note shows when no face is visible. The live status panel says "Only you are visible." or "2 people detected."
+- **Flags:** one `MULTIPLE_FACES` event per episode (e.g. "2 people in view"; still -15 integrity points), then a new `MULTIPLE_FACES_CLEARED` event ("after 14s", informational). `FACE_NOT_DETECTED` / `FACE_REAPPEARED` are now logged with the same smoothing.
+- **Tests:**
+  - `people-monitor.test.ts` (13): counting, no false alarm from one noisy frame, a warning within about 2 s, one log per episode, clearing, looking down, the version pin;
+  - `proctoring-people.spec.ts`: the full exam flow with the **real** detector, using a camera that shows a real photo. One person for 10 s gives no warning; two people give the warning within seconds and one server flag; one person again clears it; then a question is answered, the exam ends, and the results carry the flag.
