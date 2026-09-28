@@ -28,6 +28,13 @@
 - **Phase 4:** Goal Tracks and onboarding (General English, BPO / Customer Support, Interview Prep), My goal plan, track exams.
 - **Listening:** no raw JSON or S1/S2 labels ever shown; two-voice playback.
 
+## SHIPPED TO PRODUCTION 28 Sep 2026, 23:14 IST (main @ `346966d`): high-priority items 6-9
+- `DATABASE_URL` is back and in use; health is ok.
+- +395 questions: 6,167 active, all tagged, 40+ per area and level except pronunciation (33-38) and reading comprehension (37-38).
+- Listening: 307 of 307 have real recorded audio.
+- Unplayable listening questions are refused on import and edit.
+- Backup: `backup-production-before-bank-part3` (`br-crimson-wave-b4tbzpdo`). Neon branches: 9 of 10, so delete an old backup, with the owner's OK, before the next release.
+
 ## SHIPPED TO PRODUCTION 28 Sep 2026, 22:13 IST (main @ `bc6d888`): exam camera allows only one person in frame
 - Real on-device face detection (MediaPipe full-range), a warning banner and a flag per episode. There were no DB changes, so no backup was needed. Health, pages, detector files and logs were checked. See the end of `CHANGES.md`.
 

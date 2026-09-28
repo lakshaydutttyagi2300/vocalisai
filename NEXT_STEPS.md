@@ -25,6 +25,8 @@ Everything here comes from the existing project, the owner's stated requirements
 8. ~~More content where pools are small~~ **Done 28 Sep** (+395 questions, every area at 40+ per level once released). Was: This serves the owner's "no repeated questions" requirement. Check Admin, Question Bank coverage on the live site, then add items (listening, writing, fluency, interview, conversation roles) via `prisma/skills-content/` and `npm run seed:skills-content`, or admin import.
 9. ~~Two-voice audio for listening~~ **Done 28 Sep** (263 already had it; 8 monologues converted and recorded at release). Was: that don't have it (free, Windows): `npm run generate:question-audio -- --dry-run`, then run it with `--production` after approval.
 
+8b. **Pronunciation (Advanced 38, Expert 33) and reading comprehension (Intermediate to Expert, 37-38)** are just under 40 per level. Add a few items when convenient; they come from the original seed files, not `prisma/skills-content/`.
+
 ## Medium priority
 
 10. **Billing go-live (owner's decision):** configure Paddle products, prices and webhook, then set the 5 missing variables in Vercel and test in sandbox first.
