@@ -14,7 +14,7 @@ import {
   verifySignupCode,
   type Deps,
 } from "@/lib/email-verification";
-import { emailDelivery } from "@/lib/email";
+import { emailDelivery, smtpPassword } from "@/lib/email";
 import { POST as signupRoute } from "@/app/api/auth/signup/route";
 
 // Sign-up by emailed code (test database). No account may exist until the
@@ -50,6 +50,12 @@ describe("email checks", () => {
   it("accepts normal addresses and rejects malformed ones", () => {
     for (const ok of ["a@b.co", "first.last+tag@mail.example.org", "x_y-z@sub.domain.in"]) expect(isValidEmailFormat(ok), ok).toBe(true);
     for (const bad of ["", "plain", "a@b", "a@@b.com", ".a@b.com", "a.@b.com", "a..b@c.com", "a b@c.com", "a@-b.com", "a@b.c_m"]) expect(isValidEmailFormat(bad), bad).toBe(false);
+  });
+
+  it("ignores the spaces Gmail shows in app passwords (and only for Gmail)", () => {
+    expect(smtpPassword({ SMTP_HOST: "smtp.gmail.com", SMTP_PASSWORD: "abcd efgh ijkl mnop" })).toBe("abcdefghijklmnop");
+    expect(smtpPassword({ SMTP_HOST: "smtp.example.com", SMTP_PASSWORD: "pass with spaces" })).toBe("pass with spaces");
+    expect(smtpPassword({ SMTP_HOST: "smtp.gmail.com" })).toBeUndefined();
   });
 
   it("knows which domains can receive mail", async () => {

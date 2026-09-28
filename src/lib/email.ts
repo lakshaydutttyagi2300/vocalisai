@@ -43,6 +43,13 @@ export function emailDelivery(env: Record<string, string | undefined> = process.
   return "log";
 }
 
+// Gmail shows app passwords in groups of four ("abcd efgh ijkl mnop"); the
+// spaces aren't part of the password, however it was pasted.
+export function smtpPassword(env: Record<string, string | undefined> = process.env): string | undefined {
+  const pass = env.SMTP_PASSWORD;
+  return pass && /(^|\.)gmail\.com$/i.test(env.SMTP_HOST ?? "") ? pass.replace(/\s+/g, "") : pass;
+}
+
 function fromAddress(delivery: EmailDelivery): string {
   if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
   if (delivery === "smtp") return `VocalisAi <${process.env.SMTP_USER}>`;
@@ -66,7 +73,7 @@ export async function sendEmail(message: OutgoingEmail): Promise<void> {
       host: process.env.SMTP_HOST,
       port,
       secure: port === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+      auth: { user: process.env.SMTP_USER, pass: smtpPassword() },
     });
     try {
       await transport.sendMail({ from: fromAddress(delivery), ...message });
