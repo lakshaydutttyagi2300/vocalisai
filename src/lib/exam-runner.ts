@@ -15,6 +15,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { getQuestionTypeDef, type GradeResult } from "@/lib/question-types";
 import { isValidNavigationMode, type NavigationMode } from "@/lib/exam-catalogue";
 import { candidateStimulus, type Stimulus } from "@/lib/question-stimulus";
+import { isVoiceCategory } from "@/lib/practice-taxonomy";
 
 export const EXAM_RUNNER_V2_FLAG = "exam_runner_v2";
 
@@ -139,6 +140,18 @@ export function selectQuestionUnits(
   return picked;
 }
 
+// How a bank question is answered inside a timed exam. Practice questions
+// keep their own type everywhere else; here a spoken prompt (read aloud,
+// fluency, speaking, customer or supervisor calls...) stored as
+// SHORT_ANSWER is answered by recording, and a writing task gets the
+// long-writing box. The view, answer validation and marking all use this.
+export function examItemType(q: { type: string; category: string }): string {
+  if (q.type !== "SHORT_ANSWER") return q.type;
+  if (isVoiceCategory(q.category)) return "TIMED_SPEAKING";
+  if (q.category === "WRITING") return "LONG_WRITING";
+  return q.type;
+}
+
 // Unanswered or malformed answers never get a fabricated score: an
 // auto-gradable type scores 0 (the candidate genuinely didn't answer), a
 // non-auto-gradable one (writing/speaking) stays null.
@@ -261,7 +274,7 @@ async function gradePaper(mockTestSessionId: string, plan: ExamPlan, paperIndex:
   if (!paper) return;
   const questionIds = paper.questions.map((q) => q.questionId);
   const [questions, responses] = await Promise.all([
-    db.practiceQuestion.findMany({ where: { id: { in: questionIds } }, select: { id: true, type: true, correctAnswer: true } }),
+    db.practiceQuestion.findMany({ where: { id: { in: questionIds } }, select: { id: true, type: true, category: true, correctAnswer: true } }),
     db.itemResponse.findMany({ where: { mockTestSessionId, questionId: { in: questionIds } } }),
   ]);
   const byQuestion = new Map(responses.map((r) => [r.questionId, r]));
@@ -275,7 +288,7 @@ async function gradePaper(mockTestSessionId: string, plan: ExamPlan, paperIndex:
   const updatesByResult = new Map<string, { result: GradeResult; ids: string[] }>();
   for (const q of questions) {
     const existing = byQuestion.get(q.id);
-    const result = gradeItem(q.type, existing?.answerJson ?? null, q.correctAnswer);
+    const result = gradeItem(examItemType(q), existing?.answerJson ?? null, q.correctAnswer);
     if (!existing) {
       missing.push({ questionId: q.id, ...result });
       continue;
@@ -503,7 +516,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
       }
       return {
         id: q.id,
-        type: q.type,
+        type: examItemType(q),
         prompt: q.prompt,
         ...v2Stimulus(q),
         options,

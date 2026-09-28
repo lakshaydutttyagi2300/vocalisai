@@ -12,36 +12,42 @@ Everything here comes from the existing project, the owner's stated requirements
 2. **Read the handover:** `CLAUDE_NEW_ACCOUNT_START.md`, `CURRENT_STATE.md`, `docs/handover/*`.
 3. **Run the gate** on the branch:
    1. `npx tsc --noEmit`
-   2. `npm test` (expect 296 passing)
+   2. `npm test` (expect 316 passing)
    3. `npm run build`
    4. `E2E_SERVER=start npx playwright test` (see CURRENT_STATE.md for the last result, and re-check the exam specs listed there)
-4. **Ask the owner about shipping Phase 5.** The fixes (no more "100" for empty exams, phone layout fixes, question auto-tagging) are ready but not live. When the owner says **"ship to production"**, follow the release runbook in `docs/handover/GIT_AND_DEPLOYMENT.md`:
+4. **Before shipping the new sign-up:**
+   1. The owner creates a Gmail App Password (Google Account, Security, 2-Step Verification on, then App passwords).
+   2. Add `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER=<gmail>` and `SMTP_PASSWORD=<app password>` to Vercel Production (`vercel env add <NAME> production`).
+   3. Without these, nobody can register once the code step is live.
+5. **Ask the owner about shipping** Phase 5, the exam library and email verification. All of it is ready but not live: no more "100" for empty exams, phone layout fixes, question auto-tagging, 25 new exams and sign-up codes. When the owner says **"ship to production"**, follow the release runbook in `docs/handover/GIT_AND_DEPLOYMENT.md`:
    - backup branch;
-   - **no migration** this time;
+   - **one additive migration**, `20260928120000_email_verification_exam_descriptions` (`prisma migrate deploy` against production);
+   - `npm run seed:exam-library -- --production`;
    - fast-forward `main` and push;
-   - `/api/health` and `vercel logs` checks.
+   - `/api/health` and `vercel logs` checks;
+   - then **sign up once with a real inbox** to confirm the code email arrives.
 
 ## High priority
 
-5. **Re-add `DATABASE_URL` in Vercel Production** (the pooled production connection string). The site currently relies on the fallback. The owner may need step-by-step help, or it can be done with `vercel env add DATABASE_URL production`, with the owner pasting the value.
-6. **Reject unplayable listening questions at import/edit** (`src/lib/question-validation.ts`; see LISTENING_SYSTEM.md section 6). Add a unit test.
-7. **More content where pools are small.** This serves the owner's "no repeated questions" requirement. Check Admin, Question Bank coverage on the live site, then add items (listening, writing, fluency, interview, conversation roles) via `prisma/skills-content/` and `npm run seed:skills-content`, or admin import.
-8. **Generate two-voice audio for listening questions** that don't have it (free, Windows): `npm run generate:question-audio -- --dry-run`, then run it with `--production` after approval.
+6. **Re-add `DATABASE_URL` in Vercel Production** (the pooled production connection string). The site currently relies on the fallback. The owner may need step-by-step help, or it can be done with `vercel env add DATABASE_URL production`, with the owner pasting the value.
+7. **Reject unplayable listening questions at import/edit** (`src/lib/question-validation.ts`; see LISTENING_SYSTEM.md section 6). Add a unit test.
+8. **More content where pools are small.** This serves the owner's "no repeated questions" requirement. Check Admin, Question Bank coverage on the live site, then add items (listening, writing, fluency, interview, conversation roles) via `prisma/skills-content/` and `npm run seed:skills-content`, or admin import.
+9. **Generate two-voice audio for listening questions** that don't have it (free, Windows): `npm run generate:question-audio -- --dry-run`, then run it with `--production` after approval.
 
 ## Medium priority
 
-9. **Billing go-live (owner's decision):** configure Paddle products, prices and webhook, then set the 5 missing variables in Vercel and test in sandbox first.
-10. **Vercel Preview environment:** decide whether to copy the variables to Preview, pointed at the **staging** branch, or keep the local staging copy.
-11. **Optional data tidy-up:** recompute old score reports for exams that had no scored answers (read-only count first; approval and backup before any write).
-12. **Admin Candidates paging** (server-side `take`/`skip`) before the user count grows.
+10. **Billing go-live (owner's decision):** configure Paddle products, prices and webhook, then set the 5 missing variables in Vercel and test in sandbox first.
+11. **Vercel Preview environment:** decide whether to copy the variables to Preview, pointed at the **staging** branch, or keep the local staging copy.
+12. **Optional data tidy-up:** recompute old score reports for exams that had no scored answers (read-only count first; approval and backup before any write).
+13. **Admin Candidates paging** (server-side `take`/`skip`) before the user count grows.
 
 ## Later
 
-13. The CAMPUS and STUDY_ABROAD goal tracks (hidden, no content).
-14. Content for the hidden skill categories (COG, DIN, BIZ, DGT), then turn on `skills_all_categories`.
-15. Real exam content for the other exam families (SELT, PTE, Cambridge, Aptitude, Employment); only the catalogue exists.
-16. ElevenLabs natural voices, if the owner decides to pay: add `ELEVENLABS_API_KEY`, no code change.
-17. Clean-ups:
+14. The CAMPUS and STUDY_ABROAD goal tracks (hidden, no content).
+15. Content for the hidden skill categories (COG, DIN, BIZ, DGT), then turn on `skills_all_categories`.
+16. Real exam content for the other exam families (SELT, PTE, Cambridge, Aptitude, Employment); only the catalogue exists.
+17. ElevenLabs natural voices, if the owner decides to pay: add `ELEVENLABS_API_KEY`, no code change.
+18. Clean-ups:
     - delete the unused `src/lib/question-selection.ts`;
     - clearer empty-exam results message;
     - rename `package.json` "proacting";

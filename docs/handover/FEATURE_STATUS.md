@@ -15,13 +15,15 @@ Phase 5 fixes (the unscored empty exam and others) are on branch `feat/skills-pl
 | Area | Status | Evidence / notes |
 |---|---|---|
 | **Candidate view**: dashboard, menus, pages | COMPLETE | `src/app/dashboard`, walkthrough.spec (no errors or overflow), `candidate-experience.spec.ts` |
-| Signup / login / password reset | COMPLETE | `auth.spec.ts`. Reset email needs Resend (configured in production). |
+| Signup / login / password reset | COMPLETE | `auth.spec.ts` |
+| **Email-verified sign-up** (6-digit code, expiry, resend, limits) | COMPLETE on the branch, **not live** | `src/lib/email-verification.ts`, `email-verification.test.ts`, `auth.spec.ts`. Going live needs Gmail SMTP in Vercel. |
+| Password-reset email on the live site | BUGGY (live) | Resend sandbox delivers only to the owner. Fixed by SMTP plus this release. |
 | **Goal Tracks and onboarding** (Phase 4) | COMPLETE | `goal-tracks.ts`, `goals.spec.ts`. 3 enabled tracks; CAMPUS and STUDY_ABROAD hidden with no content. |
 | **Skill-based practice**: My Skills, Quick Drills, "I'm weak in" diagnostics, mastery (Phase 2) | COMPLETE | `src/lib/skills/*`, `skills.spec.ts`, `skills-phase2.test.ts` |
 | Practice library (17 modes) | COMPLETE | `practice-taxonomy.ts`, `practice-mcq.spec.ts`, `practice-voice.spec.ts` |
 | **Question bank** (5,772 active, all skill-tagged) | COMPLETE | QUESTION_BANK.md; live audit 26 Sep |
 | **Question uniqueness** (fresh first everywhere) | COMPLETE for code; content-limited | `question-freshness.ts`. Small pools (listening, writing, conversation roles) still repeat sooner; this needs more content. |
-| **Exam-type categorisation** (exam catalogue, 7 families, templates, blueprints) | MOSTLY COMPLETE | `exam-catalogue.ts`, admin exam screens. Only General English, BPO and the 3 IELTS-style practice tests have real exams; the other families (SELT, PTE, Cambridge, Aptitude, Employment) have **no exam content yet**. |
+| **Exam-type categorisation and exam library** | COMPLETE on the branch, **not live** | 25 exams in 12 types (`prisma/exam-library/content.mjs`, `npm run seed:exam-library`); one card per exam; type filters; admins create new types. `exam-library.test.ts`, `exam-library.spec.ts`. The SELT, PTE, Cambridge and Employment families still have no exams. |
 | Skill categorisation (12 categories, 302 skills) | MOSTLY COMPLETE | 8 visible. COG, DIN, BIZ and DGT are hidden with **no content**. |
 | **Mock tests v1** (proctored, sections, report) | COMPLETE | `mock-test*.spec.ts`. Phase 5 fixed the "100 with nothing answered" scoring. |
 | **Exam runner v2** (IELTS-style timed papers) | COMPLETE | `exam-runner.ts`, `exam-runner-v2*.spec.ts`, `exam-demo.spec.ts` (all passing on 28 Sep) |

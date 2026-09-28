@@ -29,7 +29,11 @@ describe("exam-catalogue registries", () => {
   });
 
   it("rejects an ExamFamily with an invalid slug or missing name", () => {
-    expect(validateExamFamilyFields({ slug: "NOT_A_REAL_FAMILY", name: "Whatever" })).toMatch(/Invalid exam family slug/);
+    // Custom exam types are allowed (admins add them without code); only malformed codes are refused.
+    expect(validateExamFamilyFields({ slug: "BUSINESS_ENGLISH", name: "Business English" })).toBeNull();
+    for (const bad of ["", "x", "lower_case", "HAS SPACE", "1STARTS_WITH_DIGIT"]) {
+      expect(validateExamFamilyFields({ slug: bad, name: "Whatever" }), bad).toMatch(/Invalid exam family slug/);
+    }
     expect(validateExamFamilyFields({ slug: "IELTS_STYLE", name: "" })).toMatch(/name is required/);
     expect(validateExamFamilyFields({ slug: "IELTS_STYLE", name: "IELTS-style" })).toBeNull();
   });

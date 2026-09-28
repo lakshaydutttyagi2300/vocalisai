@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { guardExamSession } from "@/lib/exam-runner-guard";
-import { parsePlan, processExpiry } from "@/lib/exam-runner";
+import { examItemType, parsePlan, processExpiry } from "@/lib/exam-runner";
 import { getQuestionTypeDef } from "@/lib/question-types";
 
 // Autosave for one answer. Every check is server-side: the paper must
@@ -36,15 +36,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "In this section you can only answer the current question." }, { status: 409 });
   }
 
-  const question = await db.practiceQuestion.findUnique({ where: { id: questionId }, select: { type: true } });
+  const question = await db.practiceQuestion.findUnique({ where: { id: questionId }, select: { type: true, category: true } });
   if (!question) return NextResponse.json({ error: "Question not found." }, { status: 404 });
 
   if (answer !== null) {
-    const def = getQuestionTypeDef(question.type);
+    const itemType = examItemType(question);
+    const def = getQuestionTypeDef(itemType);
     if (!def || !def.answerSchema.safeParse(answer).success) {
       return NextResponse.json({ error: "That answer isn't in a valid format for this question." }, { status: 400 });
     }
-    if (question.type === "TIMED_SPEAKING") {
+    if (itemType === "TIMED_SPEAKING") {
       const recording = await db.practiceRecording.findUnique({ where: { id: (answer as { recordingId: string }).recordingId } });
       if (!recording || recording.userId !== guard.userId) {
         return NextResponse.json({ error: "Invalid recording." }, { status: 400 });

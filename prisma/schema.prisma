@@ -629,6 +629,10 @@ model ExamVariant {
   // registry-validated-in-TS reason as PracticeQuestion.category.
   scoreScale String
 
+  // What this exam is for, shown on its card in the candidate's exam
+  // library and editable in /admin/exams. Null = no description.
+  description String?
+
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -887,4 +891,25 @@ model PasswordResetToken {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
+}
+
+// A sign-up waiting for its emailed one-time code. No User row exists
+// until the right code is entered (src/lib/email-verification.ts) - so an
+// unverified address can never log in or hold an account. The code itself
+// is never stored: codeHash is an HMAC of email + code keyed with
+// NEXTAUTH_SECRET, and nothing here is ever sent to the browser. One row
+// per email; a new sign-up for the same email replaces it. Rows are
+// deleted on success and swept once long expired.
+model EmailVerification {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0) // wrong codes entered against the current code
+  lastSentAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([expiresAt])
 }

@@ -26,7 +26,10 @@
 | `NEXTAUTH_URL` | NextAuth base URL (`http://localhost:3000` locally) | NextAuth | no (Vercel works it out) |
 | `GROQ_API_KEY` = `<GROQ_API_KEY>` | speech-to-text of recordings | `src/lib/providers/groq-whisper-provider.ts` | yes |
 | `GEMINI_API_KEY` = `<GEMINI_API_KEY>` | AI analysis, coach, conversation, reports, rewrites, scenarios | `src/lib/providers/gemini-*.ts` | yes |
-| `RESEND_API_KEY` = `<RESEND_API_KEY>` | password-reset email | `src/lib/email.ts` | yes |
+| `SMTP_HOST` = `smtp.gmail.com`, `SMTP_PORT` = `465`, `SMTP_USER` = `<GMAIL_ADDRESS>`, `SMTP_PASSWORD` = `<GMAIL_APP_PASSWORD>` | **sign-up verification codes** and password resets (the owner chose Gmail, free, on 28 Sep) | `src/lib/email.ts` | **no. Must be added before the email-verified sign-up ships**, or nobody can register. |
+| `EMAIL_FROM` | optional sender name/address, e.g. `VocalisAi <you@gmail.com>` | `src/lib/email.ts` | no |
+| `EMAIL_DELIVERY` | optional: `smtp`, `resend` or `log`. The tests force `log`; "log" refuses on the live site. | `src/lib/email.ts`, `playwright.config.ts` | no |
+| `RESEND_API_KEY` = `<RESEND_API_KEY>` | fallback email sender. **Sandbox only:** without a verified domain it delivers only to the owner's own inbox. | `src/lib/email.ts` | yes |
 | `RESEND_FROM_EMAIL` | sender address | `src/lib/email.ts` (defaults to `onboarding@resend.dev`) | yes |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` | recordings, generated audio, admin uploads, TTS cache | `src/lib/storage.ts` | yes (all four) |
 | `NEXT_PUBLIC_PADDLE_ENV` | `sandbox` or `production` | `src/lib/paddle.ts`, `src/app/billing/page.tsx` | yes |
@@ -101,9 +104,15 @@ Do any "Rotate?" step only if you think a key has leaked. Moving to a new **Clau
 - **Uses:** speech analysis, coach, conversation turns and summary, AI report, "Improve my answer", AI-generated scenarios.
 - **If it's missing,** those features show an error; the rest of the app works.
 
-### 7. Resend (email)
-- **Use:** password-reset email only.
-- **Setup:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL`. The sender domain must be verified in Resend.
+### 7. Email: Gmail SMTP (primary) and Resend (fallback)
+- **Use:** sign-up verification codes (new) and password resets.
+- **Gmail SMTP** (owner's choice, free, about 500 emails a day):
+  1. On the Gmail account, turn on 2-Step Verification.
+  2. Create an **App Password** at https://myaccount.google.com/apppasswords.
+  3. Set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER=<gmail address>` and `SMTP_PASSWORD=<app password>` in Vercel Production (and in `.env` to test locally).
+  - It's tied to the owner's Google account, not to Claude.
+- **Resend:** used only when SMTP isn't set. Without a verified domain (which costs money) it can only deliver to the Resend account owner's inbox. That is why, **on the live site today, password-reset emails reach nobody but the owner.** Adding SMTP fixes that too.
+- **Local development without SMTP:** codes and reset links are printed in the server console (`EMAIL_DELIVERY=log`).
 
 ### 8. Paddle (billing), **not fully set up**
 - **What exists:** webhook `POST /api/webhooks/paddle`, which checks the signature and sets the plan.

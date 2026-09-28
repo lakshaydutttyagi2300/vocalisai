@@ -17,6 +17,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
   EXAM_FAMILY_SEED,
+  familySlugFromName,
   validateExamFamilyFields,
   validateExamPaperFields,
   validateExamPartFields,
@@ -120,9 +121,10 @@ export async function createCatalogueRecord(entity: CatalogueEntity, body: Body)
   try {
     switch (entity) {
       case "families": {
-        const slug = str(body.slug) ?? "";
-        const seed = EXAM_FAMILY_SEED.find((f) => f.slug === slug);
+        // A ready-made type (by slug), or a brand-new one from just a name.
+        const seed = EXAM_FAMILY_SEED.find((f) => f.slug === str(body.slug));
         const name = str(body.name) || seed?.name || "";
+        const slug = str(body.slug) || familySlugFromName(name);
         const error = validateExamFamilyFields({ slug, name });
         if (error) return fail(400, error);
         const record = await db.examFamily.create({
@@ -136,7 +138,9 @@ export async function createCatalogueRecord(entity: CatalogueEntity, body: Body)
         const fields = { slug: (str(body.slug) ?? "").toUpperCase(), name: str(body.name) ?? "", scoreScale: str(body.scoreScale) ?? "" };
         const error = validateExamVariantFields(fields);
         if (error) return fail(400, error);
-        const record = await db.examVariant.create({ data: { familyId, ...fields, isActive: optBool(body.isActive) ?? true } });
+        const record = await db.examVariant.create({
+          data: { familyId, ...fields, description: optStr(body.description) ?? null, isActive: optBool(body.isActive) ?? true },
+        });
         return { ok: true, record };
       }
       case "papers": {
@@ -212,7 +216,11 @@ export async function updateCatalogueRecord(entity: CatalogueEntity, id: string,
         if (error) return fail(400, error);
         const record = await db.examVariant.update({
           where: { id },
-          data: { ...fields, ...(optBool(body.isActive) !== undefined ? { isActive: optBool(body.isActive) } : {}) },
+          data: {
+            ...fields,
+            ...(optStr(body.description) !== undefined ? { description: optStr(body.description) } : {}),
+            ...(optBool(body.isActive) !== undefined ? { isActive: optBool(body.isActive) } : {}),
+          },
         });
         return { ok: true, record, before };
       }

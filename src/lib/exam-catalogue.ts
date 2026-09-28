@@ -24,6 +24,24 @@ export function isValidExamFamilySlug(value: string): value is ExamFamilySlug {
   return (EXAM_FAMILY_SLUGS as readonly string[]).includes(value);
 }
 
+// The registry above is a set of ready-made suggestions (with names and
+// descriptions). Admins can also create their own exam types - e.g.
+// BUSINESS_ENGLISH - from /admin/exams without a code change; any
+// well-formed code is accepted.
+export function isWellFormedFamilySlug(value: string): boolean {
+  return /^[A-Z][A-Z0-9_]{1,39}$/.test(value);
+}
+
+/** "Business English (Pro)" -> "BUSINESS_ENGLISH_PRO" */
+export function familySlugFromName(name: string): string {
+  const slug = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+  return /^[A-Z]/.test(slug) ? slug : `EXAM_${slug}`.slice(0, 40);
+}
+
 // Seed data for P1-G's admin CRUD and P1-H's demo seed - deliberately
 // styled as "-style"/generic names, never the real trademarked exam name,
 // per the "no implied official affiliation" requirement. Real trademark
@@ -51,7 +69,7 @@ export interface ExamFamilyFields {
 }
 
 export function validateExamFamilyFields(f: ExamFamilyFields): string | null {
-  if (!isValidExamFamilySlug(f.slug)) return `Invalid exam family slug "${f.slug}".`;
+  if (!isWellFormedFamilySlug(f.slug)) return `Invalid exam family slug "${f.slug}" - use A-Z, 0-9 and underscores, starting with a letter.`;
   if (!f.name || f.name.trim().length < 2) return "name is required.";
   return null;
 }

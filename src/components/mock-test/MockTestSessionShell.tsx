@@ -30,11 +30,14 @@ export function MockTestSessionShell({
   cameraStream,
   micStream,
   templateId = null,
+  anyVersion = false,
 }: {
   cameraStream: MediaStream | null;
   micStream: MediaStream | null;
   // The test chosen on the Mock Tests page; null = the default template.
   templateId?: string | null;
+  // The chosen exam has several versions: start one not taken yet.
+  anyVersion?: boolean;
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -101,7 +104,7 @@ export function MockTestSessionShell({
         ? await fetch("/api/mock-tests/sessions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ templateId }),
+            body: JSON.stringify(anyVersion ? { templateId, anyVersion: true } : { templateId }),
           })
         : await fetch("/api/mock-tests/sessions", { method: "POST" });
       const data = await res.json();

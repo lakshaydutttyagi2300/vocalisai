@@ -53,7 +53,13 @@ export async function POST(req: Request) {
       const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
       const resetUrl = `${origin}/reset-password?token=${rawToken}`;
 
-      await sendPasswordResetEmail(user.email, resetUrl);
+      // A failed send must look the same as success (no account-existence
+      // leak) - it is logged for the owner instead.
+      try {
+        await sendPasswordResetEmail(user.email, resetUrl);
+      } catch (err) {
+        console.error(`[password-reset] email to ${user.email} failed:`, err instanceof Error ? err.message : err);
+      }
     }
   }
 

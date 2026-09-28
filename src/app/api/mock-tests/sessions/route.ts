@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { runnerForTemplate } from "@/lib/exam-runner";
-import { listMockTestOptions } from "@/lib/mock-test-options";
+import { findOption, listMockTestOptions, pickVersion } from "@/lib/mock-test-options";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -21,13 +21,16 @@ export async function POST(req: Request) {
   // No body (every existing caller) means the default template, exactly
   // as before. A choice outside the offered list is refused BEFORE any
   // usage is recorded, so a bad request never costs an assessment.
-  const body = (await req.json().catch(() => null)) as { templateId?: unknown } | null;
-  const chosenId = typeof body?.templateId === "string" && body.templateId ? body.templateId : null;
+  // { templateId, anyVersion: true } (the chooser, for an exam with several
+  // versions) starts a version this candidate hasn't taken yet.
+  const body = (await req.json().catch(() => null)) as { templateId?: unknown; anyVersion?: unknown } | null;
+  let chosenId = typeof body?.templateId === "string" && body.templateId ? body.templateId : null;
   if (chosenId) {
-    const offered = await listMockTestOptions();
-    if (!offered.some((o) => o.templateId === chosenId)) {
+    const option = findOption(await listMockTestOptions(), chosenId);
+    if (!option) {
       return NextResponse.json({ error: "That mock test isn't available." }, { status: 400 });
     }
+    if (body?.anyVersion === true) chosenId = await pickVersion(session.user.id, option.versionTemplateIds);
   }
 
   const usage = await checkAndRecordUsage(session.user.id, "MOCK_ASSESSMENT");

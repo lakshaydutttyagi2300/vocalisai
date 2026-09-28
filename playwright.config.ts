@@ -10,6 +10,9 @@ import path from "node:path";
 // .env.test on its own, so this file is the one place that does.
 config({ path: path.resolve(__dirname, ".env") });
 config({ path: path.resolve(__dirname, ".env.test"), override: true });
+// Browser tests never send real email (sign-up codes, password resets):
+// the app only writes them to the server log (src/lib/email.ts).
+process.env.EMAIL_DELIVERY = "log";
 
 export default defineConfig({
   testDir: "./tests/e2e",

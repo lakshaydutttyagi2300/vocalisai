@@ -91,6 +91,11 @@ git push origin design/premium-dashboard-concept
 
 ## Release runbook (only after the owner says "ship to production")
 
+0. **For the exam library + email-verification release:**
+   - Gmail SMTP must be set in Vercel Production first (SERVICES_AND_SECRETS.md, section 7);
+   - migration `20260928120000_email_verification_exam_descriptions` must be applied (step 2);
+   - `npm run seed:exam-library -- --production` must be run (step 3);
+   - after deploying, sign up with a real inbox to confirm the code arrives.
 1. **Backup:** Neon, create a branch from `production` named `backup-production-before-<what>`. The free plan allows 10 branches (8 used on 28 Sep), so delete an old backup if needed, with the owner's OK.
 2. **Migrations** (only if `prisma/migrations` changed):
    ```bash

@@ -36,9 +36,20 @@
 - `tests/e2e/walkthrough.spec.ts`: opens 43 pages at laptop and phone size. Final review: **no errors, no server failures, no sideways scrolling**.
 - Test fix: the v2 exam UI test now retries the camera step after a reload.
 
+## Also on the branch, NOT live yet: exam library and email-verified sign-up (28 Sep)
+- **Sign-up needs an emailed 6-digit code.** The account is created only after the right code; there's expiry, resend, attempt limits and rate limits. The code is never stored in plain form or sent to the browser (`src/lib/email-verification.ts`).
+- **Email is sent by Gmail (free, owner's choice).** SMTP settings are needed in Vercel **before** shipping, or nobody can sign up (`src/lib/email.ts`).
+- **Mock Exams:**
+  - 25 exams in 12 types (Business, Customer Service, Speaking, Listening, Reading, Writing, Grammar, Vocabulary, Interview, Academic, Placement, Aptitude), 10-135 minutes;
+  - one card per exam (versions grouped), type filters;
+  - spoken and written questions work in timed exams;
+  - admins can create new exam types.
+- **DB migration** `20260928120000_email_verification_exam_descriptions` (additive): applied to **development and test only**.
+- Details: `CHANGES.md` (last section).
+
 ## Test results (28 Sep)
 - `npx tsc --noEmit`: clean.
-- `npm test`: **296 / 296 passed** (23 files).
+- `npm test`: **296 / 296 passed** (23 files) at the handover commit. **316 / 316 (25 files)** after the exam library and email verification.
 - `npm run build`: clean.
 - **Playwright, full run against the production build: 34 passed, 5 failed.**
   - The 5 failures: `exam-demo` (Practice Test 2), `exam-runner-v2` (flag off), `exam-runner-v2-ui`, `buttons`, `walkthrough`.
@@ -51,8 +62,10 @@
   - `exam-runner-v2-ui`;
   - `walkthrough` ("No problems found").
 - **Effective result: all 39 browser tests pass.** The earlier failures were test interference, not app bugs.
+- **After the exam library and email verification (43 browser tests):** the full run had 39 passed. The 4 failures were a brief "can't reach database server" outage of the Neon test branch. Re-run alone: **8 / 8 passed**, so **all 43 pass**.
 
 ## Known bugs / gaps (top items; the full list is in `docs/handover/KNOWN_ISSUES.md`)
+0. **Live password-reset emails only reach the owner's own inbox** (Resend without a domain). Fixed when the Gmail SMTP settings are added and this work ships.
 1. **Vercel Production has no `DATABASE_URL`.** The site runs on the `DATABASE_URL_UNPOOLED` fallback. Re-add it.
 2. Phase 5 fixes aren't live until "ship to production".
 3. Paddle checkout isn't configured (plans are set by admins).
@@ -68,7 +81,8 @@ See `NEXT_STEPS.md`. The first is to ask the owner whether to ship Phase 5; the 
 - **NextAuth:** `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (local).
 - **Groq** (`GROQ_API_KEY`) and **Gemini** (`GEMINI_API_KEY`).
 - **Cloudflare R2:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`.
-- **Resend:** `RESEND_API_KEY`, `RESEND_FROM_EMAIL`.
+- **Email (Gmail SMTP; needed for sign-up):** `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), optional `EMAIL_FROM`.
+- **Resend:** `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (fallback; sandbox only).
 - **Paddle** (not live): `NEXT_PUBLIC_PADDLE_*`, `PADDLE_WEBHOOK_SECRET`.
 - **ElevenLabs** (off): `ELEVENLABS_API_KEY`.
 
@@ -80,10 +94,13 @@ Details and where to set each: `docs/handover/SERVICES_AND_SECRETS.md`.
   - production, development, staging, test;
   - backups before-phase4-goals, before-question-bank, before-skills-platform, before-speaker-label-fix.
   - The free-plan limit is 10.
-- **No database migrations are pending** (Phase 5 has none).
+- **Pending for production:**
+  1. migration `20260928120000_email_verification_exam_descriptions` (additive; applied to dev/test only);
+  2. `npm run seed:exam-library -- --production`.
 
 ## Immediate next steps
 1. The new Claude session reads `CLAUDE_NEW_ACCOUNT_START.md`.
 2. Run the test gate, including the 5 exam/UI specs, with no other test run active.
-3. Ask the owner: "ship to production" for Phase 5? Then run the release runbook.
-4. Help the owner re-add `DATABASE_URL` in Vercel Production.
+3. Before shipping, the owner creates a Gmail app password, and the 4 SMTP settings are added to Vercel Production.
+4. Ask the owner: "ship to production"? Then run the runbook: backup, `prisma migrate deploy`, `seed:exam-library --production`, push `main`, health and logs, and **a real sign-up with a real inbox**.
+5. Help the owner re-add `DATABASE_URL` in Vercel Production.

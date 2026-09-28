@@ -40,7 +40,7 @@ You are continuing a project another Claude account built with this owner up to 
 
 ## 4. Done / in progress / broken
 - **Done and live:** Phases 1-4 of the skills platform, the 5,772-question bank with fresh-first selection, free-mode voices, the DB hotfix and `/api/health`.
-- **Done on the branch, not live:** the Phase 5 QA fixes (see `CURRENT_STATE.md`).
+- **Done on the branch, not live:** the Phase 5 QA fixes, the **exam library** (25 exams, 12 types, admin-extendable) and **email-verified sign-up** (see `CURRENT_STATE.md` and the end of `CHANGES.md`). Sign-up verification needs Gmail SMTP settings in Vercel before it ships.
 - **Broken or gaps:** `docs/handover/KNOWN_ISSUES.md`. Top items:
   1. Vercel Production lacks `DATABASE_URL`; it runs on the fallback.
   2. Paddle checkout isn't configured.
@@ -114,5 +114,5 @@ Full setup: `docs/handover/SETUP_GUIDE.md`.
 ## 10. What to do first
 1. Run `git status` and `git log --oneline -3`. You should be on `feat/skills-platform` with the handover commit on top and a clean tree.
 2. Run the gate: `npx tsc --noEmit`, `npm test`, `npm run build`, `E2E_SERVER=start npx playwright test`. Report the results in plain language.
-3. Ask the owner whether to **"ship to production"** the Phase 5 fixes. Then follow the runbook (no migration is needed).
+3. Make sure the owner has created a Gmail app password and that the `SMTP_*` settings are in Vercel Production. Then ask whether to **"ship to production"**. The runbook for this release: backup, migration `20260928120000_email_verification_exam_descriptions`, `seed:exam-library -- --production`, push `main`, health and logs, and a real sign-up test.
 4. Offer to help re-add `DATABASE_URL` in Vercel Production (NEXT_STEPS.md, item 5).

@@ -731,3 +731,52 @@ No DB migration.
 - **Handover package (28 Sep 2026)** for moving to a new Claude account:
   - `CLAUDE_NEW_ACCOUNT_START.md`, `CURRENT_STATE.md`, `MIGRATION_CHECKLIST.md`, `NEXT_STEPS.md`;
   - `docs/handover/`: architecture, services and secrets (placeholders only), Claude Code setup, git and deployment, feature status, known issues, question bank, listening system, decision log, setup guide, DO NOT BREAK.
+
+## Exam library and email-verified sign-up (branch `feat/skills-platform`)
+
+**Database migration `20260928120000_email_verification_exam_descriptions`** (additive; `down.sql` included). The owner approved it for dev/test on 28 Sep. It adds:
+- a new `EmailVerification` table;
+- a nullable `ExamVariant.description`.
+
+Applied to **development and test only**; production waits for "ship to production".
+
+### Email verification at sign-up
+- **The account only exists after the right code.** `POST /api/auth/signup` validates the details and emails a 6-digit code. The code is stored only as an HMAC (keyed with `NEXTAUTH_SECRET`) and never returned. `POST /api/auth/signup/verify` with the right code creates the account; `POST /api/auth/signup/resend` sends a new code. The logic lives in `src/lib/email-verification.ts`.
+- **Checks before anything is stored:** email format, the domain must be able to receive mail (MX lookup, fails open on DNS trouble), and the email must not already be registered.
+- **Limits:**
+  - codes expire after 10 minutes;
+  - 5 wrong codes per code;
+  - 60 seconds between codes;
+  - 5 codes per email per hour;
+  - 10 sign-up starts per IP per hour;
+  - 30 code checks per IP per 10 minutes.
+- **Sign-up page** has two steps: details, then the code (with a resend countdown and "use a different email"). It logs in automatically once verified.
+- **Email sending** (`src/lib/email.ts`): SMTP (e.g. Gmail with an app password, free) when `SMTP_*` is set, else Resend, else server log (local development and e2e via `EMAIL_DELIVERY=log`). "Log" mode refuses on the live site. Send failures are now detected; Resend's `error` result used to be ignored, so live password-reset emails to anyone but the owner silently failed. The password reset still answers the same either way.
+- **Admin-created accounts** are unchanged.
+- **Before shipping:** set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password) and optionally `EMAIL_FROM` in Vercel Production. Without them nobody can sign up.
+
+### Exam library
+- **25 exams in 12 exam types**, from `prisma/exam-library/content.mjs`, loaded by `npm run seed:exam-library` (`--production` for live, `--dry-run` to preview). The types are Business English, Customer Service English, Speaking, Listening, Reading, Writing, Grammar, Vocabulary, Interview English, Academic English, Placement Test and Aptitude.
+  - Each exam has its own papers, parts, levels, question counts and time limit (10 to 135 minutes). Questions are drawn fresh from the bank.
+  - The loader is safe to re-run: it creates missing exams, refreshes only names, descriptions and timings, and never deletes anything. It warns when the bank has fewer questions than a section asks for.
+- **General English assessment** now focuses on language: grammar, vocabulary, reading, listening, writing, read aloud and speaking. It previously shared 8 of its 9 sections with the BPO assessment.
+- **No duplicate cards** (`src/lib/mock-test-options.ts`): exams with the same type, papers, timings and sections are one card with versions, titled without the number (e.g. IELTS-style Academic, 3 versions). Starting it picks a version the candidate hasn't taken, then the one taken longest ago (`anyVersion` on `POST /api/mock-tests/sessions`). A specific version can still be requested by id.
+- **Chooser** (`MockTestEntry.tsx`):
+  - type filter chips (one scrolling row on phones);
+  - cards with type, description, total time, question count, levels, papers and versions;
+  - a start bar that stays at the bottom of the screen.
+
+  Standard assessments show a summary of what they cover instead of internal notes. The brand disclaimer only shows for "-style" exams.
+- **Timed exams answer bank questions properly** (`examItemType` in `src/lib/exam-runner.ts`): spoken prompts (read aloud, pronunciation, fluency, speaking, customer and supervisor calls) are recorded; writing tasks get the long-writing box. Display, answer checking and marking all use this rule.
+- **Admin, no code needed:** `/admin/exams` can create a brand-new exam type from a name and description. The type code is generated, and custom codes are accepted (the ready-made list is now just suggestions). Each exam version has a candidate-facing description.
+
+### Tests
+- **Unit:**
+  - `email-verification.test.ts` (9);
+  - `exam-library.test.ts` (11): content rules, no duplicates, question-type mapping, grouping, version rotation, idempotent loader, custom types;
+  - `exam-catalogue.test.ts` updated.
+- **E2E:**
+  - `auth.spec.ts`: code step, wrong code, bad domain, existing email;
+  - `exam-library.spec.ts`: filters, a 15-minute grammar exam started, speaking and writing types, admin custom type;
+  - `exam-demo.spec.ts`: practice tests as one card with 3 versions.
+- **Harness:** `playwright.config.ts` sets `EMAIL_DELIVERY=log`; `global-setup.ts` clears all `signup*` rate-limit keys.

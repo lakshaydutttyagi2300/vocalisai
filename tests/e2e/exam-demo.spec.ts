@@ -34,6 +34,7 @@ interface ViewQuestion {
 }
 interface Option {
   templateId: string;
+  versionTemplateIds: string[];
   name: string;
   kind: string;
   isDefault: boolean;
@@ -88,19 +89,23 @@ test("the practice tests are offered only while the new exam is on, next to the 
   const off = (await (await page.request.get("/api/mock-tests/options")).json()).options as Option[];
   expect(off[0]).toMatchObject({ templateId: defaultTemplate.id, kind: "standard", isDefault: true });
   expect(off.every((o) => o.kind === "standard")).toBe(true);
-  expect(off.some((o) => seededTemplateIds.includes(o.templateId))).toBe(false);
+  expect(off.some((o) => o.versionTemplateIds.some((id) => seededTemplateIds.includes(id)))).toBe(false);
   // ...and a practice test can't be requested directly.
   const refused = await page.request.post("/api/mock-tests/sessions", { data: { templateId: seededTemplateIds[0] } });
   expect(refused.status()).toBe(400);
   expect(await db.usageEvent.count({ where: { userId: user.id } })).toBe(0); // a refused choice costs nothing
 
-  // ON: default first, then the 3 practice tests.
+  // ON: default first; the 3 practice tests share one structure, so they are
+  // ONE exam card with 3 versions (no near-duplicate cards).
   await setFlag(true);
   const on = (await (await page.request.get("/api/mock-tests/options")).json()).options as Option[];
   expect(on[0]).toMatchObject({ templateId: defaultTemplate.id, kind: "standard" });
-  const offered = on.filter((o) => seededTemplateIds.includes(o.templateId));
-  expect(offered.map((o) => o.name)).toEqual(PRACTICE_TESTS.map((t) => t.templateName));
-  for (const o of offered) expect(o).toMatchObject({ kind: "exam", totalMinutes: 30 + 60 + 60 + 15 });
+  const offered = on.filter((o) => o.versionTemplateIds.some((id) => seededTemplateIds.includes(id)));
+  expect(offered).toHaveLength(1);
+  expect([...offered[0].versionTemplateIds].sort()).toEqual([...seededTemplateIds].sort());
+  expect(offered[0]).toMatchObject({ kind: "exam", totalMinutes: 30 + 60 + 60 + 15 });
+  expect(offered[0].name).not.toMatch(/\d$/); // the card title drops the version number
+  const examTitle = offered[0].name;
 
   // No choice = the default test, exactly as before (runner v1).
   const plain = await (await page.request.post("/api/mock-tests/sessions")).json();
@@ -112,7 +117,9 @@ test("the practice tests are offered only while the new exam is on, next to the 
   await db.examVariant.update({ where: { id: variant.id }, data: { isActive: false } });
   try {
     const hidden = (await (await page.request.get("/api/mock-tests/options")).json()).options as Option[];
-    expect(hidden.map((o) => o.name)).not.toContain(PRACTICE_TESTS[2].templateName);
+    const group = hidden.find((o) => o.versionTemplateIds.some((id) => seededTemplateIds.includes(id)));
+    expect(group?.versionTemplateIds).toHaveLength(2);
+    expect(group?.versionTemplateIds).not.toContain(seededTemplateIds[2]);
   } finally {
     await db.examVariant.update({ where: { id: variant.id }, data: { isActive: true } });
   }
@@ -122,10 +129,10 @@ test("the practice tests are offered only while the new exam is on, next to the 
   const chooser = page.getByRole("radiogroup", { name: "Choose a mock test" });
   await expect(chooser).toBeVisible({ timeout: 20_000 });
   await expect(chooser.getByRole("radio", { name: new RegExp(defaultTemplate.name) })).toHaveAttribute("aria-checked", "true");
-  const pt2 = chooser.getByRole("radio", { name: new RegExp(PRACTICE_TESTS[1].templateName) });
-  await expect(pt2).toContainText("2 h 45 min in total");
-  await pt2.click();
-  await expect(pt2).toHaveAttribute("aria-checked", "true");
+  const practice = chooser.getByRole("radio", { name: new RegExp(examTitle) }).filter({ hasText: "3 versions" });
+  await expect(practice).toContainText("2 h 45 min in total");
+  await practice.click();
+  await expect(practice).toHaveAttribute("aria-checked", "true");
   await expect(page.getByText(/not affiliated with or endorsed by IELTS/)).toBeVisible();
   await page.screenshot({ path: "test-results/practice-tests/chooser.png", fullPage: true });
 

@@ -30,6 +30,7 @@ interface Variant {
   id: string;
   slug: string;
   name: string;
+  description: string | null;
   scoreScale: string;
   isActive: boolean;
   _count: { mockTestTemplates: number };
@@ -66,6 +67,7 @@ export default function AdminExamsPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [newFamily, setNewFamily] = useState("");
+  const [customFamily, setCustomFamily] = useState({ name: "", description: "" });
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/exam-catalogue");
@@ -134,7 +136,33 @@ export default function AdminExamsPage() {
             >
               Add family
             </button>
-            {data.availableFamilies.length === 0 && <span className="text-xs text-slate-500">Every exam family has been added.</span>}
+            {data.availableFamilies.length === 0 && <span className="text-xs text-slate-500">Every ready-made family has been added.</span>}
+            <form
+              className="flex w-full flex-wrap items-end gap-2 border-t border-slate-100 pt-3"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (await api("POST", "families", customFamily)) setCustomFamily({ name: "", description: "" });
+              }}
+            >
+              <span className="w-full text-xs font-semibold uppercase tracking-wide text-slate-500">Or create your own exam type</span>
+              <input
+                aria-label="New exam type name"
+                placeholder="Name (e.g. Business English)"
+                value={customFamily.name}
+                onChange={(e) => setCustomFamily({ ...customFamily, name: e.target.value })}
+                className={input}
+              />
+              <input
+                aria-label="New exam type description"
+                placeholder="What it tests (shown to candidates)"
+                value={customFamily.description}
+                onChange={(e) => setCustomFamily({ ...customFamily, description: e.target.value })}
+                className={`${input} min-w-0 flex-1`}
+              />
+              <button type="submit" disabled={customFamily.name.trim().length < 2} className="btn-primary text-sm disabled:opacity-50">
+                Create exam type
+              </button>
+            </form>
           </div>
 
           <div className="mt-6 space-y-6">
@@ -150,7 +178,7 @@ export default function AdminExamsPage() {
 }
 
 function FamilyCard({ family, catalogue, api }: { family: Family; catalogue: Catalogue; api: Api }) {
-  const [adding, setAdding] = useState({ slug: "", name: "", scoreScale: catalogue.scoreScales[0] ?? "" });
+  const [adding, setAdding] = useState({ slug: "", name: "", description: "", scoreScale: catalogue.scoreScales[0] ?? "" });
 
   return (
     <section className="card p-5" aria-label={`Exam family ${family.name}`}>
@@ -184,12 +212,19 @@ function FamilyCard({ family, catalogue, api }: { family: Family; catalogue: Cat
         className="mt-4 flex flex-wrap items-end gap-2 border-t border-slate-100 pt-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await api("POST", "variants", { familyId: family.id, ...adding })) setAdding({ ...adding, slug: "", name: "" });
+          if (await api("POST", "variants", { familyId: family.id, ...adding })) setAdding({ ...adding, slug: "", name: "", description: "" });
         }}
       >
         <span className="w-full text-xs font-semibold uppercase tracking-wide text-slate-500">Add a version</span>
         <input aria-label="Version name" placeholder="Name (e.g. Academic)" value={adding.name} onChange={(e) => setAdding({ ...adding, name: e.target.value })} className={input} />
         <input aria-label="Version short code" placeholder="Short code (e.g. ACADEMIC)" value={adding.slug} onChange={(e) => setAdding({ ...adding, slug: e.target.value.toUpperCase() })} className={input} />
+        <input
+          aria-label="Version description"
+          placeholder="Description (shown to candidates)"
+          value={adding.description}
+          onChange={(e) => setAdding({ ...adding, description: e.target.value })}
+          className={`${input} min-w-0 flex-1`}
+        />
         <select aria-label="Version score scale" value={adding.scoreScale} onChange={(e) => setAdding({ ...adding, scoreScale: e.target.value })} className={input}>
           {catalogue.scoreScales.map((s) => (
             <option key={s} value={s}>
@@ -206,7 +241,7 @@ function FamilyCard({ family, catalogue, api }: { family: Family; catalogue: Cat
 }
 
 function VariantCard({ variant, catalogue, api }: { variant: Variant; catalogue: Catalogue; api: Api }) {
-  const [edit, setEdit] = useState({ name: variant.name, slug: variant.slug, scoreScale: variant.scoreScale });
+  const [edit, setEdit] = useState({ name: variant.name, slug: variant.slug, scoreScale: variant.scoreScale, description: variant.description ?? "" });
   const [adding, setAdding] = useState({ name: "", minutes: 30, navigationMode: "LOCKED_SEQUENTIAL", allowReview: false, instructions: "" });
 
   return (
@@ -221,6 +256,13 @@ function VariantCard({ variant, catalogue, api }: { variant: Variant; catalogue:
             </option>
           ))}
         </select>
+        <input
+          aria-label="Version description"
+          placeholder="Description (shown to candidates)"
+          value={edit.description}
+          onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+          className={`${input} min-w-0 basis-full sm:basis-auto sm:flex-1`}
+        />
         <button type="button" className={smallBtn} onClick={() => api("PATCH", `variants/${variant.id}`, edit)}>
           Save
         </button>

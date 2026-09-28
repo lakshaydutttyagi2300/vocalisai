@@ -11,6 +11,6 @@ import path from "node:path";
 export default async function globalSetup() {
   config({ path: path.resolve(__dirname, "../../.env.test"), override: true });
   const { db } = await import("../../src/lib/db");
-  await db.rateLimitHit.deleteMany({ where: { OR: [{ key: { startsWith: "signup:" } }, { key: { startsWith: "login:" } }] } });
+  await db.rateLimitHit.deleteMany({ where: { OR: [{ key: { startsWith: "signup" } }, { key: { startsWith: "login:" } }] } });
   await db.$disconnect();
 }
