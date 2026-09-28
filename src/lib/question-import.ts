@@ -7,7 +7,7 @@
 import { db } from "@/lib/db";
 import { autoSkillTags } from "@/lib/skills/question-tags";
 import { validateQuestionFields } from "@/lib/question-validation";
-import { validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
+import { validateListeningStimulus, validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
 import { findSimilar, questionSignature } from "@/lib/question-dedup";
 
 export interface QuestionInput {
@@ -85,6 +85,7 @@ export async function processQuestionBatch(inputs: unknown[], options: ProcessOp
     const validationError =
       validateQuestionFields(q) ??
       validatePassageStimulus((q as { passage?: string | null }).passage) ??
+      validateListeningStimulus(q) ??
       validateSpeakerReferences(q as Parameters<typeof validateSpeakerReferences>[0]);
     if (validationError) {
       results.push({ index, status: "error", prompt: q.prompt ?? "", error: validationError });

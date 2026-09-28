@@ -28,6 +28,7 @@ import { generatedQntQuestions } from "./skills-content/generated-qnt.mjs";
 import { generatedReaQuestions } from "./skills-content/generated-rea.mjs";
 import { VERBAL_QUESTIONS } from "./skills-content/authored-verbal.mjs";
 import { PROMPT_QUESTIONS } from "./skills-content/authored-prompts.mjs";
+import { PROMPT_QUESTIONS_2 } from "./skills-content/authored-prompts-2.mjs";
 
 export const STARTER_SOURCE = "SKILLS_STARTER";
 
@@ -71,6 +72,7 @@ export function starterQuestions() {
     ...generatedReaQuestions(),
     ...mix(VERBAL_QUESTIONS),
     ...mix(PROMPT_QUESTIONS),
+    ...mix(PROMPT_QUESTIONS_2), // part 3 (28 Sep 2026) - last, so nothing above changes
   ];
   const rows = [];
   const seen = new Set();

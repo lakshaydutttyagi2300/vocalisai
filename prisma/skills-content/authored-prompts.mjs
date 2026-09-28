@@ -278,7 +278,7 @@ const open = (skillId, category, difficulty, prompt, extra) => ({
   hint: null,
   ...extra,
 });
-const byLevel = (lists, make) => DIFFS.flatMap((d) => lists[d].map((item) => make(d, item)));
+const byLevel = (lists, make) => DIFFS.flatMap((d) => (lists[d] ?? []).map((item) => make(d, item)));
 
 const READ_ALOUD = {
   BEGINNER: [
@@ -550,53 +550,57 @@ const WRITING = {
   ],
 };
 
-export const PROMPT_QUESTIONS = [
-  ...SJT,
-  ...byLevel(READ_ALOUD, (d, text) =>
-    open("SPK.PRN.READALOUD", "READING", d, "Read the following passage aloud, clearly and at a natural pace.", {
-      passage: text,
-      expectedAnswer: text,
-      scoringCriteria: "Assess clarity, pace and pronunciation accuracy.",
-      timeLimitSeconds: Math.max(20, Math.round(text.split(/\s+/).length * 0.6) + 15),
-    })
-  ),
-  ...byLevel(FLUENCY, (d, topic) =>
-    open("SPK.FLU.PAUSES", "FLUENCY", d, `Talk about ${topic}. Speak continuously for ${FLUENCY_SECONDS[d]} seconds without long pauses.`, {
-      scoringCriteria: "Assess hesitations, filler words, repetitions and pace. No fixed answer.",
-      timeLimitSeconds: FLUENCY_SECONDS[d] + 15,
-    })
-  ),
-  ...byLevel(SUPERVISOR, (d, [line, skillId]) =>
-    open(skillId, "SUPERVISOR", d, "Respond to your supervisor.", {
-      passage: `Your supervisor says: "${line}"`,
-      scoringCriteria: "Look for clear, honest, professional communication and appropriate ownership - not defensiveness.",
-      timeLimitSeconds: { BEGINNER: 45, INTERMEDIATE: 60, ADVANCED: 75, EXPERT: 90 }[d],
-    })
-  ),
-  ...byLevel(CONVERSATION, (d, line) =>
-    open("SPK.INT.ROLEPLAY", "CONVERSATION_PARTNER", d, "Respond naturally.", {
-      passage: `Your conversation partner says: "${line}"`,
-      scoringCriteria: "Assess fluency, natural phrasing and engagement. No fixed answer.",
-      timeLimitSeconds: { BEGINNER: 45, INTERMEDIATE: 60, ADVANCED: 60, EXPERT: 75 }[d],
-    })
-  ),
-  ...byLevel(CUSTOMER, (d, [line, kind, skillId]) =>
-    open(skillId, "CUSTOMER_SERVICE", d, "Respond to this customer as the agent.", {
-      passage: line,
-      scoringCriteria: `Scenario type: ${kind}. Look for empathy, ownership, and a concrete resolution step - not just an apology.`,
-      timeLimitSeconds: { BEGINNER: 60, INTERMEDIATE: 90, ADVANCED: 105, EXPERT: 120 }[d],
-    })
-  ),
-  ...byLevel(INTERVIEW, (d, [question, skillId]) =>
-    open(skillId, "INTERVIEW", d, question, {
-      scoringCriteria: skillId === "INV.STR.STAR" ? "Look for a clear Situation, Task, Action and Result." : "Look for a clear, relevant, honest and well-structured answer.",
-      timeLimitSeconds: { BEGINNER: 90, INTERMEDIATE: 120, ADVANCED: 150, EXPERT: 180 }[d],
-    })
-  ),
-  ...byLevel(WRITING, (d, [task, skillId]) =>
-    open(skillId, "WRITING", d, task, {
-      scoringCriteria: "Assess grammar, clarity, tone and structure appropriate to the task. No fixed answer.",
-      timeLimitSeconds: { BEGINNER: 180, INTERMEDIATE: 240, ADVANCED: 300, EXPERT: 420 }[d],
-    })
-  ),
-];
+/** Open-prompt questions for a set of per-level lists (also used by authored-prompts-2.mjs). */
+export function openPromptsFrom({ READ_ALOUD = {}, FLUENCY = {}, SUPERVISOR = {}, CONVERSATION = {}, CUSTOMER = {}, INTERVIEW = {}, WRITING = {} }) {
+  return [
+    ...byLevel(READ_ALOUD, (d, text) =>
+      open("SPK.PRN.READALOUD", "READING", d, "Read the following passage aloud, clearly and at a natural pace.", {
+        passage: text,
+        expectedAnswer: text,
+        scoringCriteria: "Assess clarity, pace and pronunciation accuracy.",
+        timeLimitSeconds: Math.max(20, Math.round(text.split(/\s+/).length * 0.6) + 15),
+      })
+    ),
+    ...byLevel(FLUENCY, (d, topic) =>
+      open("SPK.FLU.PAUSES", "FLUENCY", d, `Talk about ${topic}. Speak continuously for ${FLUENCY_SECONDS[d]} seconds without long pauses.`, {
+        scoringCriteria: "Assess hesitations, filler words, repetitions and pace. No fixed answer.",
+        timeLimitSeconds: FLUENCY_SECONDS[d] + 15,
+      })
+    ),
+    ...byLevel(SUPERVISOR, (d, [line, skillId]) =>
+      open(skillId, "SUPERVISOR", d, "Respond to your supervisor.", {
+        passage: `Your supervisor says: "${line}"`,
+        scoringCriteria: "Look for clear, honest, professional communication and appropriate ownership - not defensiveness.",
+        timeLimitSeconds: { BEGINNER: 45, INTERMEDIATE: 60, ADVANCED: 75, EXPERT: 90 }[d],
+      })
+    ),
+    ...byLevel(CONVERSATION, (d, line) =>
+      open("SPK.INT.ROLEPLAY", "CONVERSATION_PARTNER", d, "Respond naturally.", {
+        passage: `Your conversation partner says: "${line}"`,
+        scoringCriteria: "Assess fluency, natural phrasing and engagement. No fixed answer.",
+        timeLimitSeconds: { BEGINNER: 45, INTERMEDIATE: 60, ADVANCED: 60, EXPERT: 75 }[d],
+      })
+    ),
+    ...byLevel(CUSTOMER, (d, [line, kind, skillId]) =>
+      open(skillId, "CUSTOMER_SERVICE", d, "Respond to this customer as the agent.", {
+        passage: line,
+        scoringCriteria: `Scenario type: ${kind}. Look for empathy, ownership, and a concrete resolution step - not just an apology.`,
+        timeLimitSeconds: { BEGINNER: 60, INTERMEDIATE: 90, ADVANCED: 105, EXPERT: 120 }[d],
+      })
+    ),
+    ...byLevel(INTERVIEW, (d, [question, skillId]) =>
+      open(skillId, "INTERVIEW", d, question, {
+        scoringCriteria: skillId === "INV.STR.STAR" ? "Look for a clear Situation, Task, Action and Result." : "Look for a clear, relevant, honest and well-structured answer.",
+        timeLimitSeconds: { BEGINNER: 90, INTERMEDIATE: 120, ADVANCED: 150, EXPERT: 180 }[d],
+      })
+    ),
+    ...byLevel(WRITING, (d, [task, skillId]) =>
+      open(skillId, "WRITING", d, task, {
+        scoringCriteria: "Assess grammar, clarity, tone and structure appropriate to the task. No fixed answer.",
+        timeLimitSeconds: { BEGINNER: 180, INTERMEDIATE: 240, ADVANCED: 300, EXPERT: 420 }[d],
+      })
+    ),
+  ];
+}
+
+export const PROMPT_QUESTIONS = [...SJT, ...openPromptsFrom({ READ_ALOUD, FLUENCY, SUPERVISOR, CONVERSATION, CUSTOMER, INTERVIEW, WRITING })];

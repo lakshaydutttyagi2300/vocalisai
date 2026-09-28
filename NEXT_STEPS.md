@@ -20,10 +20,10 @@ Everything here comes from the existing project, the owner's stated requirements
 
 ## High priority
 
-6. **Re-add `DATABASE_URL` in Vercel Production** (the pooled production connection string). The site currently relies on the fallback. The owner may need step-by-step help, or it can be done with `vercel env add DATABASE_URL production`, with the owner pasting the value.
-7. **Reject unplayable listening questions at import/edit** (`src/lib/question-validation.ts`; see LISTENING_SYSTEM.md section 6). Add a unit test.
-8. **More content where pools are small.** This serves the owner's "no repeated questions" requirement. Check Admin, Question Bank coverage on the live site, then add items (listening, writing, fluency, interview, conversation roles) via `prisma/skills-content/` and `npm run seed:skills-content`, or admin import.
-9. **Generate two-voice audio for listening questions** that don't have it (free, Windows): `npm run generate:question-audio -- --dry-run`, then run it with `--production` after approval.
+6. ~~Re-add `DATABASE_URL`~~ **Done 28 Sep** (Secret; active from the next deploy). Was: (the pooled production connection string). The site currently relies on the fallback. The owner may need step-by-step help, or it can be done with `vercel env add DATABASE_URL production`, with the owner pasting the value.
+7. ~~Reject unplayable listening questions~~ **Done 28 Sep** (`validateListeningStimulus`). Was: (`src/lib/question-validation.ts`; see LISTENING_SYSTEM.md section 6). Add a unit test.
+8. ~~More content where pools are small~~ **Done 28 Sep** (+395 questions, every area at 40+ per level once released). Was: This serves the owner's "no repeated questions" requirement. Check Admin, Question Bank coverage on the live site, then add items (listening, writing, fluency, interview, conversation roles) via `prisma/skills-content/` and `npm run seed:skills-content`, or admin import.
+9. ~~Two-voice audio for listening~~ **Done 28 Sep** (263 already had it; 8 monologues converted and recorded at release). Was: that don't have it (free, Windows): `npm run generate:question-audio -- --dry-run`, then run it with `--production` after approval.
 
 ## Medium priority
 

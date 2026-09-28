@@ -545,7 +545,7 @@ export function generatedReaQuestions() {
   }));
 
   // Circular table of 6 (only reflection-proof questions: who is opposite / next to whom).
-  add(take(20, () => {
+  const circularQuestion = () => {
     const items = sample(PEOPLE, 6);
     const truth = shuffle([0, 1, 2, 3, 4, 5]);
     const at = (n) => truth[items.indexOf(n)];
@@ -584,7 +584,8 @@ export function generatedReaQuestions() {
       hint: "Place one person, then use the 'opposite' clues - they fix pairs of seats.",
       time: 180,
     });
-  }));
+  };
+  add(take(20, circularQuestion));
 
   // Floors of a building (1 = ground floor … 5 = top).
   add(take(24, () => {
@@ -913,5 +914,10 @@ export function generatedReaQuestions() {
     });
   }));
 
+
+  // More Expert-level seating puzzles (28 Sep 2026: Expert logical reasoning
+  // had only 26 questions). Appended LAST so every question above keeps
+  // exactly the same random draws.
+  add(take(16, circularQuestion));
   return Q;
 }

@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 import { validateQuestionFields } from "@/lib/question-validation";
-import { validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
+import { validateListeningStimulus, validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -63,6 +63,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const validationError =
     validateQuestionFields(merged) ??
     (body.passage !== undefined ? validatePassageStimulus(merged.passage) : null) ??
+    // Also when an edit turns a question INTO a listening question.
+    (["passage", "category", "type"].some((k) => body[k] !== undefined)
+      ? validateListeningStimulus({ ...merged, itemGroupId: existing.itemGroupId })
+      : null) ??
     (textChanged ? validateSpeakerReferences(merged) : null);
   if (validationError) {
     return NextResponse.json({ error: validationError }, { status: 400 });

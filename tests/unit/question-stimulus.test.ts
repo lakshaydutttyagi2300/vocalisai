@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { candidateStimulus, parseStimulus, stimulusText, validatePassageStimulus } from "@/lib/question-stimulus";
+import { candidateStimulus, parseStimulus, stimulusText, validateListeningStimulus, validatePassageStimulus } from "@/lib/question-stimulus";
+import { processQuestionBatch } from "@/lib/question-import";
 
 // The shapes below are exactly what the production question bank stores in
 // PracticeQuestion.passage for its listening and picture questions.
@@ -100,5 +101,40 @@ describe("question stimulus - what a candidate may see", () => {
     expect(validatePassageStimulus(IMAGE_SPEC)).toBeNull();
     expect(validatePassageStimulus('{"audio":{"script":[]}}')).toMatch(/isn't a recognised stimulus/);
     expect(validatePassageStimulus("{broken")).toMatch(/isn't a recognised stimulus/);
+  });
+});
+
+describe("a listening question must have something to listen to", () => {
+  const listening = { category: "LISTENING", type: "LISTENING_COMPREHENSION" };
+
+  it("accepts a plain script, an audio spec, or a shared audio item group", () => {
+    expect(validateListeningStimulus({ ...listening, passage: "S1: Hello.\nS2: Hi there." })).toBeNull();
+    expect(validateListeningStimulus({ ...listening, passage: AUDIO_SPEC })).toBeNull();
+    expect(validateListeningStimulus({ ...listening, passage: null, itemGroupId: "group-1" })).toBeNull();
+  });
+
+  it("refuses nothing to play, or a picture instead of audio", () => {
+    expect(validateListeningStimulus({ ...listening, passage: "" })).toMatch(/needs something to listen to/);
+    expect(validateListeningStimulus({ ...listening, passage: null })).toMatch(/needs something to listen to/);
+    expect(validateListeningStimulus({ ...listening, passage: IMAGE_SPEC })).toMatch(/must be an audio script/);
+    expect(validateListeningStimulus({ category: "LISTENING", type: "MULTIPLE_CHOICE", passage: null })).toMatch(/needs something/);
+  });
+
+  it("leaves every other kind of question alone", () => {
+    expect(validateListeningStimulus({ category: "GRAMMAR", type: "MULTIPLE_CHOICE", passage: null })).toBeNull();
+    expect(validateListeningStimulus({ category: "SPEAKING", type: "SHORT_ANSWER", passage: IMAGE_SPEC })).toBeNull();
+  });
+
+  it("bulk import rejects an unplayable listening question (dry run, nothing saved)", async () => {
+    const base = { category: "LISTENING", difficulty: "BEGINNER", type: "LISTENING_COMPREHENSION", options: ["A", "B"], correctAnswer: "A", timeLimitSeconds: 60 };
+    const { results } = await processQuestionBatch(
+      [
+        { ...base, prompt: `Unplayable listening ${Date.now()}: where are they going?` },
+        { ...base, prompt: `Playable listening ${Date.now()}: where are they going?`, passage: "S1: Shall we take the bus?\nS2: Yes, to the station." },
+      ],
+      { insert: false }
+    );
+    expect(results[0]).toMatchObject({ status: "error", error: expect.stringMatching(/needs something to listen to/) });
+    expect(results[1].status).not.toBe("error");
   });
 });

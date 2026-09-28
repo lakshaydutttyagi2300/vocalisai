@@ -233,6 +233,23 @@ export function stimulusText(passage: string | null | undefined): string | null 
 // Admin-import check for future content: a passage that looks like JSON
 // must be a spec this renderer understands - otherwise candidates would
 // get an empty stimulus. Returns an error message, or null if acceptable.
+// A listening question must have something to hear: its own passage (a plain
+// script or an audio spec - never a picture) or a shared audio item group.
+// Without one the candidate gets a question with nothing to play.
+export function validateListeningStimulus(q: {
+  category?: string | null;
+  type?: string | null;
+  passage?: string | null;
+  itemGroupId?: string | null;
+}): string | null {
+  if (!isListeningQuestion(q) || q.itemGroupId) return null;
+  if (!isStr(q.passage)) return "A listening question needs something to listen to: put the script in the passage, or attach an audio item group.";
+  if (looksLikeJson(q.passage) && parseStimulusSpec(q.passage)?.kind !== "audio") {
+    return "A listening question's passage must be an audio script, not a picture or other data.";
+  }
+  return null;
+}
+
 export function validatePassageStimulus(passage: string | null | undefined): string | null {
   if (!isStr(passage) || !looksLikeJson(passage)) return null;
   return parseStimulusSpec(passage)

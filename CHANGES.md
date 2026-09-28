@@ -797,3 +797,24 @@ Applied to **development and test only**; production waits for "ship to producti
 - **Tests:**
   - `people-monitor.test.ts` (13): counting, no false alarm from one noisy frame, a warning within about 2 s, one log per episode, clearing, looking down, the version pin;
   - `proctoring-people.spec.ts`: the full exam flow with the **real** detector, using a camera that shows a real photo. One person for 10 s gives no warning; two people give the warning within seconds and one server flag; one person again clears it; then a question is answered, the exam ends, and the results carry the flag.
+
+## High-priority roadmap items 6-9 (branch `feat/skills-platform`)
+
+- **6. `DATABASE_URL` is back in Vercel Production** (pooled URL, type Secret). It connected (`SELECT 1`) before it was added. It takes effect at the next deploy; the `db.ts` fallback stays in place.
+- **7. Unplayable listening questions are refused** (`validateListeningStimulus` in `src/lib/question-stimulus.ts`):
+  - a listening question needs a script (plain text or audio spec) or a shared audio item group;
+  - a picture spec or an empty passage is rejected at bulk import and at admin edit, including an edit that turns a question into a listening question.
+
+  Unrecognised JSON was already refused.
+- **8. More questions where the live bank was thin.** Target: at least 40 active per topic and level.
+  - `prisma/skills-content/authored-prompts-2.mjs`: 379 hand-written items, covering read aloud, fluency, supervisor, conversation partner, customer service, interview, writing and 24 Expert verbal reasoning.
+  - 16 more verified Expert seating puzzles: the same generator is run again at the END of `generated-rea.mjs`, so every earlier puzzle keeps its random draws.
+  - `openPromptsFrom()` is now exported from `authored-prompts.mjs`. The existing bank's fingerprint is unchanged: all 2,318 items are identical.
+  - Checked against the live bank (8,090 questions): no exact duplicates; the only "near" matches are fluency prompts that share template wording.
+  - Loaded into dev and test; production gets it at release (`seed:skills-content -- --production`).
+- **9. Listening audio.** The live check found:
+  - 263 audio specs, all with generated two-voice audio;
+  - 36 practice-test questions on shared audio clips;
+  - 8 plain-text monologues on the browser voice.
+
+  New `prisma/convert-listening-monologues.mjs` turns those 8 into standard audio specs (preview by default, `--apply`, `--production`). `generate:question-audio` then records them; the generator was re-verified on this PC.
