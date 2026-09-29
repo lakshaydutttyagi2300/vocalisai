@@ -30,15 +30,15 @@ Everything here comes from the existing project, the owner's stated requirements
 ## Medium priority
 
 10. **Billing go-live (owner's decision):** configure Paddle products, prices and webhook, then set the 5 missing variables in Vercel and test in sandbox first.
-11. **Vercel Preview environment:** decide whether to copy the variables to Preview, pointed at the **staging** branch, or keep the local staging copy.
-12. **Optional data tidy-up:** recompute old score reports for exams that had no scored answers (read-only count first; approval and backup before any write).
-13. **Admin Candidates paging** (server-side `take`/`skip`) before the user count grows.
+11. ~~Vercel Preview environment~~ **Done 29 Sep** (all 17 variables copied to Preview; `DATABASE_URL`/`DATABASE_URL_UNPOOLED` point at the **staging** branch, everything else matches Production).
+12. ~~Optional data tidy-up: recompute old score reports~~ **Checked 29 Sep** - zero affected rows on production, nothing to fix.
+13. ~~Admin Candidates paging~~ **Done 29 Sep** (server-side `take`/`skip`, default page size 25).
 
 ## Later
 
-14. The CAMPUS and STUDY_ABROAD goal tracks (hidden, no content).
+14. ~~The CAMPUS and STUDY_ABROAD goal tracks~~ **Done 29 Sep** (enabled with 5 real exam blueprints; live on production).
 15. Content for the hidden skill categories (COG, DIN, BIZ, DGT), then turn on `skills_all_categories`.
-16. Real exam content for the remaining exam families (SELT, PTE, Cambridge, Employment); only the catalogue exists. (Aptitude and 11 other types now have exams.)
+16. ~~Real exam content for the remaining exam families (SELT, PTE, Cambridge, Employment)~~ **Done 29 Sep** (16 exam types, 35 exams in the library on production).
 17. ElevenLabs natural voices, if the owner decides to pay: add `ELEVENLABS_API_KEY`, no code change.
 18. Clean-ups:
     - delete the unused `src/lib/question-selection.ts`;
