@@ -373,7 +373,7 @@ export default function ConversationPage() {
           </div>
         )}
 
-        {recordingState === "idle" && !aiThinking && (
+        {recordingState === "idle" && !aiThinking && !reachedMax && (
           <button onClick={startRecording} className="btn-primary">
                 <Icon as={Mic} />
             {turns.length === 1 ? "Start speaking" : "Reply"}
