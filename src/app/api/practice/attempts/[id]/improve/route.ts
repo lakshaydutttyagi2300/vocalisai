@@ -60,8 +60,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     outcome = await provider.improveAnswer(attempt.analysis.transcript, attempt.question.prompt);
   } catch (err) {
+    console.error("improve answer: AI call failed", { attemptId: attempt.id, err });
     return NextResponse.json(
-      { error: `Couldn't improve your answer: ${err instanceof Error ? err.message : "unknown error"}` },
+      { error: "We couldn't improve your answer right now. Please try again in a moment." },
       { status: 502 }
     );
   }

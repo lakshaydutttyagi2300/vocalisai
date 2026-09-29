@@ -150,8 +150,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       proctoringFlagCount: mockTestSession.events.length,
     });
   } catch (err) {
+    console.error("mock test: AI report generation failed", { sessionId: id, err });
     return NextResponse.json(
-      { error: `AI report generation failed: ${err instanceof Error ? err.message : "unknown error"}` },
+      { error: "The AI report couldn't be generated. Please try again in a moment." },
       { status: 502 }
     );
   }

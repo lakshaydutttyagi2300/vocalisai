@@ -68,8 +68,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       mimeType: canonicalAudioMimeType(recording.mimeType),
     });
   } catch (err) {
+    console.error("conversation: transcription failed", { sessionId: id, err });
     return NextResponse.json(
-      { error: `Transcription failed: ${err instanceof Error ? err.message : "unknown error"}` },
+      { error: "We couldn't transcribe what you said. Please try again." },
       { status: 502 }
     );
   }
@@ -111,8 +112,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         data: { sessionId: id, turnIndex: nextIndex + 1, speaker: "ai", text: nextTurn.text },
       });
     } catch (err) {
+      console.error("conversation: AI reply failed", { sessionId: id, err });
       return NextResponse.json(
-        { error: `Couldn't generate a reply: ${err instanceof Error ? err.message : "unknown error"}` },
+        { error: "We couldn't generate a reply. Please try again in a moment." },
         { status: 502 }
       );
     }

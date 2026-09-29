@@ -105,9 +105,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     return NextResponse.json({ analysis: combined });
   } catch (err) {
+    console.error("conversation: final analysis failed", { sessionId: id, err });
     await db.conversationSession.update({ where: { id }, data: { endedAt: new Date() } });
     return NextResponse.json(
-      { error: `Analysis failed: ${err instanceof Error ? err.message : "unknown error"}` },
+      { error: "We couldn't analyse this conversation. Please try again in a moment." },
       { status: 502 }
     );
   }

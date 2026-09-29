@@ -52,7 +52,8 @@ export async function analyzeAttempt(attempt: AttemptWithRecordingAndQuestion): 
       mimeType: canonicalAudioMimeType(attempt.recording.mimeType),
     });
   } catch (err) {
-    return { ok: false, error: `Transcription failed: ${err instanceof Error ? err.message : "unknown error"}`, status: 502 };
+    console.error("speech analysis: transcription failed", { attemptId: attempt.id, err });
+    return { ok: false, error: "We couldn't transcribe your recording. Please try again in a moment.", status: 502 };
   }
 
   if (!transcription.transcript) {
@@ -72,7 +73,10 @@ export async function analyzeAttempt(attempt: AttemptWithRecordingAndQuestion): 
       scoringCriteria: attempt.question.scoringCriteria,
     });
   } catch (err) {
-    return { ok: false, error: `AI analysis failed: ${err instanceof Error ? err.message : "unknown error"}`, status: 502 };
+    // Provider errors can carry the model's raw output or the API's error
+    // body - log them for debugging, never show them to the candidate.
+    console.error("speech analysis: AI analysis failed", { attemptId: attempt.id, err });
+    return { ok: false, error: "The AI analysis didn't complete. Please try again in a moment.", status: 502 };
   }
 
   const estimatedCostUsd =

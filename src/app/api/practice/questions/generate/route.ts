@@ -109,8 +109,9 @@ export async function POST(req: Request) {
   try {
     outcome = await provider.generateScenario(category as ScenarioCategory, difficulty, rawTopic || null);
   } catch (err) {
+    console.error("scenario generation: AI call failed", err);
     return NextResponse.json(
-      { error: `Scenario generation failed: ${err instanceof Error ? err.message : "unknown error"}` },
+      { error: "We couldn't generate a scenario right now. Please try again in a moment." },
       { status: 502 }
     );
   }

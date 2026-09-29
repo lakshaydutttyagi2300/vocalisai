@@ -70,9 +70,10 @@ export async function POST(req: Request) {
   try {
     outcome = await coachProvider.reply(profileDigest, history, content);
   } catch (err) {
+    console.error("coach: AI reply failed", err);
     return NextResponse.json(
       {
-        error: `The AI coach couldn't respond: ${err instanceof Error ? err.message : "unknown error"}`,
+        error: "The AI coach couldn't respond. Please try again in a moment.",
         userMessage: serialize(userMessage),
       },
       { status: 502 }
