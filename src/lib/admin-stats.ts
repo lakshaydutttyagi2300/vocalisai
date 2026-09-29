@@ -98,6 +98,7 @@ export interface AdminUsersPage {
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 25;
+const MAX_PAGE = 1_000_000;
 
 export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<AdminUsersPage> {
   const where = {
@@ -108,8 +109,12 @@ export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<Admi
     ...(filter.status === "active" ? { isActive: true } : filter.status === "suspended" ? { isActive: false } : {}),
   };
 
-  const page = Math.max(1, filter.page ?? 1);
-  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, filter.pageSize ?? DEFAULT_PAGE_SIZE));
+  // Whole numbers only, and a page small enough that skip stays a valid
+  // database offset: "?page=Infinity" was a 500 and "?page=1.5" echoed a
+  // fractional page back to the UI.
+  const whole = (n: number | undefined, fallback: number) => (n !== undefined && Number.isFinite(n) ? Math.floor(n) : fallback);
+  const page = Math.min(MAX_PAGE, Math.max(1, whole(filter.page, 1)));
+  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, whole(filter.pageSize, DEFAULT_PAGE_SIZE)));
 
   const [total, users] = await Promise.all([
     db.user.count({ where }),

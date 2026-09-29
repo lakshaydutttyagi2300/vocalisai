@@ -116,6 +116,12 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
 // conversation - capped at 3 candidate turns regardless of the monthly
 // counter above (which is already 1).
 export const FREE_INTERVIEW_SIMULATION_MAX_TURNS = 3;
+// Paid plans: candidate turns per Interview Simulation.
+export const INTERVIEW_SIMULATION_MAX_TURNS = 4;
+
+export function interviewSimulationMaxTurns(plan: Plan): number {
+  return plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : INTERVIEW_SIMULATION_MAX_TURNS;
+}
 
 const ALL_DIFFICULTIES: Difficulty[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
 export const PLAN_DIFFICULTY_ACCESS: Record<Plan, Difficulty[]> = {
@@ -173,14 +179,28 @@ export async function checkAndRecordUsage(userId: string, feature: Feature): Pro
   const limit = PLAN_LIMITS[plan][feature];
 
   const since = plan === "FREE" ? new Date(0) : await currentPeriodStart(userId);
-  const used = await db.usageEvent.count({ where: { userId, feature, createdAt: { gte: since } } });
 
-  if (used >= limit) {
-    return { allowed: false, plan, limit, used, remaining: 0 };
-  }
+  // Count-then-record must not interleave: without the lock, parallel
+  // requests (several tabs, or a script) all count the same "used" and all
+  // get through - 8 parallel FREE speech analyses got 6 through a limit of
+  // 2. A transaction-scoped advisory lock per user+feature serialises just
+  // this check; it is released at commit, so it's safe with Neon's pooler.
+  // Generous timeouts: a request queued behind others for the same user and
+  // feature must wait its turn, not fail with "Transaction not found".
+  return db.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`usage:${userId}:${feature}`}))`;
+      const used = await tx.usageEvent.count({ where: { userId, feature, createdAt: { gte: since } } });
 
-  const event = await db.usageEvent.create({ data: { userId, feature } });
-  return { allowed: true, plan, limit, used: used + 1, remaining: limit - used - 1, usageEventId: event.id };
+      if (used >= limit) {
+        return { allowed: false, plan, limit, used, remaining: 0 };
+      }
+
+      const event = await tx.usageEvent.create({ data: { userId, feature } });
+      return { allowed: true, plan, limit, used: used + 1, remaining: limit - used - 1, usageEventId: event.id };
+    },
+    { maxWait: 10_000, timeout: 20_000 }
+  );
 }
 
 // Gives back a use recorded by checkAndRecordUsage when the paid work then

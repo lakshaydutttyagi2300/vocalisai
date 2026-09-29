@@ -5,10 +5,28 @@ import { db } from "@/lib/db";
 
 const SESSION_COOKIES = ["next-auth.session-token", "__Secure-next-auth.session-token"];
 
+// req.nextUrl.pathname keeps percent-encoding ("/api/%61dmin/users"), but the
+// router looks paths up decoded and config.matcher is tested against the
+// decoded path too - so that request still runs this proxy AND reaches
+// /api/admin/users. The admin/API checks must look at the path the router
+// will serve. Lower-cased and slash-collapsed only to make the admin check
+// stricter; the path is never used to build a URL.
+function routedPath(pathname: string): string {
+  let path = pathname;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // Undecodable: the router can't decode it either, so it can't resolve
+    // to a different route than the raw path.
+  }
+  return path.replace(/[\\/]+/g, "/").toLowerCase();
+}
+
 // Every candidate-only route requires a valid session. Unauthenticated
 // visitors are redirected to /login (mirrors authOptions.pages.signIn).
 export async function proxy(req: NextRequest) {
-  const isApi = req.nextUrl.pathname.startsWith("/api");
+  const path = routedPath(req.nextUrl.pathname);
+  const isApi = path.startsWith("/api");
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   if (!token) {
@@ -35,7 +53,6 @@ export async function proxy(req: NextRequest) {
   // /dashboard rather than /login since the visitor IS authenticated -
   // they're just not authorized for this section. Each /api/admin route
   // also checks the role itself (src/lib/admin-guard.ts) as a second layer.
-  const path = req.nextUrl.pathname;
   const isAdminArea = path.startsWith("/admin") || path.startsWith("/api/admin");
   if (isAdminArea && user.role !== "ADMIN") {
     if (isApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

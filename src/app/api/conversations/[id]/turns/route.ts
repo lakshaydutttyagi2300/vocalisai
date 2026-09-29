@@ -8,9 +8,7 @@ import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
-import { getEffectivePlan, FREE_INTERVIEW_SIMULATION_MAX_TURNS } from "@/lib/entitlements";
-
-const MAX_CANDIDATE_TURNS = 4;
+import { getEffectivePlan, interviewSimulationMaxTurns } from "@/lib/entitlements";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -30,10 +28,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const existingCandidateTurns = convoSession.turns.filter((t) => t.speaker === "candidate").length;
   const plan = await getEffectivePlan(session.user.id);
-  if (plan === "FREE" && existingCandidateTurns >= FREE_INTERVIEW_SIMULATION_MAX_TURNS) {
+  const effectiveMaxTurns = interviewSimulationMaxTurns(plan);
+  if (plan === "FREE" && existingCandidateTurns >= effectiveMaxTurns) {
     return NextResponse.json(
       { error: "You've reached the end of your free sample conversation. Upgrade to continue practicing interview simulations." },
       { status: 403 }
+    );
+  }
+  // Paid plans too: every turn is a paid transcription, and the simulation
+  // was charged once at the start - past the last turn there is no AI reply,
+  // so a further turn would only be unbounded transcription spend.
+  if (existingCandidateTurns >= effectiveMaxTurns) {
+    return NextResponse.json(
+      { error: "This conversation has reached its last turn. End it to see your analysis." },
+      { status: 400 }
     );
   }
 
@@ -93,7 +101,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const candidateTurnCount = convoSession.turns.filter((t) => t.speaker === "candidate").length + 1;
   const roleDef = getRoleDef(convoSession.role);
   const scenario = stimulusText(convoSession.question?.passage) ?? convoSession.question?.prompt ?? "";
-  const effectiveMaxTurns = plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : MAX_CANDIDATE_TURNS;
 
   let aiTurn = null;
   if (roleDef && candidateTurnCount < effectiveMaxTurns) {

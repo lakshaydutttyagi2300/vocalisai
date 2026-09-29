@@ -116,6 +116,7 @@ export default function ConversationPage() {
       }
       setTurns(data.turns);
       setRole(data.role);
+      setReachedMax(Boolean(data.reachedMaxTurns));
       if (data.ended) {
         setAnalysis(data.analysis);
         setStage("complete");
@@ -373,7 +374,7 @@ export default function ConversationPage() {
           </div>
         )}
 
-        {recordingState === "idle" && !aiThinking && (
+        {recordingState === "idle" && !aiThinking && !reachedMax && (
           <button onClick={startRecording} className="btn-primary">
                 <Icon as={Mic} />
             {turns.length === 1 ? "Start speaking" : "Reply"}
