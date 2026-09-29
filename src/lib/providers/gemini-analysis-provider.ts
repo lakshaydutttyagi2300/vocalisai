@@ -10,6 +10,8 @@
 // Grammar/vocabulary are still transcript-text analysis - that's the right
 // tool for those, no audio needed.
 
+import { z } from "zod";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
@@ -18,63 +20,68 @@ const FALLBACK_MODEL = "gemini-3.5-flash-lite";
 // actual 0-100 numbers are computed by application code from these enums
 // plus deterministic counts (see src/lib/scoring-engine.ts), never by
 // asking the model for a score directly.
-export type Rating = "strong" | "adequate" | "weak";
+const ratingSchema = z.enum(["strong", "adequate", "weak"]);
+export type Rating = z.infer<typeof ratingSchema>;
+const customerRatingSchema = z.enum(["strong", "adequate", "weak", "not_applicable"]);
 
-export interface VoiceAnalysisResult {
-  pronunciation: {
-    rating: Rating;
+// The prompt asks for this shape but Gemini doesn't enforce it, so every reply
+// is checked against it before it can be stored or shown to a candidate.
+export const voiceAnalysisResultSchema = z.object({
+  pronunciation: z.object({
+    rating: ratingSchema,
     // phoneticHint is a simple, real AI-generated syllable respelling
     // (e.g. "comfortable" -> "KUMF-ter-bul") - never invented by app code.
     // Optional because rows analyzed before this field existed won't have
     // it; the UI falls back gracefully for those.
-    mispronouncedWords: { word: string; note: string; phoneticHint?: string }[];
-    articulation: string;
-    difficultSounds: string[];
-    intelligibility: string;
-  };
-  fluency: {
-    rating: Rating;
-    hesitations: string;
-    fillers: string;
-    repetitions: string;
-    longPauses: string;
-    smoothness: string;
-  };
-  grammar: {
-    rating: Rating;
-    issues: { excerpt: string; problem: string; correction: string }[];
-    overallComment: string;
-  };
-  vocabulary: {
-    rating: Rating;
-    assessment: string;
-    professionalTermsUsed: string[];
-    repetitiveWords: string[];
-  };
-  voiceClarity: {
-    rating: Rating;
-    articulation: string;
-    volumeComment: string;
-    clarity: string;
-    intelligibility: string;
-  };
-  delivery: {
-    rating: Rating;
-    confidenceIndicators: string;
-    vocalVariation: string;
-    engagement: string;
-    responseCompleteness: string;
-  };
+    mispronouncedWords: z.array(z.object({ word: z.string(), note: z.string(), phoneticHint: z.string().optional() })),
+    articulation: z.string(),
+    difficultSounds: z.array(z.string()),
+    intelligibility: z.string(),
+  }),
+  fluency: z.object({
+    rating: ratingSchema,
+    hesitations: z.string(),
+    fillers: z.string(),
+    repetitions: z.string(),
+    longPauses: z.string(),
+    smoothness: z.string(),
+  }),
+  grammar: z.object({
+    rating: ratingSchema,
+    issues: z.array(z.object({ excerpt: z.string(), problem: z.string(), correction: z.string() })),
+    overallComment: z.string(),
+  }),
+  vocabulary: z.object({
+    rating: ratingSchema,
+    assessment: z.string(),
+    professionalTermsUsed: z.array(z.string()),
+    repetitiveWords: z.array(z.string()),
+  }),
+  voiceClarity: z.object({
+    rating: ratingSchema,
+    articulation: z.string(),
+    volumeComment: z.string(),
+    clarity: z.string(),
+    intelligibility: z.string(),
+  }),
+  delivery: z.object({
+    rating: ratingSchema,
+    confidenceIndicators: z.string(),
+    vocalVariation: z.string(),
+    engagement: z.string(),
+    responseCompleteness: z.string(),
+  }),
   // Only meaningful when the response was a customer-service scenario;
   // "not_applicable" otherwise rather than a forced/invented judgment.
-  customerHandling: {
-    applicable: boolean;
-    empathyRating: Rating | "not_applicable";
-    relevanceRating: Rating | "not_applicable";
-    problemSolvingRating: Rating | "not_applicable";
-    comment: string;
-  };
-}
+  customerHandling: z.object({
+    applicable: z.boolean(),
+    empathyRating: customerRatingSchema,
+    relevanceRating: customerRatingSchema,
+    problemSolvingRating: customerRatingSchema,
+    comment: z.string(),
+  }),
+});
+export type VoiceAnalysisResult = z.infer<typeof voiceAnalysisResultSchema>;
 
 function buildPrompt(transcript: string, context?: string, scoringCriteria?: string | null): string {
   return `You are an English Communication & Voice Assessment analyst. You have been given both the candidate's actual AUDIO RECORDING and its transcript for one speaking response${
@@ -146,14 +153,17 @@ async function callGemini(
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let parsed: VoiceAnalysisResult;
+  let json: unknown;
   try {
-    parsed = JSON.parse(text);
+    json = JSON.parse(text);
   } catch {
     throw new Error(`Gemini did not return valid JSON: ${text}`);
   }
+  // Throwing here makes analyzeVoiceResponse retry on the fallback model.
+  const checked = voiceAnalysisResultSchema.safeParse(json);
+  if (!checked.success) throw new Error(`Gemini returned an analysis in an unexpected shape: ${checked.error.message}`);
 
-  return { parsed, raw, latencyMs };
+  return { parsed: checked.data, raw, latencyMs };
 }
 
 export function createGeminiAnalysisProvider(apiKey: string) {
