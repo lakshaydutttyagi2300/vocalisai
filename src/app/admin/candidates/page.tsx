@@ -57,6 +57,11 @@ export default function AdminCandidatesPage() {
   }, [search, role, status]);
 
   useEffect(() => {
+    // Only the newest request may update the table. A filter change fires
+    // twice (old page, then page 1 after the reset above), and every search
+    // keystroke fires again - without this, a slower older response could
+    // land last and show rows for the wrong page or the wrong search.
+    let stale = false;
     setError(null);
     const params = new URLSearchParams();
     if (search) params.set("search", search);
@@ -67,13 +72,23 @@ export default function AdminCandidatesPage() {
     fetch(`/api/admin/users?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
+        if (stale) return;
         if (data.error) setError(data.error);
-        else {
+        else if (data.users.length === 0 && data.total > 0 && page > 1) {
+          // Past the last page (e.g. its only row was just deleted): go to
+          // the real last page instead of showing "No users match".
+          setPage(Math.max(1, Math.ceil(data.total / PAGE_SIZE)));
+        } else {
           setUsers(data.users);
           setTotal(data.total);
         }
       })
-      .catch(() => setError("Couldn't load candidates."));
+      .catch(() => {
+        if (!stale) setError("Couldn't load candidates.");
+      });
+    return () => {
+      stale = true;
+    };
   }, [search, role, status, page, refreshKey]);
 
   async function createAccount() {
@@ -119,6 +134,8 @@ export default function AdminCandidatesPage() {
       }
       setUsers((prev) => prev?.filter((row) => row.id !== u.id) ?? prev);
       setTotal((t) => Math.max(0, t - 1));
+      // Refill the page from the server (the next row moves up into it).
+      setRefreshKey((k) => k + 1);
     } catch {
       setDeleteError("Couldn't delete this account.");
     } finally {
