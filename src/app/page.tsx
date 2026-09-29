@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { PLANS, PLAN_LIMITS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS, type Plan } from "@/lib/entitlements";
+import { PLANS, PLAN_LIMITS, FEATURE_LABELS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS, type Plan } from "@/lib/entitlements";
 import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import Reveal from "@/components/Reveal";
 import { AudioLines, CircleCheck, ClipboardCheck, Lock, Scale, Sparkles, TrendingUp, Video } from "lucide-react";
@@ -515,15 +515,26 @@ export default async function LandingPage() {
                   <h3 className="font-display text-lg font-bold text-ink-900">{PLAN_DISPLAY[plan].label}</h3>
                   <p className="mt-1 text-xs text-slate-500">{PLAN_DISPLAY[plan].blurb}</p>
                   <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink-700">
-                    {PLAN_HIGHLIGHT_FEATURES.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
-                        <span>
-                          {limits[feature]} {FEATURE_LABELS_PLURAL[feature]}
-                          {plan === "FREE" ? " (lifetime)" : "/month"}
-                        </span>
-                      </li>
-                    ))}
+                    {PLAN_HIGHLIGHT_FEATURES.map((feature) => {
+                      const count = limits[feature];
+                      if (count === 0) {
+                        return (
+                          <li key={feature} className="flex items-start gap-2 text-slate-500">
+                            <Icon as={Lock} className="mt-0.5" />
+                            <span>{FEATURE_LABELS_PLURAL[feature]} on paid plans</span>
+                          </li>
+                        );
+                      }
+                      return (
+                        <li key={feature} className="flex items-start gap-2">
+                          <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
+                          <span>
+                            {count} {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
+                            {plan === "FREE" ? " (lifetime)" : "/month"}
+                          </span>
+                        </li>
+                      );
+                    })}
                     <li className="flex items-start gap-2">
                       <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
                       <span>
