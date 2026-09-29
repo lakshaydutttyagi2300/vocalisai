@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 import { VALID_CATEGORIES } from "@/lib/question-validation";
@@ -13,10 +12,8 @@ import { isValidDifficulty } from "@/lib/practice-taxonomy";
 // body can never silently flip the whole bank by accident (e.g. a
 // forgotten category field in a future caller).
 export async function PATCH(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const category = body?.category as string | undefined;
@@ -44,8 +41,8 @@ export async function PATCH(req: Request) {
 
   if (result.count > 0) {
     await logAdminAction({
-      adminId: session.user.id,
-      adminEmail: session.user.email ?? "unknown",
+      adminId: admin.adminId,
+      adminEmail: admin.adminEmail,
       action: isActive ? "QUESTIONS_BULK_ACTIVATED" : "QUESTIONS_BULK_DEACTIVATED",
       targetType: "PracticeQuestion",
       after: { category: category ?? "ALL", difficulty: difficulty ?? "ALL", isActive, count: result.count },

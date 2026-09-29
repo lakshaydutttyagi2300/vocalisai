@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
 import { logAdminAction } from "@/lib/audit-log";
@@ -44,10 +43,8 @@ function validateSections(sections: unknown): { error: string } | { sections: Se
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const templates = await db.mockTestTemplate.findMany({
     orderBy: { createdAt: "desc" },
@@ -74,10 +71,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";
@@ -101,8 +96,8 @@ export async function POST(req: Request) {
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "TEMPLATE_CREATED",
     targetType: "MockTestTemplate",
     targetId: template.id,

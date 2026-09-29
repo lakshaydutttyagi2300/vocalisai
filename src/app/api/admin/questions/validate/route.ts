@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { processQuestionBatch } from "@/lib/question-import";
 
 // Dry run for the bulk-import workflow's preview step - runs the exact same
@@ -9,10 +8,8 @@ import { processQuestionBatch } from "@/lib/question-import";
 // but writes nothing. Lets the UI show "this many will import, this many
 // are duplicates, this many have errors" before the admin confirms.
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const inputs = body?.questions as unknown[] | undefined;

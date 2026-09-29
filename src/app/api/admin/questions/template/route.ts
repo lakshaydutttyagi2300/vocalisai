@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import * as XLSX from "xlsx";
 import { TEMPLATE_COLUMNS, SAMPLE_ROWS, questionToRow } from "@/lib/question-file-format";
 
@@ -8,10 +7,8 @@ import { TEMPLATE_COLUMNS, SAMPLE_ROWS, questionToRow } from "@/lib/question-fil
 // import workflow expects, with a few worked examples across question
 // types, so an admin can fill in hundreds of rows offline and re-upload.
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { searchParams } = new URL(req.url);
   const format = searchParams.get("format") === "csv" ? "csv" : "xlsx";

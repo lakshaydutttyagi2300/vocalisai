@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { SCORE_CATEGORIES, CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { getAllCategoryWeights, isValidWeight } from "@/lib/scoring-config";
 import { logAdminAction } from "@/lib/audit-log";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const weights = await getAllCategoryWeights(SCORE_CATEGORIES);
   return NextResponse.json({
@@ -24,10 +21,8 @@ export async function GET() {
 // as heavily as a default-weighted one, etc. Each category's own score is
 // completely unaffected; this only changes how they combine.
 export async function PATCH(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const category = body?.category as string | undefined;
@@ -49,8 +44,8 @@ export async function PATCH(req: Request) {
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "SCORING_WEIGHT_CHANGED",
     targetType: "ScoringCategoryWeight",
     targetId: category,

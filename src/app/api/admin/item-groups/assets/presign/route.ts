@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import crypto from "node:crypto";
-import { authOptions } from "@/lib/auth";
 import { isR2Configured, getPresignedItemAssetUploadUrl } from "@/lib/storage";
 import { buildItemGroupAssetKey, validateItemGroupAssetUpload } from "@/lib/item-groups";
 
@@ -12,10 +11,8 @@ import { buildItemGroupAssetKey, validateItemGroupAssetUpload } from "@/lib/item
 // Without R2 configured, tells the client to fall back to the
 // through-the-server upload route (api/admin/item-groups/assets).
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const type = typeof body?.type === "string" ? body.type : "";

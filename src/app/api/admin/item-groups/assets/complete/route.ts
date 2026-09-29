@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { itemAssetSize, deleteItemAsset } from "@/lib/storage";
 import { logAdminAction } from "@/lib/audit-log";
 import { ITEM_GROUP_ASSET_MAX_BYTES, isValidItemGroupAssetKey, isValidItemGroupType, isValidItemGroupAssetMimeType } from "@/lib/item-groups";
@@ -11,10 +10,8 @@ import { ITEM_GROUP_ASSET_MAX_BYTES, isValidItemGroupAssetKey, isValidItemGroupT
 // can't cap size (see storage.ts). An oversized upload is deleted from
 // the bucket rather than left behind as an orphan.
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const key = typeof body?.key === "string" ? body.key : "";
@@ -38,8 +35,8 @@ export async function POST(req: Request) {
   }
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "ITEM_GROUP_ASSET_UPLOADED",
     targetType: "ItemGroupAsset",
     targetId: key,

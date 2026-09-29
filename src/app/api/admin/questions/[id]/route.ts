@@ -1,17 +1,14 @@
 import { tagsAfterEdit } from "@/lib/skills/question-tags";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 import { validateQuestionFields } from "@/lib/question-validation";
 import { validateListeningStimulus, validatePassageStimulus, validateSpeakerReferences } from "@/lib/question-stimulus";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const question = await db.practiceQuestion.findUnique({ where: { id } });
@@ -28,10 +25,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 // e.g. sending only { isActive: false } to disable a question can't
 // accidentally fail validation on fields the admin isn't even touching.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const existing = await db.practiceQuestion.findUnique({ where: { id } });
@@ -97,8 +92,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: existing.isActive !== merged.isActive ? (merged.isActive ? "QUESTION_ACTIVATED" : "QUESTION_DEACTIVATED") : "QUESTION_EDITED",
     targetType: "PracticeQuestion",
     targetId: id,
@@ -113,10 +108,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const existing = await db.practiceQuestion.findUnique({
@@ -146,8 +139,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   await db.practiceQuestion.delete({ where: { id } });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "QUESTION_DELETED",
     targetType: "PracticeQuestion",
     targetId: id,

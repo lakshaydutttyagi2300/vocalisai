@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import crypto from "node:crypto";
-import { authOptions } from "@/lib/auth";
 import { writeRecording } from "@/lib/storage";
 import { logAdminAction } from "@/lib/audit-log";
 import { buildItemGroupAssetKey, validateItemGroupAssetUpload } from "@/lib/item-groups";
@@ -15,10 +14,8 @@ import { buildItemGroupAssetKey, validateItemGroupAssetUpload } from "@/lib/item
 // "recordings/". Unlike the direct-to-R2 path, the size check here is on
 // the real bytes the server actually received, not a client claim.
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const form = await req.formData().catch(() => null);
   if (!form) {
@@ -41,8 +38,8 @@ export async function POST(req: Request) {
   await writeRecording(key, Buffer.from(await file.arrayBuffer()), mimeType);
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "ITEM_GROUP_ASSET_UPLOADED",
     targetType: "ItemGroupAsset",
     targetId: key,

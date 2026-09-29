@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { getAllFeatureFlags, isValidFeatureKey, defaultEnabled } from "@/lib/feature-flags";
 import { logAdminAction } from "@/lib/audit-log";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
   return NextResponse.json({ flags: await getAllFeatureFlags() });
 }
 
@@ -17,10 +14,8 @@ export async function GET() {
 // the first time an admin actually changes it (see feature-flags.ts's
 // fail-open default for why that's safe).
 export async function PATCH(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   const key = body?.key as string | undefined;
@@ -42,8 +37,8 @@ export async function PATCH(req: Request) {
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: enabled ? "FEATURE_ENABLED" : "FEATURE_DISABLED",
     targetType: "FeatureFlag",
     targetId: key,

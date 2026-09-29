@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-guard";
 import bcrypt from "bcryptjs";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PLANS, setPlan, type Plan } from "@/lib/entitlements";
 import { logAdminAction } from "@/lib/audit-log";
@@ -15,10 +14,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // existing manual plan-assignment route, so a created account behaves
 // identically to one that signed up and was then granted a plan by hand.
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
@@ -69,8 +66,8 @@ export async function POST(req: Request) {
   }
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "USER_CREATED_BY_ADMIN",
     targetType: "User",
     targetId: user.id,

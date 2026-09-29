@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { getAdminCandidateDetail } from "@/lib/admin-stats";
 import { PLANS, setPlan, type Plan } from "@/lib/entitlements";
@@ -9,10 +8,8 @@ import { logAdminAction } from "@/lib/audit-log";
 // Role-gated, not ownership-gated: an admin legitimately needs to view any
 // candidate's real data here, unlike every other route in this app.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const detail = await getAdminCandidateDetail(id);
@@ -29,10 +26,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 // sign up normally as a candidate, then have an existing admin promote
 // that account here - no database/script access needed.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const target = await db.user.findUnique({ where: { id } });
@@ -54,8 +49,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const previousSub = await db.subscription.findUnique({ where: { userId: id } });
     await setPlan(id, plan as Plan);
     await logAdminAction({
-      adminId: session.user.id,
-      adminEmail: session.user.email ?? "unknown",
+      adminId: admin.adminId,
+      adminEmail: admin.adminEmail,
       action: "USER_PLAN_CHANGED",
       targetType: "User",
       targetId: id,
@@ -72,13 +67,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     // route could be reached without an ADMIN session is by already
     // losing admin access, so a self-demotion (or self-anything) is
     // always a mistake, not a legitimate action worth supporting.
-    if (id === session.user.id) {
+    if (id === admin.adminId) {
       return NextResponse.json({ error: "You can't change your own role. Ask another admin to do it." }, { status: 400 });
     }
     await db.user.update({ where: { id }, data: { role } });
     await logAdminAction({
-      adminId: session.user.id,
-      adminEmail: session.user.email ?? "unknown",
+      adminId: admin.adminId,
+      adminEmail: admin.adminEmail,
       action: "USER_ROLE_CHANGED",
       targetType: "User",
       targetId: id,
@@ -94,13 +89,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     // Same self-action guard as role changes - an admin session reaching
     // this route already implies the account is active, so a self-suspend
     // would only ever be a mistake, never a legitimate use of this action.
-    if (id === session.user.id) {
+    if (id === admin.adminId) {
       return NextResponse.json({ error: "You can't suspend your own account. Ask another admin to do it." }, { status: 400 });
     }
     await db.user.update({ where: { id }, data: { isActive } });
     await logAdminAction({
-      adminId: session.user.id,
-      adminEmail: session.user.email ?? "unknown",
+      adminId: admin.adminId,
+      adminEmail: admin.adminEmail,
       action: isActive ? "USER_REACTIVATED" : "USER_SUSPENDED",
       targetType: "User",
       targetId: id,
@@ -121,22 +116,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 // reversible and keeps all data - this is for test accounts or a real
 // deletion request, not routine moderation.
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const target = await db.user.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (id === session.user.id) {
+  if (id === admin.adminId) {
     return NextResponse.json({ error: "You can't delete your own account. Ask another admin to do it." }, { status: 400 });
   }
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "USER_DELETED",
     targetType: "User",
     targetId: id,

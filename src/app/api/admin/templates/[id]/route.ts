@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { PRACTICE_MODES, isValidDifficulty } from "@/lib/practice-taxonomy";
 import { logAdminAction } from "@/lib/audit-log";
@@ -44,10 +43,8 @@ function validateSections(sections: unknown): { error: string } | { sections: Se
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const existing = await db.mockTestTemplate.findUnique({ where: { id } });
@@ -91,8 +88,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: makeDefault && !existing.isDefault ? "TEMPLATE_SET_DEFAULT" : "TEMPLATE_UPDATED",
     targetType: "MockTestTemplate",
     targetId: id,
@@ -110,10 +107,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const existing = await db.mockTestTemplate.findUnique({ where: { id }, include: { _count: { select: { sessions: true } } } });
@@ -139,8 +134,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "TEMPLATE_DELETED",
     targetType: "MockTestTemplate",
     targetId: id,

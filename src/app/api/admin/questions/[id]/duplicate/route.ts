@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 
@@ -10,10 +9,8 @@ import { logAdminAction } from "@/lib/audit-log";
 // default: a duplicate is almost always made in order to edit it into a
 // variant, and it shouldn't be servable to candidates mid-edit.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
 
   const { id } = await params;
   const source = await db.practiceQuestion.findUnique({ where: { id } });
@@ -48,8 +45,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   });
 
   await logAdminAction({
-    adminId: session.user.id,
-    adminEmail: session.user.email ?? "unknown",
+    adminId: admin.adminId,
+    adminEmail: admin.adminEmail,
     action: "QUESTION_DUPLICATED",
     targetType: "PracticeQuestion",
     targetId: copy.id,
