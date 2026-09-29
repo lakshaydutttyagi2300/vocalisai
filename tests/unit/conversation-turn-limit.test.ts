@@ -46,7 +46,13 @@ async function sendTurns(convoId: string, recordingId: string, count: number) {
   return out;
 }
 
-const savedKeys = { groq: process.env.GROQ_API_KEY, gemini: process.env.GEMINI_API_KEY };
+async function reachedMaxOnLoad(convoId: string): Promise<boolean> {
+  const { GET } = await import("@/app/api/conversations/[id]/route");
+  const res = await GET(new Request("http://localhost/x"), { params: Promise.resolve({ id: convoId }) });
+  return (await res.json()).reachedMaxTurns;
+}
+
+const savedKeys ={ groq: process.env.GROQ_API_KEY, gemini: process.env.GEMINI_API_KEY };
 beforeAll(() => {
   process.env.GROQ_API_KEY = "test-not-used";
   process.env.GEMINI_API_KEY = "test-not-used";
@@ -63,7 +69,9 @@ afterAll(async () => {
 describe("Interview Simulation turn limit", () => {
   it("a paid conversation takes 4 candidate turns, then refuses more without transcribing", async () => {
     const s = await setup("paid", "STARTER");
+    expect(await reachedMaxOnLoad(s.convoId)).toBe(false);
     const results = await sendTurns(s.convoId, s.recordingId, 6);
+    expect(await reachedMaxOnLoad(s.convoId)).toBe(true); // a reloaded page hides "Reply"
     expect(results.map((r) => r.status)).toEqual([200, 200, 200, 200, 400, 400]);
     expect(results[3].reachedMaxTurns).toBe(true);
     expect(groq.transcribe).toHaveBeenCalledTimes(4);

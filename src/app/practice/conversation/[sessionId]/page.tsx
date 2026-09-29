@@ -116,6 +116,7 @@ export default function ConversationPage() {
       }
       setTurns(data.turns);
       setRole(data.role);
+      setReachedMax(Boolean(data.reachedMaxTurns));
       if (data.ended) {
         setAnalysis(data.analysis);
         setStage("complete");

@@ -116,6 +116,12 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
 // conversation - capped at 3 candidate turns regardless of the monthly
 // counter above (which is already 1).
 export const FREE_INTERVIEW_SIMULATION_MAX_TURNS = 3;
+// Paid plans: candidate turns per Interview Simulation.
+export const INTERVIEW_SIMULATION_MAX_TURNS = 4;
+
+export function interviewSimulationMaxTurns(plan: Plan): number {
+  return plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : INTERVIEW_SIMULATION_MAX_TURNS;
+}
 
 const ALL_DIFFICULTIES: Difficulty[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
 export const PLAN_DIFFICULTY_ACCESS: Record<Plan, Difficulty[]> = {

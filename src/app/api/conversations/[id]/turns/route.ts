@@ -8,9 +8,7 @@ import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
 import { getRoleDef } from "@/lib/conversation-roles";
-import { getEffectivePlan, FREE_INTERVIEW_SIMULATION_MAX_TURNS } from "@/lib/entitlements";
-
-const MAX_CANDIDATE_TURNS = 4;
+import { getEffectivePlan, interviewSimulationMaxTurns } from "@/lib/entitlements";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -30,7 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const existingCandidateTurns = convoSession.turns.filter((t) => t.speaker === "candidate").length;
   const plan = await getEffectivePlan(session.user.id);
-  const effectiveMaxTurns = plan === "FREE" ? FREE_INTERVIEW_SIMULATION_MAX_TURNS : MAX_CANDIDATE_TURNS;
+  const effectiveMaxTurns = interviewSimulationMaxTurns(plan);
   if (plan === "FREE" && existingCandidateTurns >= effectiveMaxTurns) {
     return NextResponse.json(
       { error: "You've reached the end of your free sample conversation. Upgrade to continue practicing interview simulations." },
