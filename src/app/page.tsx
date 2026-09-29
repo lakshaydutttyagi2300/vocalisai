@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { PLAN_LIMITS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
+import { PLANS, PLAN_LIMITS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS, type Plan } from "@/lib/entitlements";
 import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
 import Reveal from "@/components/Reveal";
 import { AudioLines, CircleCheck, ClipboardCheck, Lock, Scale, Sparkles, TrendingUp, Video } from "lucide-react";
@@ -126,8 +126,7 @@ const WHY_CANDIDATES = [
   },
 ];
 
-const PLAN_ORDER = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"] as const;
-const PLAN_DISPLAY: Record<(typeof PLAN_ORDER)[number], { label: string; blurb: string }> = {
+const PLAN_DISPLAY: Record<Plan, { label: string; blurb: string }> = {
   FREE: { label: "Free", blurb: "A one-time sample of the platform, at your own pace." },
   STARTER: { label: "Starter", blurb: "For candidates actively preparing for an upcoming exam, assessment or interview." },
   PROFESSIONAL: { label: "Professional", blurb: "For serious, repeated practice across every skill." },
@@ -503,7 +502,7 @@ export default async function LandingPage() {
             month, and which difficulty levels are unlocked.
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {PLAN_ORDER.map((plan) => {
+            {PLANS.map((plan) => {
               const limits = PLAN_LIMITS[plan];
               const difficulties = PLAN_DIFFICULTY_ACCESS[plan];
               const featured = plan === "PROFESSIONAL";

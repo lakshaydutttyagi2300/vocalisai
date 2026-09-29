@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { PLANS, ROLES } from "@/lib/plans-and-roles";
 
 interface UserRow {
   id: string;
@@ -15,9 +16,6 @@ interface UserRow {
   averageOverallScore: number | null;
   totalPracticeAttempts: number;
 }
-
-const PLAN_OPTIONS = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"];
-const ROLE_OPTIONS = ["CANDIDATE", "ADMIN"];
 
 function randomPassword() {
   return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + "!A1";
@@ -208,7 +206,7 @@ export default function AdminCandidatesPage() {
                 <label className="flex flex-col text-xs text-slate-600">
                   Role
                   <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-                    {ROLE_OPTIONS.map((r) => (
+                    {ROLES.map((r) => (
                       <option key={r} value={r}>
                         {r}
                       </option>
@@ -218,7 +216,7 @@ export default function AdminCandidatesPage() {
                 <label className="flex flex-col text-xs text-slate-600">
                   Starting plan
                   <select value={newPlan} onChange={(e) => setNewPlan(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
-                    {PLAN_OPTIONS.map((p) => (
+                    {PLANS.map((p) => (
                       <option key={p} value={p}>
                         {p}
                       </option>

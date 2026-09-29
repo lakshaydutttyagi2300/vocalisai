@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { PLANS, ROLES } from "@/lib/plans-and-roles";
 
 interface CategoryTrend {
   average: number | null;
@@ -39,9 +40,6 @@ interface CandidateDetail {
   usage: UsageSummary;
   recentSessions: { id: string; startedAt: string; endedAt: string | null; overallScore: number | null; templateName: string | null }[];
 }
-
-const PLAN_OPTIONS = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"];
-const ROLE_OPTIONS = ["CANDIDATE", "ADMIN"];
 
 export default function AdminCandidateDetailPage() {
   const params = useParams<{ id: string }>();
@@ -226,7 +224,7 @@ export default function AdminCandidateDetailPage() {
                   onChange={(e) => setSelectedRole(e.target.value)}
                   className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
                 >
-                  {ROLE_OPTIONS.map((r) => (
+                  {ROLES.map((r) => (
                     <option key={r} value={r}>
                       {r}
                     </option>
@@ -267,7 +265,7 @@ export default function AdminCandidateDetailPage() {
                 onChange={(e) => setSelectedPlan(e.target.value)}
                 className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
               >
-                {PLAN_OPTIONS.map((p) => (
+                {PLANS.map((p) => (
                   <option key={p} value={p}>
                     {p}
                   </option>

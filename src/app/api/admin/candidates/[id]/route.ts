@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { getAdminCandidateDetail } from "@/lib/admin-stats";
 import { PLANS, setPlan, type Plan } from "@/lib/entitlements";
+import { ROLES, type Role } from "@/lib/plans-and-roles";
 import { logAdminAction } from "@/lib/audit-log";
 
 // Role-gated, not ownership-gated: an admin legitimately needs to view any
@@ -60,7 +61,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   if (role !== undefined) {
-    if (role !== "ADMIN" && role !== "CANDIDATE") {
+    if (!ROLES.includes(role as Role)) {
       return NextResponse.json({ error: "Invalid role." }, { status: 400 });
     }
     // Never let an admin change their own role here - the only way this

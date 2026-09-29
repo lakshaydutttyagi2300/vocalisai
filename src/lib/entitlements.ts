@@ -15,9 +15,9 @@
 
 import { db } from "@/lib/db";
 import { isValidDifficulty, type Difficulty } from "@/lib/practice-taxonomy";
+import { PLANS, type Plan } from "@/lib/plans-and-roles";
 
-export const PLANS = ["FREE", "STARTER", "PROFESSIONAL", "PREMIUM"] as const;
-export type Plan = (typeof PLANS)[number];
+export { PLANS, type Plan };
 
 export const FEATURES = [
   "PRACTICE_SESSION",
