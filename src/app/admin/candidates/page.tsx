@@ -23,13 +23,17 @@ function randomPassword() {
   return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8) + "!A1";
 }
 
+const PAGE_SIZE = 25;
+
 export default function AdminCandidatesPage() {
   const { data: session } = useSession();
   const [users, setUsers] = useState<UserRow[] | null>(null);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -44,20 +48,33 @@ export default function AdminCandidatesPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdAccount, setCreatedAccount] = useState<{ email: string; password: string } | null>(null);
 
+  // Filters changing means the old page number may no longer make sense
+  // (e.g. page 3 of an unfiltered list vs. a filtered one with 1 page) -
+  // reset to page 1 whenever a filter changes, but not on every keystroke
+  // if page itself changes.
+  useEffect(() => {
+    setPage(1);
+  }, [search, role, status]);
+
   useEffect(() => {
     setError(null);
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (role) params.set("role", role);
     if (status) params.set("status", status);
+    params.set("page", String(page));
+    params.set("pageSize", String(PAGE_SIZE));
     fetch(`/api/admin/users?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.error) setError(data.error);
-        else setUsers(data.users);
+        else {
+          setUsers(data.users);
+          setTotal(data.total);
+        }
       })
       .catch(() => setError("Couldn't load candidates."));
-  }, [search, role, status, refreshKey]);
+  }, [search, role, status, page, refreshKey]);
 
   async function createAccount() {
     setCreating(true);
@@ -101,6 +118,7 @@ export default function AdminCandidatesPage() {
         return;
       }
       setUsers((prev) => prev?.filter((row) => row.id !== u.id) ?? prev);
+      setTotal((t) => Math.max(0, t - 1));
     } catch {
       setDeleteError("Couldn't delete this account.");
     } finally {
@@ -323,6 +341,29 @@ export default function AdminCandidatesPage() {
               </tbody>
             </table>
             {users.length === 0 && <p className="py-6 text-center text-sm text-slate-500">No users match these filters.</p>}
+            {total > 0 && (
+              <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
+                <p>
+                  Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} of {total}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => (p * PAGE_SIZE < total ? p + 1 : p))}
+                    disabled={page * PAGE_SIZE >= total}
+                    className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -85,9 +85,21 @@ export interface AdminUsersFilter {
   search?: string;
   role?: string;
   status?: "active" | "suspended";
+  page?: number; // 1-based
+  pageSize?: number;
 }
 
-export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<AdminUserRow[]> {
+export interface AdminUsersPage {
+  users: AdminUserRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+const MAX_PAGE_SIZE = 100;
+const DEFAULT_PAGE_SIZE = 25;
+
+export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<AdminUsersPage> {
   const where = {
     ...(filter.search
       ? { OR: [{ name: { contains: filter.search, mode: "insensitive" as const } }, { email: { contains: filter.search, mode: "insensitive" as const } }] }
@@ -96,10 +108,29 @@ export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<Admi
     ...(filter.status === "active" ? { isActive: true } : filter.status === "suspended" ? { isActive: false } : {}),
   };
 
-  const [users, reports, attemptCounts] = await Promise.all([
-    db.user.findMany({ where, orderBy: { createdAt: "desc" }, select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true } }),
-    db.scoreReport.findMany({ select: { overallScore: true, mockTestSession: { select: { userId: true } } } }),
-    db.practiceAttempt.groupBy({ by: ["userId"], _count: { _all: true } }),
+  const page = Math.max(1, filter.page ?? 1);
+  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, filter.pageSize ?? DEFAULT_PAGE_SIZE));
+
+  const [total, users] = await Promise.all([
+    db.user.count({ where }),
+    db.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    }),
+  ]);
+
+  // Aggregates are scoped to this page's users, not the whole table - the
+  // point of pagination is to keep every query bounded by pageSize.
+  const userIds = users.map((u) => u.id);
+  const [reports, attemptCounts] = await Promise.all([
+    db.scoreReport.findMany({
+      where: { mockTestSession: { userId: { in: userIds } } },
+      select: { overallScore: true, mockTestSession: { select: { userId: true } } },
+    }),
+    db.practiceAttempt.groupBy({ by: ["userId"], where: { userId: { in: userIds } }, _count: { _all: true } }),
   ]);
 
   const scoresByUser = new Map<string, number[]>();
@@ -112,20 +143,25 @@ export async function getAdminUsers(filter: AdminUsersFilter = {}): Promise<Admi
   }
   const attemptCountByUser = new Map(attemptCounts.map((a) => [a.userId, a._count._all]));
 
-  return users.map((u) => {
-    const scores = scoresByUser.get(u.id) ?? [];
-    return {
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      isActive: u.isActive,
-      createdAt: u.createdAt.toISOString(),
-      mockSessionsCompleted: scores.length,
-      averageOverallScore: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
-      totalPracticeAttempts: attemptCountByUser.get(u.id) ?? 0,
-    };
-  });
+  return {
+    users: users.map((u) => {
+      const scores = scoresByUser.get(u.id) ?? [];
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        isActive: u.isActive,
+        createdAt: u.createdAt.toISOString(),
+        mockSessionsCompleted: scores.length,
+        averageOverallScore: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
+        totalPracticeAttempts: attemptCountByUser.get(u.id) ?? 0,
+      };
+    }),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export interface AdminCandidateDetail {
