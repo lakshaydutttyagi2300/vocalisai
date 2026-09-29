@@ -18,12 +18,12 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Checked fresh from the database on every matched request, not trusted
-  // from the JWT - a JWT issued before an admin suspends this account must
-  // stop working on its very next request, not just the next login. This
-  // is the real enforcement; src/lib/auth.ts's login-time check is the
-  // other half (stops a suspended account from starting a *new* session).
-  const user = await db.user.findUnique({ where: { id: token.id }, select: { isActive: true } });
+  // Suspension and role are read fresh from the database on every matched
+  // request, never trusted from the JWT (which is only written at login):
+  // suspending or demoting someone must take effect on their very next
+  // request, not when their token expires. src/lib/auth.ts's login-time
+  // check is the other half (stops a suspended account starting a session).
+  const user = await db.user.findUnique({ where: { id: token.id }, select: { isActive: true, role: true } });
   if (!user || !user.isActive) {
     if (isApi) return NextResponse.json({ error: "This account has been suspended." }, { status: 403 });
     const res = NextResponse.redirect(new URL("/login?suspended=1", req.url));
@@ -31,10 +31,13 @@ export async function proxy(req: NextRequest) {
     return res;
   }
 
-  // Admin routes need the ADMIN role, not just any signed-in candidate.
-  // Redirected to /dashboard rather than /login since the visitor IS
-  // authenticated - they're just not authorized for this section.
-  if (req.nextUrl.pathname.startsWith("/admin") && token.role !== "ADMIN") {
+  // Admin pages AND admin APIs need the ADMIN role. Redirected to
+  // /dashboard rather than /login since the visitor IS authenticated -
+  // they're just not authorized for this section. Each /api/admin route
+  // also checks the role itself (src/lib/admin-guard.ts) as a second layer.
+  const path = req.nextUrl.pathname;
+  const isAdminArea = path.startsWith("/admin") || path.startsWith("/api/admin");
+  if (isAdminArea && user.role !== "ADMIN") {
     if (isApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
