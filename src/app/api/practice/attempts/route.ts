@@ -6,6 +6,11 @@ import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/li
 import { drillTokenCovers } from "@/lib/skills/drill-token";
 import { masteryAfterAttempt, saveMastery } from "@/lib/skills/mastery-store";
 import { BAND_LABELS, type MasteryResult } from "@/lib/skills/mastery";
+import type { Prisma } from "@prisma/client";
+
+// "End assessment" can be clicked while the last recording is still
+// uploading, so answers are accepted for a short while after a session ends.
+const MOCK_ANSWER_GRACE_MS = 10 * 60 * 1000;
 
 // Every attempt is written scoped to session.user.id - never a client-
 // supplied id - and scored here, server-side, against the real
@@ -53,12 +58,20 @@ export async function POST(req: Request) {
 
   // Same ownership check for tagging an attempt as part of a mock test.
   let validatedMockTestSessionId: string | null = null;
+  let mockQuestionLimit = 0;
   if (mockTestSessionId) {
-    const mockTestSession = await db.mockTestSession.findUnique({ where: { id: mockTestSessionId } });
+    const mockTestSession = await db.mockTestSession.findUnique({
+      where: { id: mockTestSessionId },
+      include: { template: { select: { sections: { select: { questionCount: true } } } } },
+    });
     if (!mockTestSession || mockTestSession.userId !== session.user.id) {
       return NextResponse.json({ error: "Invalid mock test session." }, { status: 400 });
     }
+    if (mockTestSession.endedAt && Date.now() - mockTestSession.endedAt.getTime() > MOCK_ANSWER_GRACE_MS) {
+      return NextResponse.json({ error: "This assessment has already ended." }, { status: 409 });
+    }
     validatedMockTestSessionId = mockTestSession.id;
+    mockQuestionLimit = (mockTestSession.template?.sections ?? []).reduce((sum, s) => sum + s.questionCount, 0);
   }
 
   // Usage limits apply to solo practice only - an attempt that's part of a
@@ -94,23 +107,27 @@ export async function POST(req: Request) {
     score = isCorrect ? 100 : 0;
   }
 
-  const attempt = await db.practiceAttempt.create({
-    data: {
-      userId: session.user.id,
-      questionId: question.id,
-      category: question.category,
-      difficulty: question.difficulty,
-      responseText: responseText ?? null,
-      recordingId: validatedRecordingId,
-      mockTestSessionId: validatedMockTestSessionId,
-      isCorrect,
-      score,
-      timeTakenSeconds,
-      // Skills platform: copied at answer time so history survives re-tagging.
-      skillId: question.skillId,
-      level: question.level,
-    },
-  });
+  const data = {
+    userId: session.user.id,
+    questionId: question.id,
+    category: question.category,
+    difficulty: question.difficulty,
+    responseText: responseText ?? null,
+    recordingId: validatedRecordingId,
+    mockTestSessionId: validatedMockTestSessionId,
+    isCorrect,
+    score,
+    timeTakenSeconds,
+    // Skills platform: copied at answer time so history survives re-tagging.
+    skillId: question.skillId,
+    level: question.level,
+  };
+  const attempt = validatedMockTestSessionId
+    ? await createMockAttemptWithinLimit(validatedMockTestSessionId, mockQuestionLimit, data)
+    : await db.practiceAttempt.create({ data });
+  if (!attempt) {
+    return NextResponse.json({ error: "This assessment already has an answer for every question." }, { status: 409 });
+  }
 
   // Mastery is a bonus on top of saving the answer - it must never make
   // answering fail or slow it down: the new scores are worked out here (one
@@ -153,6 +170,27 @@ export async function POST(req: Request) {
       ? { score: mastery.score, band: mastery.band, bandLabel: BAND_LABELS[mastery.band], attempts: mastery.attempts }
       : null,
   });
+}
+
+// A mock assessment is charged once, when it starts, so its answers skip the
+// per-answer usage check - which means it must not take more answers than
+// its template has questions, or GET .../score would run a free AI analysis
+// on every extra recording. Count + insert run under a per-session lock so
+// parallel requests can't slip past the limit.
+async function createMockAttemptWithinLimit(
+  mockTestSessionId: string,
+  limit: number,
+  data: Prisma.PracticeAttemptUncheckedCreateInput,
+) {
+  return db.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`mock-attempts:${mockTestSessionId}`}))`;
+      const existing = await tx.practiceAttempt.count({ where: { mockTestSessionId } });
+      if (existing >= limit) return null;
+      return tx.practiceAttempt.create({ data });
+    },
+    { maxWait: 10_000, timeout: 20_000 },
+  );
 }
 
 // Runs a task once the response is sent (Next's after()). Outside a real

@@ -58,7 +58,7 @@ afterAll(async () => {
 // mockTestSessionId is given, for ANY session the user owns (ended or not,
 // any number of answers), and GET .../score then runs a paid Groq+Gemini
 // analysis on each of them without a SPEECH_ANALYSIS check.
-describe.skip("QA-4 mock session as an unlimited voice + AI analysis channel", () => {
+describe("QA-4 mock session as an unlimited voice + AI analysis channel", () => {
   it("a finished mock session doesn't accept extra answers or pay for their analysis", async () => {
     const userId = await makeUser("mock", "STARTER");
     const ms = await db.mockTestSession.create({ data: { userId, endedAt: new Date() } }); // no template, already ended
