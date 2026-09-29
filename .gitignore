@@ -2,8 +2,6 @@
 .env.local
 node_modules/
 *.log
-benchmark/audio/*.wav
-benchmark/results/
 
 # Next.js
 .next/
@@ -18,13 +16,18 @@ uploads/
 
 # Local Claude Code tool state, not project source
 .claude/scheduled_tasks.lock
+.claude/worktrees/
 .neon
 
 # Wrangler CLI local cache/state, not project source
 .wrangler
 
 .vercel
+# Real secrets live in .env, .env.local, .env.test, .env.staging - never commit them.
 .env*
+# ...except the placeholder-only templates, which belong in the repo.
+!.env.example
+!.env.test.example
 
 # Test tooling output - not project source
 test-results/
