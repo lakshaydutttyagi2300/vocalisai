@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { getAdminCandidateDetail } from "@/lib/admin-stats";
-import { PLANS, setPlan, type Plan } from "@/lib/entitlements";
-import { ROLES, type Role } from "@/lib/plans-and-roles";
+import { z } from "zod";
+import { setPlan } from "@/lib/entitlements";
+import { PLANS, ROLES } from "@/lib/plans-and-roles";
+
+const candidateUpdateSchema = z.object(
+  {
+    plan: z.enum(PLANS, { error: "Invalid plan." }).optional(),
+    role: z.enum(ROLES, { error: "Invalid role." }).optional(),
+    isActive: z.boolean({ error: "isActive must be true or false." }).optional(),
+  },
+  { error: "Nothing to update." },
+);
 import { logAdminAction } from "@/lib/audit-log";
 
 // Role-gated, not ownership-gated: an admin legitimately needs to view any
@@ -34,21 +44,30 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const target = await db.user.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const body = await req.json().catch(() => null);
-  const plan = body?.plan as string | undefined;
-  const role = body?.role as string | undefined;
-  const isActive = body?.isActive as boolean | undefined;
+  const parsed = candidateUpdateSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request." }, { status: 400 });
+  }
+  const { plan, role, isActive } = parsed.data;
 
   if (plan === undefined && role === undefined && isActive === undefined) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
   }
 
+  // Every check runs before anything is written, so a request that's partly
+  // invalid changes nothing. An admin session reaching this route already
+  // implies an active admin, so changing your own role or status would only
+  // ever be a mistake.
+  if (role !== undefined && id === admin.adminId) {
+    return NextResponse.json({ error: "You can't change your own role. Ask another admin to do it." }, { status: 400 });
+  }
+  if (isActive !== undefined && id === admin.adminId) {
+    return NextResponse.json({ error: "You can't suspend your own account. Ask another admin to do it." }, { status: 400 });
+  }
+
   if (plan !== undefined) {
-    if (!PLANS.includes(plan as Plan)) {
-      return NextResponse.json({ error: "Invalid plan." }, { status: 400 });
-    }
     const previousSub = await db.subscription.findUnique({ where: { userId: id } });
-    await setPlan(id, plan as Plan);
+    await setPlan(id, plan);
     await logAdminAction({
       adminId: admin.adminId,
       adminEmail: admin.adminEmail,
@@ -61,16 +80,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   if (role !== undefined) {
-    if (!ROLES.includes(role as Role)) {
-      return NextResponse.json({ error: "Invalid role." }, { status: 400 });
-    }
-    // Never let an admin change their own role here - the only way this
-    // route could be reached without an ADMIN session is by already
-    // losing admin access, so a self-demotion (or self-anything) is
-    // always a mistake, not a legitimate action worth supporting.
-    if (id === admin.adminId) {
-      return NextResponse.json({ error: "You can't change your own role. Ask another admin to do it." }, { status: 400 });
-    }
     await db.user.update({ where: { id }, data: { role } });
     await logAdminAction({
       adminId: admin.adminId,
@@ -84,15 +93,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   if (isActive !== undefined) {
-    if (typeof isActive !== "boolean") {
-      return NextResponse.json({ error: "isActive must be true or false." }, { status: 400 });
-    }
-    // Same self-action guard as role changes - an admin session reaching
-    // this route already implies the account is active, so a self-suspend
-    // would only ever be a mistake, never a legitimate use of this action.
-    if (id === admin.adminId) {
-      return NextResponse.json({ error: "You can't suspend your own account. Ask another admin to do it." }, { status: 400 });
-    }
     await db.user.update({ where: { id }, data: { isActive } });
     await logAdminAction({
       adminId: admin.adminId,
