@@ -15,15 +15,19 @@
 // reasonable, appropriate topic, rather than follow instructions
 // smuggled inside it.
 
+import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
 export type ScenarioCategory = "READING" | "PRONUNCIATION" | "FLUENCY" | "SPEAKING" | "CUSTOMER_SERVICE";
 
-export interface ScenarioResult {
-  content: string; // passage / customer message / open prompt, depending on category
-  scoringCriteria: string;
-}
+const scenarioResultSchema = z.object({
+  content: z.string().trim().min(1), // passage / customer message / open prompt, depending on category
+  scoringCriteria: z.string().trim().min(1),
+});
+export type ScenarioResult = z.infer<typeof scenarioResultSchema>;
 
 const CATEGORY_INSTRUCTIONS: Record<ScenarioCategory, string> = {
   READING:
@@ -79,16 +83,7 @@ async function callGemini(apiKey: string, model: string, category: ScenarioCateg
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let parsed: ScenarioResult;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini did not return valid JSON: ${text}`);
-  }
-  if (!parsed.content?.trim() || !parsed.scoringCriteria?.trim()) {
-    throw new Error("Gemini returned an incomplete scenario.");
-  }
-
+  const parsed = parseGeminiJson(text, scenarioResultSchema, "a practice scenario");
   return { parsed, raw, latencyMs };
 }
 

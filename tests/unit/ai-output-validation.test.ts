@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { createGeminiAnalysisProvider, voiceAnalysisResultSchema, type VoiceAnalysisResult } from "@/lib/providers/gemini-analysis-provider";
+import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
+import { parseGeminiJson } from "@/lib/providers/gemini-json";
 
 // Gemini is asked for JSON of a given shape but doesn't enforce it. A reply
 // in the wrong shape must never be stored or rendered: the provider rejects
@@ -59,5 +62,47 @@ describe("speech analysis output shape", () => {
     await expect(
       createGeminiAnalysisProvider("test-key").analyzeVoiceResponse({ audioBuffer: Buffer.from("a"), audioMimeType: "audio/webm", transcript: "hello" }),
     ).rejects.toThrow(/unexpected shape/);
+  });
+});
+
+describe("parseGeminiJson", () => {
+  const schema = z.object({ reply: z.string().trim().min(1) });
+
+  it("returns the checked value and drops fields the schema doesn't know", () => {
+    expect(parseGeminiJson('{"reply":" Hi ","debug":{"x":1}}', schema, "a reply")).toEqual({ reply: "Hi" });
+  });
+
+  it("rejects text that isn't JSON, and JSON in the wrong shape", () => {
+    expect(() => parseGeminiJson("Sure! Here's your reply", schema, "a reply")).toThrow(/valid JSON/);
+    expect(() => parseGeminiJson('{"reply":{"text":"hi"}}', schema, "a reply")).toThrow(/unexpected shape/);
+    expect(() => parseGeminiJson('{"reply":"   "}', schema, "a reply")).toThrow(/unexpected shape/);
+  });
+});
+
+describe("conversation summary output shape", () => {
+  const summary = {
+    grammar: { issues: [], overallComment: "Good" },
+    vocabulary: { assessment: "Varied", repetitiveWords: [] },
+    relevance: "On topic",
+    responseQuality: "Clear",
+    customerHandling: "Doesn't apply",
+    coachingNote: "Slow down slightly.",
+  };
+  const summarize = () =>
+    createGeminiConversationProvider("test-key").summarizeConversation({
+      role: "INTERVIEWER",
+      scenario: "Job interview",
+      history: [{ speaker: "candidate", text: "Hello" }],
+    });
+
+  it("accepts a complete summary", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(geminiReply(summary)));
+    expect((await summarize()).result).toEqual(summary);
+  });
+
+  it("rejects a summary missing the grammar section the results page reads directly", async () => {
+    const { grammar: _, ...noGrammar } = summary;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(geminiReply(noGrammar)));
+    await expect(summarize()).rejects.toThrow(/unexpected shape/);
   });
 });

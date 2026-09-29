@@ -4,8 +4,47 @@
 // about generating the AI character's next line quickly and cheaply, and
 // producing one overall summary once the conversation ends.
 
+import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
+
+// Shapes the two end-of-conversation analyses must have; the results page
+// reads the nested objects and lists directly, so all of them are required.
+const grammarSchema = z.object({
+  issues: z.array(z.object({ excerpt: z.string(), problem: z.string(), correction: z.string() })),
+  overallComment: z.string(),
+});
+
+const conversationSummarySchema = z.object({
+  grammar: grammarSchema,
+  vocabulary: z.object({ assessment: z.string(), repetitiveWords: z.array(z.string()) }),
+  relevance: z.string(),
+  responseQuality: z.string(),
+  customerHandling: z.string(),
+  coachingNote: z.string(),
+});
+export type ConversationSummary = z.infer<typeof conversationSummarySchema>;
+
+const customerServiceAnalysisSchema = z.object({
+  listening: z.string(),
+  grammar: grammarSchema,
+  pronunciation: z.object({
+    mispronouncedWords: z.array(z.object({ word: z.string(), note: z.string() })),
+    articulation: z.string(),
+    intelligibility: z.string(),
+  }),
+  fluency: z.object({ hesitations: z.string(), smoothness: z.string() }),
+  professionalTone: z.string(),
+  empathy: z.string(),
+  relevance: z.string(),
+  problemSolving: z.string(),
+  deEscalation: z.string(),
+  responseQuality: z.string(),
+  coachingNote: z.string(),
+});
+export type CustomerServiceAnalysis = z.infer<typeof customerServiceAnalysisSchema>;
 
 export interface ConversationTurnInput {
   speaker: "ai" | "candidate";
@@ -149,13 +188,8 @@ Return ONLY valid JSON matching exactly this shape:
 Candidate's combined responses for reference: """${candidateLines}"""`;
 
       const outcome = await callWithFallback(apiKey, prompt, true);
-      let parsed;
-      try {
-        parsed = JSON.parse(outcome.text);
-      } catch {
-        throw new Error(`Gemini did not return valid JSON: ${outcome.text}`);
-      }
-      return { result: parsed, model: outcome.model, tokenUsage: outcome.tokenUsage };
+      const result = parseGeminiJson(outcome.text, conversationSummarySchema, "a conversation summary");
+      return { result, model: outcome.model, tokenUsage: outcome.tokenUsage };
     },
 
     // Phase 11: the full 10-dimension customer-service rubric, using the
@@ -200,13 +234,8 @@ Return ONLY valid JSON matching exactly this shape:
 "listening" should assess whether the candidate's responses show they actually understood what the customer said (or missed/misread it). "deEscalation" should note whether tension increased or decreased over the conversation, or say it doesn't apply if the customer was never upset. "coachingNote" must be one specific, actionable suggestion based on what actually happened in THIS conversation.`;
 
       const outcome = await callWithFallbackAudio(apiKey, prompt, candidateAudioClips);
-      let parsed;
-      try {
-        parsed = JSON.parse(outcome.text);
-      } catch {
-        throw new Error(`Gemini did not return valid JSON: ${outcome.text}`);
-      }
-      return { result: parsed, model: outcome.model, tokenUsage: outcome.tokenUsage };
+      const result = parseGeminiJson(outcome.text, customerServiceAnalysisSchema, "a customer-service analysis");
+      return { result, model: outcome.model, tokenUsage: outcome.tokenUsage };
     },
   };
 }

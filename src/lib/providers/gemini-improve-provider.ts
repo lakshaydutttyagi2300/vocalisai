@@ -5,20 +5,24 @@
 // UI can render it as structured "what improved" bullets rather than
 // re-parsing prose.
 
+import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
-export interface ImprovedAnswerResult {
-  improvedAnswer: string;
-  improvements: {
-    grammar: boolean;
-    sentenceStructure: boolean;
-    vocabulary: boolean;
-    professionalTone: boolean;
-    clarity: boolean;
-  };
-  summary: string;
-}
+const improvedAnswerResultSchema = z.object({
+  improvedAnswer: z.string().trim().min(1),
+  improvements: z.object({
+    grammar: z.boolean(),
+    sentenceStructure: z.boolean(),
+    vocabulary: z.boolean(),
+    professionalTone: z.boolean(),
+    clarity: z.boolean(),
+  }),
+  summary: z.string(),
+});
+export type ImprovedAnswerResult = z.infer<typeof improvedAnswerResultSchema>;
 
 function buildPrompt(transcript: string, context?: string): string {
   return `You are an English communication coach. A candidate gave this spoken response${
@@ -64,14 +68,7 @@ async function callGemini(apiKey: string, model: string, transcript: string, con
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let parsed: ImprovedAnswerResult;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini did not return valid JSON: ${text}`);
-  }
-  if (!parsed.improvedAnswer?.trim()) throw new Error("Gemini returned an empty improved answer.");
-
+  const parsed = parseGeminiJson(text, improvedAnswerResultSchema, "an improved answer");
   return { parsed, raw, latencyMs };
 }
 

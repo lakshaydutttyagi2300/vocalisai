@@ -9,6 +9,9 @@
 // That keeps the "no fabricated measurements" rule intact even though the
 // output here is prose, not a number.
 
+import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
@@ -24,11 +27,12 @@ export interface ResultsReportInput {
   proctoringFlagCount: number;
 }
 
-export interface ResultsReportResult {
-  summary: string;
-  strengths: { point: string; evidence: string }[];
-  improvements: { point: string; evidence: string; tip: string }[];
-}
+const resultsReportResultSchema = z.object({
+  summary: z.string().trim().min(1),
+  strengths: z.array(z.object({ point: z.string(), evidence: z.string() })),
+  improvements: z.array(z.object({ point: z.string(), evidence: z.string(), tip: z.string() })),
+});
+export type ResultsReportResult = z.infer<typeof resultsReportResultSchema>;
 
 function buildPrompt(input: ResultsReportInput): string {
   const categoryLines = input.categories
@@ -89,13 +93,7 @@ async function callGemini(apiKey: string, model: string, input: ResultsReportInp
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let parsed: ResultsReportResult;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini did not return valid JSON: ${text}`);
-  }
-
+  const parsed = parseGeminiJson(text, resultsReportResultSchema, "a results report");
   return { parsed, raw, latencyMs };
 }
 

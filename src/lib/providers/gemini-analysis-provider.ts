@@ -11,6 +11,7 @@
 // tool for those, no audio needed.
 
 import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
 
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
@@ -153,17 +154,9 @@ async function callGemini(
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini did not return valid JSON: ${text}`);
-  }
   // Throwing here makes analyzeVoiceResponse retry on the fallback model.
-  const checked = voiceAnalysisResultSchema.safeParse(json);
-  if (!checked.success) throw new Error(`Gemini returned an analysis in an unexpected shape: ${checked.error.message}`);
-
-  return { parsed: checked.data, raw, latencyMs };
+  const parsed = parseGeminiJson(text, voiceAnalysisResultSchema, "a speech analysis");
+  return { parsed, raw, latencyMs };
 }
 
 export function createGeminiAnalysisProvider(apiKey: string) {

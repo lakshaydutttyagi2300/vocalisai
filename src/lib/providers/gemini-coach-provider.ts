@@ -5,8 +5,13 @@
 // the recent chat history - it is explicitly told not to invent scores or
 // personalized facts that weren't given to it.
 
+import { z } from "zod";
+import { parseGeminiJson } from "./gemini-json";
+
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
+
+const coachReplySchema = z.object({ reply: z.string().trim().min(1) });
 
 export interface CoachChatTurn {
   role: "user" | "coach";
@@ -59,13 +64,7 @@ async function callGemini(apiKey: string, model: string, profileDigest: string, 
   const text = raw.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Gemini returned no content: ${JSON.stringify(raw)}`);
 
-  let parsed: { reply: string };
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini did not return valid JSON: ${text}`);
-  }
-
+  const parsed = parseGeminiJson(text, coachReplySchema, "a coach reply");
   return { parsed, raw, latencyMs };
 }
 
