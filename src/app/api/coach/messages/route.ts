@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { computeCoachProfile, describeCoachProfile } from "@/lib/coach-profile";
 import { createGeminiCoachProvider, type CoachChatTurn } from "@/lib/providers/gemini-coach-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
-import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { checkAndRecordUsage, refundUsage, upgradeMessage } from "@/lib/entitlements";
 
 const MAX_MESSAGE_LENGTH = 1000;
 const HISTORY_TURNS = 10; // bounds prompt size/cost regardless of how long the thread grows
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
+    await refundUsage(usage);
     return NextResponse.json({ error: "The AI coach is not configured on this server." }, { status: 503 });
   }
 
@@ -71,6 +72,7 @@ export async function POST(req: Request) {
     outcome = await coachProvider.reply(profileDigest, history, content);
   } catch (err) {
     console.error("coach: AI reply failed", err);
+    await refundUsage(usage);
     return NextResponse.json(
       {
         error: "The AI coach couldn't respond. Please try again in a moment.",

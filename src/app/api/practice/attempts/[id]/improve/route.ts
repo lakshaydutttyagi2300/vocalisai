@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createGeminiImproveProvider } from "@/lib/providers/gemini-improve-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
-import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { checkAndRecordUsage, refundUsage, upgradeMessage } from "@/lib/entitlements";
 
 // Same on-demand/idempotent/cached discipline as the analysis and results
 // report features: this is a paid AI call, so it only ever runs when the
@@ -52,6 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
+    await refundUsage(usage);
     return NextResponse.json({ error: "This feature is not configured on this server." }, { status: 503 });
   }
 
@@ -61,6 +62,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     outcome = await provider.improveAnswer(attempt.analysis.transcript, attempt.question.prompt);
   } catch (err) {
     console.error("improve answer: AI call failed", { attemptId: attempt.id, err });
+    await refundUsage(usage);
     return NextResponse.json(
       { error: "We couldn't improve your answer right now. Please try again in a moment." },
       { status: 502 }

@@ -161,6 +161,7 @@ export interface UsageCheck {
   limit: number;
   used: number;
   remaining: number;
+  usageEventId?: string; // set when allowed; lets refundUsage() give the use back
 }
 
 // The core gate. Call BEFORE doing the paid work (transcription, an AI
@@ -178,8 +179,15 @@ export async function checkAndRecordUsage(userId: string, feature: Feature): Pro
     return { allowed: false, plan, limit, used, remaining: 0 };
   }
 
-  await db.usageEvent.create({ data: { userId, feature } });
-  return { allowed: true, plan, limit, used: used + 1, remaining: limit - used - 1 };
+  const event = await db.usageEvent.create({ data: { userId, feature } });
+  return { allowed: true, plan, limit, used: used + 1, remaining: limit - used - 1, usageEventId: event.id };
+}
+
+// Gives back a use recorded by checkAndRecordUsage when the paid work then
+// failed on our side (e.g. the AI provider errored), so candidates aren't
+// charged for our failures. Don't call it for failures the candidate caused.
+export async function refundUsage(check: UsageCheck): Promise<void> {
+  if (check.usageEventId) await db.usageEvent.deleteMany({ where: { id: check.usageEventId } });
 }
 
 async function currentPeriodStart(userId: string): Promise<Date> {

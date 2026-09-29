@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { analyzeAttempt } from "@/lib/analyze-attempt";
-import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { checkAndRecordUsage, refundUsage, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 
 // Analysis runs ONLY when explicitly requested (viewing results), never
@@ -108,11 +108,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const result = await analyzeAttempt(attempt);
   if (!result.ok) {
+    // A silent or too-short recording (422) is the only failure the
+    // candidate caused; every other one is ours, so they keep the use.
+    if (result.status !== 422) await refundUsage(usage);
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   const saved = await db.speechAnalysis.findUnique({ where: { attemptId: attempt.id } });
   if (!saved) {
+    await refundUsage(usage);
     return NextResponse.json({ error: "Analysis didn't save correctly. Please try again." }, { status: 500 });
   }
 

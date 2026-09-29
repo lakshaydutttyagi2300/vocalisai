@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { isValidDifficulty } from "@/lib/practice-taxonomy";
 import { createGeminiScenarioProvider, type ScenarioCategory, type ScenarioResult } from "@/lib/providers/gemini-scenario-provider";
 import { estimateAnalysisCostUsd } from "@/lib/providers/pricing";
-import { checkAndRecordUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
+import { checkAndRecordUsage, refundUsage, checkDifficultyAccess, upgradeMessage } from "@/lib/entitlements";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { candidateStimulus } from "@/lib/question-stimulus";
 
@@ -101,6 +101,7 @@ export async function POST(req: Request) {
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
+    await refundUsage(usage);
     return NextResponse.json({ error: "AI scenario generation is not configured on this server." }, { status: 503 });
   }
 
@@ -110,6 +111,7 @@ export async function POST(req: Request) {
     outcome = await provider.generateScenario(category as ScenarioCategory, difficulty, rawTopic || null);
   } catch (err) {
     console.error("scenario generation: AI call failed", err);
+    await refundUsage(usage);
     return NextResponse.json(
       { error: "We couldn't generate a scenario right now. Please try again in a moment." },
       { status: 502 }

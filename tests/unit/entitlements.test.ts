@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { checkAndRecordUsage, getEffectivePlan, setPlan, PLAN_LIMITS } from "@/lib/entitlements";
+import { checkAndRecordUsage, getEffectivePlan, refundUsage, setPlan, PLAN_LIMITS } from "@/lib/entitlements";
 
 const RUN_ID = Date.now();
 const createdUserIds: string[] = [];
@@ -96,5 +96,31 @@ describe("checkAndRecordUsage", () => {
     const result = await checkAndRecordUsage(user.id, "MOCK_ASSESSMENT");
     expect(result.allowed).toBe(true);
     expect(result.limit).toBe(PLAN_LIMITS.PREMIUM.MOCK_ASSESSMENT);
+  });
+});
+
+describe("refundUsage", () => {
+  it("gives back exactly the one use it was handed, so a failed AI call costs nothing", async () => {
+    const user = await makeUser();
+    const first = await checkAndRecordUsage(user.id, "SPEECH_ANALYSIS");
+    const second = await checkAndRecordUsage(user.id, "SPEECH_ANALYSIS");
+    expect(second.used).toBe(2);
+
+    await refundUsage(second);
+    expect(await db.usageEvent.count({ where: { userId: user.id, feature: "SPEECH_ANALYSIS" } })).toBe(1);
+    expect((await checkAndRecordUsage(user.id, "SPEECH_ANALYSIS")).allowed).toBe(PLAN_LIMITS.FREE.SPEECH_ANALYSIS >= 2);
+    expect(first.usageEventId).toBeTruthy();
+  });
+
+  it("does nothing for a check that was never allowed, and is safe to call twice", async () => {
+    const user = await makeUser();
+    const blocked = await checkAndRecordUsage(user.id, "MOCK_ASSESSMENT"); // FREE limit is 0
+    expect(blocked.allowed).toBe(false);
+    await refundUsage(blocked);
+
+    const allowed = await checkAndRecordUsage(user.id, "PRACTICE_SESSION");
+    await refundUsage(allowed);
+    await refundUsage(allowed);
+    expect(await db.usageEvent.count({ where: { userId: user.id } })).toBe(0);
   });
 });
