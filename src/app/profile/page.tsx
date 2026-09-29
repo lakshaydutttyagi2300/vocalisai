@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { PROFILE_LIMITS } from "@/lib/profile-limits";
 
 type ProfileData = {
   name: string;
@@ -123,6 +124,7 @@ export default function ProfilePage() {
             type="text"
             required
             minLength={2}
+            maxLength={PROFILE_LIMITS.name}
             value={profile.name}
             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
             className="input-field mt-1"
@@ -137,6 +139,7 @@ export default function ProfilePage() {
             id="targetRole"
             type="text"
             placeholder="e.g. Customer Service Associate"
+            maxLength={PROFILE_LIMITS.targetRole}
             value={profile.targetRole}
             onChange={(e) => setProfile({ ...profile, targetRole: e.target.value })}
             className="input-field mt-1"
@@ -150,6 +153,7 @@ export default function ProfilePage() {
           <textarea
             id="bio"
             rows={4}
+            maxLength={PROFILE_LIMITS.bio}
             value={profile.bio}
             onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
             className="input-field mt-1"

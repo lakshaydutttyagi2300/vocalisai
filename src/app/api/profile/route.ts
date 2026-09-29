@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { z } from "zod";
 import { db } from "@/lib/db";
+import { PROFILE_LIMITS } from "@/lib/profile-limits";
+
+const profileUpdateSchema = z.object(
+  {
+    name: z.string().trim().min(2, "Name must be at least 2 characters.").max(PROFILE_LIMITS.name, `Name must be at most ${PROFILE_LIMITS.name} characters.`).optional(),
+    targetRole: z.string().trim().max(PROFILE_LIMITS.targetRole, `Target role must be at most ${PROFILE_LIMITS.targetRole} characters.`).optional(),
+    bio: z.string().trim().max(PROFILE_LIMITS.bio, `Bio must be at most ${PROFILE_LIMITS.bio} characters.`).optional(),
+  },
+  { error: "Invalid request body." },
+);
 
 // Every lookup below is scoped to session.user.id from the server-verified
 // JWT - never to a client-supplied id - so a candidate can only ever read
@@ -36,26 +47,21 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  const parsed = profileUpdateSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request body." }, { status: 400 });
   }
-
-  const { name, targetRole, bio } = body as { name?: string; targetRole?: string; bio?: string };
-
-  if (name !== undefined && name.trim().length < 2) {
-    return NextResponse.json({ error: "Name must be at least 2 characters." }, { status: 400 });
-  }
-
+  const { name, targetRole, bio } = parsed.data;
   const userId = session.user.id;
 
   if (name !== undefined) {
-    await db.user.update({ where: { id: userId }, data: { name: name.trim() } });
+    await db.user.update({ where: { id: userId }, data: { name } });
   }
 
+  // Only the fields that were sent change - omitting one leaves it as it was.
   await db.profile.upsert({
     where: { userId },
-    update: { targetRole: targetRole ?? "", bio: bio ?? "" },
+    update: { ...(targetRole !== undefined && { targetRole }), ...(bio !== undefined && { bio }) },
     create: { userId, targetRole: targetRole ?? "", bio: bio ?? "" },
   });
 
