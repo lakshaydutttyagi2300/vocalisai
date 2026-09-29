@@ -31,6 +31,14 @@ export const TRACK_COPY: Record<string, { tagline: string; includes: string[] }>
     tagline: "Answer interview questions clearly and confidently.",
     includes: ["Interview questions with feedback", "Live AI mock interviews", "Workplace judgement and spoken English"],
   },
+  CAMPUS: {
+    tagline: "Clear campus placement tests and interviews.",
+    includes: ["Numerical, logical and verbal reasoning drills", "Aptitude and graduate recruitment tests", "Live AI mock interviews"],
+  },
+  STUDY_ABROAD: {
+    tagline: "Academic English for studying abroad.",
+    includes: ["Academic reading, listening and writing practice", "Speaking practice for academic topics", "Academic English, IELTS-style and PTE-style practice tests"],
+  },
 };
 
 export async function listEnabledTracks(): Promise<TrackSummary[]> {
@@ -156,7 +164,7 @@ export async function buildTrackPlan(userId: string, track: TrackSummary): Promi
     href: `/mock-tests?template=${encodeURIComponent(b.mockTestTemplateId!)}`,
     kind: "mock",
   }));
-  if (track.slug === "INTERVIEW_PREP" || track.slug === "BPO_SUPPORT") {
+  if (track.slug === "INTERVIEW_PREP" || track.slug === "BPO_SUPPORT" || track.slug === "CAMPUS") {
     exams.push({
       name: "Live AI mock interview",
       description: "A real back-and-forth interview with an AI interviewer, then feedback.",

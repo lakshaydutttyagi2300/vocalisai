@@ -52,7 +52,10 @@ describe("choosing a goal and the plan built for it (test database)", { timeout:
   const run = Date.now();
   let userId = "";
 
+  // Every seeded track is on now, so the "hidden goal" case uses a throwaway one.
+  const hiddenSlug = `HIDDEN_TEST_${run}`;
   beforeAll(async () => {
+    await db.goalTrack.create({ data: { slug: hiddenSlug, name: "Hidden test goal", enabled: false, sortOrder: 99 } });
     const user = await db.user.create({ data: { email: `goal-${run}@example.test`, passwordHash: "x", name: "Goal Test" } });
     userId = user.id;
     session.getServerSession.mockResolvedValue({ user: { id: userId, email: user.email, role: "CANDIDATE" } });
@@ -60,11 +63,12 @@ describe("choosing a goal and the plan built for it (test database)", { timeout:
   afterAll(async () => {
     await db.subscription.deleteMany({ where: { userId } });
     await db.user.delete({ where: { id: userId } }); // cascades the profile
+    await db.goalTrack.deleteMany({ where: { slug: hiddenSlug } });
   }, 60_000);
 
   it("only enabled goals can be chosen; the choice is saved on the profile", async () => {
     expect(await getUserTrack(userId)).toBeNull();
-    expect(await setUserTrack(userId, "CAMPUS")).toBe(false); // hidden track
+    expect(await setUserTrack(userId, hiddenSlug)).toBe(false); // hidden track
     expect(await setUserTrack(userId, "NOPE")).toBe(false);
     expect(await setUserTrack(userId, "BPO_SUPPORT")).toBe(true);
     expect((await getUserTrack(userId))?.slug).toBe("BPO_SUPPORT");
@@ -75,9 +79,24 @@ describe("choosing a goal and the plan built for it (test database)", { timeout:
   it("POST /api/goal saves a goal and refuses hidden ones", async () => {
     const { POST } = await import("@/app/api/goal/route");
     const post = (slug: string) => POST(new Request("http://localhost/api/goal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }));
-    expect((await post("STUDY_ABROAD")).status).toBe(400);
+    expect((await post(hiddenSlug)).status).toBe(400);
     expect((await post("GENERAL_ENGLISH")).status).toBe(200);
     expect((await getUserTrack(userId))?.slug).toBe("GENERAL_ENGLISH");
+  });
+
+  it("Campus Placement and Study Abroad are open, each with its own exams", async () => {
+    expect(await setUserTrack(userId, "CAMPUS")).toBe(true);
+    const campus = await buildTrackPlan(userId, (await getUserTrack(userId))!);
+    expect(campus.areas.map((a) => a.id)).toEqual(expect.arrayContaining(["QNT", "REA", "VRB"]));
+    expect(campus.exams.map((e) => e.name)).toEqual(expect.arrayContaining(["Aptitude Screening", "Graduate Recruitment Assessment", "Live AI mock interview"]));
+    expect(await setUserTrack(userId, "STUDY_ABROAD")).toBe(true);
+    const abroad = await buildTrackPlan(userId, (await getUserTrack(userId))!);
+    expect(abroad.exams.map((e) => e.name)).toEqual(expect.arrayContaining(["Academic English Test", "PTE-style Academic practice test"]));
+    expect(abroad.exams.some((e) => e.kind === "interview")).toBe(false);
+    // Their timed exams stay exam cards in the chooser, labelled with the goal.
+    const options = await listMockTestOptions();
+    const flagOn = (await db.featureFlag.findUnique({ where: { key: "exam_runner_v2" } }))?.enabled ?? false;
+    if (flagOn) expect(options.find((o) => o.name === "Aptitude Screening")).toMatchObject({ kind: "exam", trackName: "Campus Placement" });
   });
 
   it("the BPO plan: its weighted areas, next steps for a new candidate, and the BPO exam inside it", async () => {

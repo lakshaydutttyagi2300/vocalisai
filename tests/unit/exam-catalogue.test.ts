@@ -90,8 +90,12 @@ describe("exam-catalogue schema (P1-A)", () => {
   });
 
   it("enforces slug uniqueness within a family, not globally", async () => {
-    const familyA = await db.examFamily.create({ data: { slug: "SELT_STYLE", name: `${marker}-a` } });
-    const familyB = await db.examFamily.create({ data: { slug: "PTE_STYLE", name: `${marker}-b` } });
+    // Run-scoped slugs, not real family slugs like "SELT_STYLE"/"PTE_STYLE" -
+    // those now belong to real seeded content (28 Sep exam-library
+    // expansion), so reusing them here would collide with real rows
+    // instead of testing the uniqueness rule in isolation.
+    const familyA = await db.examFamily.create({ data: { slug: `${marker}-family-a`, name: `${marker}-a` } });
+    const familyB = await db.examFamily.create({ data: { slug: `${marker}-family-b`, name: `${marker}-b` } });
 
     // Same slug ("ACADEMIC") in two different families must both succeed.
     const variantA = await db.examVariant.create({

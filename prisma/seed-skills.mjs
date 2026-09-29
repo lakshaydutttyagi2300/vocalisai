@@ -93,14 +93,14 @@ export const GOAL_TRACKS = [
     slug: "CAMPUS",
     name: "Campus Placement",
     description: "Aptitude (numerical, reasoning, verbal) and interview readiness for campus hiring.",
-    enabled: false,
+    enabled: true, // switched on 28 Sep 2026, with its exams (Aptitude Screening, Graduate Recruitment)
     weights: { QNT: 1, REA: 1, VRB: 0.9, "ENG.GRM": 0.6, "ENG.RDG": 0.6, INV: 0.5 },
   },
   {
     slug: "STUDY_ABROAD",
     name: "Study Abroad",
     description: "Academic English for study abroad - reading, listening, writing and speaking.",
-    enabled: false,
+    enabled: true, // switched on 28 Sep 2026, with its exams (Academic English, IELTS-style, PTE-style)
     weights: { ENG: 1, "ENG.WRT": 0.9, SPK: 0.9 },
   },
 ];
@@ -110,6 +110,12 @@ export const GOAL_TRACKS = [
 export const EXISTING_EXAM_BLUEPRINTS = [
   { slug: "bpo-workplace-assessment", name: "Workplace Communication Assessment", track: "BPO_SUPPORT", template: "Workplace Communication Assessment" },
   { slug: "general-english-assessment", name: "General English Communication Assessment", track: "GENERAL_ENGLISH", template: "General English Communication Assessment" },
+  // Exam-library exams (npm run seed:exam-library first) for the two tracks switched on 28 Sep 2026.
+  { slug: "campus-aptitude-screening", name: "Aptitude Screening", track: "CAMPUS", template: "Aptitude Screening" },
+  { slug: "campus-graduate-recruitment", name: "Graduate Recruitment Assessment", track: "CAMPUS", template: "Graduate Recruitment Assessment" },
+  { slug: "study-abroad-academic-english", name: "Academic English Test", track: "STUDY_ABROAD", template: "Academic English Test" },
+  { slug: "study-abroad-ielts-style", name: "IELTS-style Academic practice test", track: "STUDY_ABROAD", template: "IELTS-style Academic - Practice Test 1" },
+  { slug: "study-abroad-pte-style", name: "PTE-style Academic practice test", track: "STUDY_ABROAD", template: "Academic - Practice Test" },
 ];
 export const DIAGNOSTIC_CATEGORIES = ["ENG", "SPK", "QNT", "REA", "VRB", "CSV", "SJT", "INV"];
 
@@ -155,7 +161,9 @@ async function main(db, { dryRun, log }) {
     const track = await db.goalTrack.upsert({
       where: { slug: t.slug },
       create: { slug: t.slug, name: t.name, description: t.description, enabled: t.enabled, sortOrder: i + 1 },
-      update: { name: t.name, description: t.description, sortOrder: i + 1 }, // enabled is an admin decision once created
+      // The seed can switch a track ON (when its source says enabled) but never
+      // off - turning a live track off stays an explicit decision.
+      update: { name: t.name, description: t.description, sortOrder: i + 1, ...(t.enabled ? { enabled: true } : {}) },
     });
     trackIds[t.slug] = track.id;
     const current = new Map((await db.goalTrackSkill.findMany({ where: { goalTrackId: track.id } })).map((w) => [w.skillId, w.weight]));

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Briefcase, Check, Headphones, MessagesSquare, type LucideIcon } from "lucide-react";
+import { ArrowRight, Briefcase, Check, GraduationCap, Headphones, MessagesSquare, Plane, type LucideIcon } from "lucide-react";
 import { Icon, IconBadge } from "@/components/ui/Icon";
 
 export interface GoalOption {
@@ -16,6 +16,8 @@ const ICONS: Record<string, LucideIcon> = {
   GENERAL_ENGLISH: MessagesSquare,
   BPO_SUPPORT: Headphones,
   INTERVIEW_PREP: Briefcase,
+  CAMPUS: GraduationCap,
+  STUDY_ABROAD: Plane,
 };
 
 export function GoalChooser({ goals, current }: { goals: GoalOption[]; current: string | null }) {

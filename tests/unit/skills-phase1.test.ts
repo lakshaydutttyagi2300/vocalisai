@@ -124,14 +124,20 @@ describe("Phase 1 seed on the test database", { timeout: 180_000 }, () => {
     expect(mappedAt.skillId).toBe("SPK.PRN");
   });
 
-  it("seeds goal tracks (Campus and Study Abroad hidden) and keeps the existing exams reachable from their tracks", async () => {
-    const tracks = await db.goalTrack.findMany({ include: { skills: true }, orderBy: { sortOrder: "asc" } });
+  it("seeds the 5 real goal tracks, all enabled, and keeps the existing exams reachable from their tracks", async () => {
+    // Filtered to the known real slugs, not the raw table - other test
+    // files create and clean up their own throwaway GoalTrack rows
+    // against this same shared database, and this test shouldn't be
+    // sensitive to one being briefly present mid-run.
+    const REAL_SLUGS = ["GENERAL_ENGLISH", "BPO_SUPPORT", "INTERVIEW_PREP", "CAMPUS", "STUDY_ABROAD"];
+    const allTracks = await db.goalTrack.findMany({ include: { skills: true }, orderBy: { sortOrder: "asc" } });
+    const tracks = allTracks.filter((t) => REAL_SLUGS.includes(t.slug));
     expect(tracks.map((t) => [t.slug, t.enabled])).toEqual([
       ["GENERAL_ENGLISH", true],
       ["BPO_SUPPORT", true],
       ["INTERVIEW_PREP", true],
-      ["CAMPUS", false],
-      ["STUDY_ABROAD", false],
+      ["CAMPUS", true],
+      ["STUDY_ABROAD", true],
     ]);
     for (const t of tracks) expect(t.skills.length).toBeGreaterThan(0);
 

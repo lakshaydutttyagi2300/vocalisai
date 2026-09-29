@@ -24,10 +24,9 @@ test("choose a goal from the dashboard, see the plan, and start the goal's own e
     await expect(page).toHaveURL(/\/goal\/choose$/);
 
     const goals = page.getByRole("radiogroup", { name: "Choose your goal" });
-    for (const name of ["General English", "BPO / Customer Support", "Interview Preparation"]) {
+    for (const name of ["General English", "BPO / Customer Support", "Interview Preparation", "Campus Placement", "Study Abroad"]) {
       await expect(goals.getByRole("radio", { name: new RegExp(name.replace("/", "\\/")) })).toBeVisible();
     }
-    await expect(goals.getByRole("radio", { name: /Campus|Study Abroad/ })).toHaveCount(0); // hidden tracks
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/goal-choose.png`, fullPage: true });
     await goals.getByRole("radio", { name: /BPO \/ Customer Support/ }).click();
     await page.getByRole("button", { name: /Start my plan/ }).click();

@@ -358,6 +358,195 @@ export const EXAM_LIBRARY = [
       },
     ],
   },
+
+  // ---- Exam styles that had a catalogue entry but no exams (added 28 Sep 2026).
+  // "-style" only: original practice in a similar format, never the real test.
+  {
+    slug: "SELT_STYLE",
+    name: "UK SELT-style",
+    description: "UK Secure English Language Test style assessments, including Life Skills levels.",
+    exams: [
+      {
+        slug: "LIFE_SKILLS_A1",
+        name: "Life Skills A1 - Speaking and Listening",
+        scale: "CEFR",
+        description: "A short beginner-level speaking and listening test in the style of the UK Life Skills A1 exam, with everyday topics.",
+        papers: [
+          paper("Listening", 10, [part("Everyday conversations", [["LISTENING", B, 6]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+          paper(
+            "Speaking",
+            10,
+            [part("Questions about you", [["SPEAKING", B, 3]], speaking(15, 45)), part("Short conversation", [["CONVERSATION_PARTNER", B, 2]], speaking(15, 45))],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+        ],
+      },
+      {
+        slug: "LIFE_SKILLS_B1",
+        name: "Life Skills B1 - Speaking and Listening",
+        scale: "CEFR",
+        description: "An intermediate speaking and listening test in the style of the UK Life Skills B1 exam, used for settlement and citizenship.",
+        papers: [
+          paper("Listening", 12, [part("Conversations and announcements", [["LISTENING", I, 8]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+          paper(
+            "Speaking",
+            13,
+            [part("Talk about a topic", [["SPEAKING", I, 3]], speaking(20, 60)), part("Discussion", [["CONVERSATION_PARTNER", I, 2]], speaking(20, 60))],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+        ],
+      },
+      {
+        slug: "FOUR_SKILLS_B2",
+        name: "Four Skills B2",
+        scale: "CEFR",
+        description: "A full four-skill test at upper-intermediate level in the style of UK SELT B2 exams: reading, writing, listening and speaking.",
+        papers: [
+          paper("Reading", 30, [part("Texts", [["READING_COMPREHENSION", A, 10]])]),
+          paper("Writing", 40, [part("Two tasks", [["WRITING", A, 2]])]),
+          paper("Listening", 25, [part("Recordings", [["LISTENING", A, 8]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+          paper("Speaking", 15, [part("Longer answers", [["SPEAKING", A, 3]], speaking(30, 90))], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+        ],
+      },
+    ],
+  },
+  {
+    slug: "PTE_STYLE",
+    name: "PTE-style",
+    description: "Computer-delivered, integrated-skills English proficiency testing.",
+    exams: [
+      {
+        slug: "ACADEMIC_PRACTICE",
+        name: "Academic - Practice Test",
+        scale: "PTE_STYLE_10_90",
+        description: "A full computer-style practice test in the PTE Academic format: speaking and writing together, then reading, then listening.",
+        papers: [
+          paper(
+            "Speaking and Writing",
+            60,
+            [
+              part("Read aloud", [["READING", A, 3]], speaking(30, 40)),
+              part("Answer questions", [["SPEAKING", A, 3]], speaking(15, 40)),
+              part("Summarise a text", [["WRITING", A, 1]]),
+              part("Essay", [["WRITING", E, 1]]),
+            ],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+          paper("Reading", 30, [part("Reading tasks", [["READING_COMPREHENSION", A, 6]]), part("Fill in the blanks", [["VOCABULARY", A, 6]])]),
+          paper("Listening", 40, [part("Lectures and talks", [["LISTENING", A, 8]]), part("Hardest recordings", [["LISTENING", E, 4]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+        ],
+      },
+      {
+        slug: "SPEAKING_LISTENING_QUICK",
+        name: "Speaking and Listening - Quick Practice",
+        scale: "PTE_STYLE_10_90",
+        description: "A 45-minute intermediate practice of the PTE-style speaking and listening tasks, for building speed and confidence.",
+        papers: [
+          paper(
+            "Speaking",
+            20,
+            [part("Read aloud", [["READING", I, 4]], speaking(30, 40)), part("Answer questions", [["SPEAKING", I, 3]], speaking(15, 40))],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+          paper("Listening", 25, [part("Recordings", [["LISTENING", I, 8]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+        ],
+      },
+    ],
+  },
+  {
+    slug: "CAMBRIDGE_STYLE",
+    name: "Cambridge-style",
+    description: "Cambridge English qualification style assessments.",
+    exams: [
+      {
+        slug: "B1_PRELIMINARY_STYLE",
+        name: "B1 Preliminary-style",
+        scale: "CAMBRIDGE_STYLE_SCALE",
+        description: "Practice in the style of the Cambridge B1 Preliminary exam: reading, writing, listening and a paired-style speaking test.",
+        papers: [
+          paper("Reading", 45, [part("Texts", [["READING_COMPREHENSION", I, 8]])]),
+          paper("Writing", 45, [part("Email and story", [["WRITING", I, 2]])]),
+          paper("Listening", 30, [part("Recordings", [["LISTENING", I, 10]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+          paper(
+            "Speaking",
+            12,
+            [part("Interview", [["SPEAKING", I, 2]], speaking(15, 60)), part("Discussion", [["CONVERSATION_PARTNER", I, 2]], speaking(15, 60))],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+        ],
+      },
+      {
+        slug: "B2_FIRST_STYLE",
+        name: "B2 First-style",
+        scale: "CAMBRIDGE_STYLE_SCALE",
+        description: "A full-length practice in the style of the Cambridge B2 First exam, including a Reading and Use of English paper.",
+        papers: [
+          paper("Reading and Use of English", 75, [
+            part("Use of English - grammar", [["GRAMMAR", A, 10]]),
+            part("Use of English - vocabulary", [["VOCABULARY", A, 10]]),
+            part("Reading", [["READING_COMPREHENSION", A, 6]]),
+          ]),
+          paper("Writing", 80, [part("Essay and one other task", [["WRITING", A, 2]])]),
+          paper("Listening", 40, [part("Recordings", [["LISTENING", A, 10]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+          paper(
+            "Speaking",
+            14,
+            [part("Long turn", [["SPEAKING", A, 2]], speaking(20, 60)), part("Discussion", [["CONVERSATION_PARTNER", A, 2]], speaking(20, 60))],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+        ],
+      },
+    ],
+  },
+  {
+    slug: "EMPLOYMENT",
+    name: "Employment & Recruitment",
+    description: "Recruitment, pre-employment and role-specific assessments, including BPO/MNC interviews.",
+    exams: [
+      {
+        slug: "PRE_EMPLOYMENT_SCREENING",
+        name: "Pre-employment Screening",
+        scale: "PASS_MERIT_DISTINCTION",
+        description: "The kind of online screening many employers send before an interview: aptitude, workplace judgement and English.",
+        papers: [
+          paper("Aptitude", 20, [part("Numbers", [["NUMERICAL_APTITUDE", I, 8]]), part("Logic", [["LOGICAL_REASONING", I, 8]])]),
+          paper("Workplace judgement", 10, [part("Scenarios", [["SITUATIONAL_JUDGEMENT", I, 8]])]),
+          paper("English", 10, [part("Grammar", [["GRAMMAR", I, 6]]), part("Vocabulary", [["VOCABULARY", I, 6]])]),
+        ],
+      },
+      {
+        slug: "SPOKEN_ENGLISH_SCREENING",
+        name: "Spoken English Screening",
+        scale: "PASS_MERIT_DISTINCTION",
+        description: "An automated-style spoken English screening like those used by BPOs and MNCs: read aloud, pronunciation, short answers and listening.",
+        papers: [
+          paper(
+            "Speaking",
+            12,
+            [
+              part("Read aloud", [["READING", B, 2]], speaking(20, 45)),
+              part("Pronunciation", [["PRONUNCIATION", I, 4]], speaking(10, 30)),
+              part("Short answers", [["SPEAKING", I, 3]], speaking(15, 45)),
+            ],
+            { navigation: "LOCKED_SEQUENTIAL", review: false }
+          ),
+          paper("Listening", 8, [part("Short recordings", [["LISTENING", I, 4]])], { navigation: "LOCKED_SEQUENTIAL", review: false }),
+        ],
+      },
+      {
+        slug: "GRADUATE_RECRUITMENT",
+        name: "Graduate Recruitment Assessment",
+        scale: "PERCENTILE",
+        description: "A graduate-level recruitment assessment: advanced reasoning, a written business task and typed answers to interview questions.",
+        papers: [
+          paper("Numerical reasoning", 20, [part("Questions", [["NUMERICAL_APTITUDE", A, 10]])]),
+          paper("Verbal reasoning", 15, [part("Questions", [["VERBAL_REASONING", A, 8]])]),
+          paper("Written task", 20, [part("Business writing", [["WRITING", A, 1]])]),
+          paper("Interview questions", 15, [part("Typed answers", [["INTERVIEW", A, 3]])]),
+        ],
+      },
+    ],
+  },
 ];
 
 // The General English goal track's assessment, made clearly different from

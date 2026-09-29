@@ -80,8 +80,8 @@ const VOICE_RATING_LABEL: Record<"strong" | "adequate" | "weak", string> = {
   weak: "Weak",
 };
 
-function readinessLine(score: number | null): string {
-  if (score === null) return "Analyze more responses to see your readiness.";
+function readinessLine(score: number | null, answered: number): string {
+  if (score === null) return answered === 0 ? "No answers were scored in this exam, so there is no readiness score." : "Analyze more responses to see your readiness.";
   if (score >= 80) return "You're interview ready.";
   if (score >= 60) return "You're nearly ready.";
   return "Keep practicing - you're building toward ready.";
@@ -196,7 +196,7 @@ export default function MockTestResultsPage() {
               <ScoreRing value={scoreReport.overallScore} label="Readiness" />
             </div>
             <div>
-              <p className="font-display text-lg font-bold text-ink-900">{readinessLine(scoreReport.overallScore)}</p>
+              <p className="font-display text-lg font-bold text-ink-900">{readinessLine(scoreReport.overallScore, summary?.totalQuestions ?? 0)}</p>
               <p className="mt-1 text-xs text-slate-500">
                 Average of every category below with data. Each category is computed from real
                 measurements and structured AI ratings, never a single AI-invented number.

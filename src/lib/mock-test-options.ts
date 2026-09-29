@@ -103,14 +103,16 @@ async function standardOptions(): Promise<MockTestOption[]> {
   const ids = [...new Set([def?.id, ...trackExams.map((b) => b.mockTestTemplateId)].filter((x): x is string => !!x))];
   const templates = await db.mockTestTemplate.findMany({
     where: { id: { in: ids } },
-    select: { id: true, name: true, sections: { orderBy: { order: "asc" }, select: { category: true, difficulty: true, questionCount: true } } },
+    select: { id: true, name: true, examVariantId: true, sections: { orderBy: { order: "asc" }, select: { category: true, difficulty: true, questionCount: true } } },
   });
   const byId = new Map(templates.map((t) => [t.id, t]));
 
   const options: MockTestOption[] = [];
   for (const id of ids) {
     const t = byId.get(id);
-    if (!t) continue;
+    // A goal's timed exam (linked to an exam format) is listed with the
+    // exam library instead, as an exam card that carries the goal's name.
+    if (!t || (t.examVariantId && id !== def?.id)) continue;
     const blueprint = trackExams.find((b) => b.mockTestTemplateId === id);
     const sum = summarise(t.sections);
     options.push({
@@ -134,6 +136,14 @@ async function standardOptions(): Promise<MockTestOption[]> {
 }
 
 async function examOptions(exclude: string[]): Promise<MockTestOption[]> {
+  const goalOf = new Map(
+    (
+      await db.examBlueprint.findMany({
+        where: { kind: "mock", enabled: true, mockTestTemplateId: { not: null }, goalTrack: { enabled: true } },
+        select: { mockTestTemplateId: true, goalTrack: { select: { name: true } } },
+      })
+    ).map((b) => [b.mockTestTemplateId!, b.goalTrack?.name ?? null])
+  );
   const templates = await db.mockTestTemplate.findMany({
     where: {
       id: { notIn: exclude },
@@ -186,6 +196,7 @@ async function examOptions(exclude: string[]): Promise<MockTestOption[]> {
       totalMinutes: papers.reduce((n, p) => n + p.minutes, 0),
       papers,
       ...summarise(first.sections),
+      trackName: group.map((t) => goalOf.get(t.id)).find(Boolean) ?? null,
     });
   }
   // Grouped by type, shortest first within a type.

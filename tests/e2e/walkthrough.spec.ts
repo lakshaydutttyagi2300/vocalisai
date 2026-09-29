@@ -137,7 +137,7 @@ test("every page opens cleanly on a laptop and a phone", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "No recording for this answer" })).toBeVisible({ timeout: 30_000 });
     // ...an exam ended with nothing answered isn't "100 - interview ready"...
     await page.goto(`/mock-tests/results/${mock.sessionId}`);
-    await expect(page.getByText("Analyze more responses to see your readiness.")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("No answers were scored in this exam, so there is no readiness score.")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("You're interview ready.")).toHaveCount(0);
     // ...and the coach page no longer scrolls itself down on a phone.
     await page.setViewportSize({ width: 390, height: 844 });

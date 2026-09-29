@@ -1,8 +1,8 @@
 {
-  "name": "proacting",
+  "name": "vocalisai",
   "version": "0.1.0",
   "private": true,
-  "description": "ProActing - AI-Powered English Communication, Voice & Accent, and Proctored Assessment Platform",
+  "description": "VocalisAi - AI-powered English, workplace and interview preparation with proctored mock exams",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
