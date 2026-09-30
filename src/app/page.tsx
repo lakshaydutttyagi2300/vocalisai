@@ -22,15 +22,15 @@ const STEPS = [
 // our own screen recordings of the product.
 const LESSONS: Lesson[] = [
   {
-    topic: "Speaking",
-    title: "Answer, give one reason, add one example",
-    body: "Interviewers and examiners listen for shape before vocabulary. Three short parts beat one long ramble.",
-    video: { src: "/media/practice-question.webm", poster: "/media/practice-question.jpg", label: "Answering a practice question in VocalisAi" },
-  },
-  {
     topic: "Fluency",
     title: "Swap the filler for a pause",
     body: "Half a second of silence sounds more confident than “um” or “like”. Your analysis counts fillers, so you can watch the number fall.",
+    video: { src: "/media/speech-analysis.webm", poster: "/media/speech-analysis.jpg", label: "A speech analysis result in VocalisAi (example recording)" },
+  },
+  {
+    topic: "Speaking",
+    title: "Answer, give one reason, add one example",
+    body: "Interviewers and examiners listen for shape before vocabulary. Three short parts beat one long ramble.",
   },
   {
     topic: "Pronunciation",
@@ -38,10 +38,15 @@ const LESSONS: Lesson[] = [
     body: "In “I can help you with that today”, lean on help and today. Flat stress makes clear English sound unsure.",
   },
   {
+    topic: "Grammar",
+    title: "“Will” takes the base verb",
+    body: "“I will help you”, not “I will helping you”. A small slip that stands out in a spoken assessment.",
+    video: { src: "/media/practice-question.webm", poster: "/media/practice-question.jpg", label: "Answering grammar practice questions in VocalisAi" },
+  },
+  {
     topic: "Listening",
     title: "Read the question before the audio starts",
     body: "Use the preview time to decide what you are listening for: a number, a name, a reason. Then listen only for that.",
-    video: { src: "/media/listening-exam.webm", poster: "/media/listening-exam.jpg", label: "A timed listening paper in VocalisAi" },
   },
   {
     topic: "Listening",
@@ -54,15 +59,9 @@ const LESSONS: Lesson[] = [
     body: "Situation, Task, Action, Result, in about a minute. Spend most of it on what you did.",
   },
   {
-    topic: "Grammar",
-    title: "“Will” takes the base verb",
-    body: "“I will help you”, not “I will helping you”. A small slip that stands out in a spoken assessment.",
-  },
-  {
     topic: "Exam strategy",
     title: "In a timed paper, flag it and move on",
     body: "A question you can't crack in its time is costing you two you could answer. Mark it, keep going, come back.",
-    video: { src: "/media/mock-exam-check.webm", poster: "/media/mock-exam-check.jpg", label: "The camera and microphone check before a mock exam" },
   },
 ];
 

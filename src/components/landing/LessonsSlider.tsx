@@ -99,22 +99,25 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
 function LessonVideo({ video }: { video: NonNullable<Lesson["video"]> }) {
   const [playing, setPlaying] = useState(false);
   return (
-    <div className="relative aspect-video bg-ink-900">
-      {playing ? (
-        <video src={video.src} poster={video.poster} controls autoPlay muted playsInline preload="none" className="h-full w-full object-cover">
-          {video.label}
-        </video>
-      ) : (
-        <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0 h-full w-full" aria-label={`Play video: ${video.label}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- a static poster from /public; next/image adds nothing for a click-to-load placeholder */}
-          <img src={video.poster} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100" />
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-ink-950 shadow-lg transition-transform group-hover:scale-105">
-              <Icon as={Play} />
+    <figure>
+      <div className="relative aspect-video bg-ink-900">
+        {playing ? (
+          <video src={video.src} poster={video.poster} controls autoPlay muted playsInline preload="none" className="h-full w-full object-cover">
+            {video.label}
+          </video>
+        ) : (
+          <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0 h-full w-full" aria-label={`Play video: ${video.label}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- a static poster from /public; next/image adds nothing for a click-to-load placeholder */}
+            <img src={video.poster} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100" />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-ink-950 shadow-lg transition-transform group-hover:scale-105">
+                <Icon as={Play} />
+              </span>
             </span>
-          </span>
-        </button>
-      )}
-    </div>
+          </button>
+        )}
+      </div>
+      <figcaption className="px-6 pt-3 text-xs text-slate-400">{video.label}</figcaption>
+    </figure>
   );
 }
