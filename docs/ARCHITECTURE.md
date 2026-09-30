@@ -15,7 +15,7 @@ VocalisAi helps people prepare for English exams, workplace assessments and job 
 | UI | React 19, Tailwind CSS 4, `lucide-react` icons through `src/components/ui/Icon.tsx` | Design reference: `design/vocalisai-design-system.html`. |
 | Language | TypeScript 7 (`tsc`), with the TypeScript 6 API aliased as `typescript` for ESLint and the Next build | Gates: `npx tsc --noEmit` and `npm run lint`. |
 | Validation | `zod` 4 | AI replies, question-type answers, and newer API bodies. |
-| Database | PostgreSQL on **Neon**, through **Prisma 6** | 36 models, 13 additive migrations. See [DATABASE.md](DATABASE.md). |
+| Database | PostgreSQL on **Neon**, through **Prisma 6** | 45 models, 15 additive migrations. See [DATABASE.md](DATABASE.md). |
 | Auth | NextAuth v4: email + password (bcryptjs), JWT sessions, email-verified sign-up | `src/lib/auth.ts`, `src/lib/email-verification.ts`, `src/proxy.ts`. |
 | Files | Cloudflare **R2** through the AWS S3 SDK (presigned uploads) | `src/lib/storage.ts`. Falls back to the local `uploads/` folder when R2 isn't configured (development only). |
 | AI | **Groq** Whisper (speech-to-text), **Google Gemini** (analysis, coach, conversation, reports, rewrites, scenarios) | `src/lib/providers/*`. |

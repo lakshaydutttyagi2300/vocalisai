@@ -30,6 +30,7 @@
    npm run seed:exam-library -- --production
    npm run seed:skills -- --production
    npm run seed:skills-content -- --production
+   npm run seed:catalogue -- --production
    ```
    Run `seed:exam-library` before `seed:skills`: the goal-track exam blueprints look up exams by name.
 5. **Deploy:**

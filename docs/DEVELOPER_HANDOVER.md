@@ -68,6 +68,8 @@ Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":
 | Goal chooser and goal plan | `src/app/goal/choose/page.tsx`, `src/components/goals/GoalChooser.tsx`, `src/app/goal/page.tsx` |
 | Practice library and a practice mode | `src/app/practice/page.tsx`, `src/app/practice/[slug]/page.tsx` |
 | Typed / multiple-choice practice session | `src/components/practice/PracticeSession.tsx` |
+| Exam catalogue: browse, exam page, test screen, review, history, performance, bookmarks | `src/app/explore/*`, `src/components/explore/*`, `src/app/practice-tests/*`, `src/components/practice-tests/*`, `src/app/performance`, `src/app/bookmarks` ([CATALOGUE.md](CATALOGUE.md)) |
+| Exam catalogue admin (structure, questions, import) | `src/app/admin/catalogue/*`, `src/components/admin/CatalogueQuestionImport.tsx` |
 | Spoken practice (record, upload, analyse) | `src/components/practice/VoicePracticeSession.tsx` |
 | How a question's passage, audio or chart is shown | `src/components/questions/StimulusView.tsx` (data from `src/lib/question-stimulus.ts`) |
 | Speech-analysis results | `src/app/practice/results/[attemptId]/page.tsx`, `src/app/speech-analysis/page.tsx`, `src/components/practice/SyncedTranscript.tsx` |
@@ -98,6 +100,7 @@ Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":
 | Users, sign-up, login | `src/lib/auth.ts`, `src/lib/email-verification.ts`, `src/app/api/auth/*` |
 | Who can reach what | `src/proxy.ts` (every request), `src/lib/admin-guard.ts`, ownership checks in each `[id]` route, `src/lib/exam-runner-guard.ts` |
 | Plan limits and refunds | `src/lib/entitlements.ts`; plan and role names `src/lib/plans-and-roles.ts` |
+| Exam catalogue: question picking, no-repeat, tests, performance, admin | `src/lib/practice-bank.ts`, `question-order.ts`, `practice-tests.ts`, `catalog-queries.ts`, `performance.ts`, `catalog-admin.ts`; starting structure `prisma/catalogue/content.mjs` (`npm run seed:catalogue`) |
 | Questions: selection without repeats | `src/lib/question-freshness.ts`, `src/app/api/practice/questions/route.ts` |
 | Questions: types and grading | `src/lib/question-types.ts`, `src/lib/question-types/` |
 | Questions: validation, import, duplicates | `src/lib/question-validation.ts`, `question-import.ts`, `question-file-format.ts`, `question-dedup.ts` |

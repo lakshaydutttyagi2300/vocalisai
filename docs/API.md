@@ -94,6 +94,19 @@ Every endpoint is a Next.js route handler in `src/app/api/**/route.ts` (the URL 
 | `/api/admin/features` | GET, PATCH | admin | |
 | `/api/admin/scoring-weights` | GET, PATCH | admin | |
 | `/api/admin/audit-log` | GET | admin | |
+| **Exam catalogue: candidate** ([CATALOGUE.md](CATALOGUE.md)) | | | |
+| `/api/practice-tests` | POST (start: exam, subject, skill, level, mode, timed, count) | signed-in | PRACTICE_SESSION, or MOCK_ASSESSMENT for a full mock |
+| `/api/practice-tests/[id]` | GET (own test; a timed test past its time is submitted) | signed-in, owner | |
+| `/api/practice-tests/[id]/answers` | POST (one answer; untimed returns the marking) | signed-in, owner | |
+| `/api/practice-tests/[id]/submit` | POST | signed-in, owner | |
+| `/api/bookmarks` | POST (`questionId`, `bookmarked`) | signed-in | |
+| **Exam catalogue: admin** | | | |
+| `/api/admin/catalogue` | GET (whole tree, including switched-off items) | admin | |
+| `/api/admin/catalogue/[categories|exams|subjects|skills]` | POST | admin | |
+| `/api/admin/catalogue/[kind]/[id]` | PATCH, DELETE (only when unused) | admin | |
+| `/api/admin/catalogue/questions` | GET (filters, paging, stats), POST | admin | |
+| `/api/admin/catalogue/questions/[id]` | GET (with stats and latest attempts), PATCH, DELETE (archives if answered) | admin | |
+| `/api/admin/catalogue/questions/import` | POST (`rows`, `dryRun`; saved only if every row is valid) | admin | |
 | **System** | | | |
 | `/api/health` | GET | public | |
 | `/api/system-check/ping` | GET | public | |

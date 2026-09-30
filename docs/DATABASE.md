@@ -1,6 +1,6 @@
 # Database
 
-PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prisma/schema.prisma` (36 models); every change goes through a migration in `prisma/migrations/`.
+PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prisma/schema.prisma` (45 models); every change goes through a migration in `prisma/migrations/`.
 
 ## Connection
 
@@ -65,6 +65,19 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 
 **How the two exam systems connect:** the older `MockTestTemplate`/`MockTestTemplateSection` system is linked to the newer catalogue by `MockTestTemplate.examVariantId` and `MockTestTemplateSection.examPartId` (both nullable). A template with no link runs on the v1 runner exactly as before.
 
+### Exam catalogue ([CATALOGUE.md](CATALOGUE.md))
+| Model | Purpose | Key relations and rules |
+|---|---|---|
+| `CatalogCategory` → `CatalogExam` | Browse categories and their exams | `slug` unique; `isActive` hides; exams have `isPopular`, `keywords`, `mockMinutes`. A category with exams can't be deleted. |
+| `CatalogSubject` → `CatalogSkill` | Shared subjects and their skills | `legacyCategory` bridges an older bank; skill `slug` unique per subject. |
+| `CatalogExamSubject` | Which subjects an exam has, and each one's full-mock question count | Composite key `(examId, subjectId)`. |
+| `QuestionExam` | Limits a question to named exams | No rows = every exam with the question's subject. |
+| `QuestionSeen` | Anti-repetition memory per candidate and question | Composite key `(userId, questionId)`; seen/answered/right counts, last seen, last result. |
+| `QuestionBookmark` | A candidate's saved question | Composite key `(userId, questionId)`. |
+| `PracticeTest` | One catalogue test: mode, level, timing, question order, totals | Its answers are `PracticeAttempt` rows with `practiceTestId`, unique per question. |
+
+`PracticeQuestion` gained `subjectId`, `catalogSkillId`, `tags` and `archivedAt` (Archived = never served, history kept).
+
 ### Conversation and coach
 | Model | Purpose | Key relations and rules |
 |---|---|---|
@@ -92,7 +105,7 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 - **Additive only**: new tables and new nullable columns. Never drop or rename a column that live code or data uses; never edit a migration that has been applied.
 - Create one locally against the **development** branch: `npx prisma migrate dev --name <what>`.
 - The Vercel build does **not** migrate. Before shipping code that needs a new migration, apply it to production first (with a backup branch): see [DEPLOYMENT.md](DEPLOYMENT.md).
-- History: 13 migrations, from `20260915120900_init` to `20260928120000_email_verification_exam_descriptions`. `prisma/migrations-sqlite-archive/` is history only.
+- History: 15 migrations, from `20260915120900_init` to `20261001130000_practice_test_answer_unique`. `prisma/migrations-sqlite-archive/` is history only.
 
 ## Seeds and data scripts
 
