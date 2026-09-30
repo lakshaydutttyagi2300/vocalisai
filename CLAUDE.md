@@ -16,7 +16,7 @@ Next.js 16 + React 19 + TypeScript 7 + Prisma 6 (Neon Postgres) + NextAuth, depl
 
 ## Database
 - Additive, reversible migrations only; show the plan first. Never change production data without the owner's OK and a Neon backup branch.
-- Scripts refuse production unless run with `--production`; never point `.env` at production. The old unguarded seeds (`prisma/seed.mjs`, `seed-admin.mjs`, ...) are for a fresh development database only.
+- Scripts refuse production unless run with `--production`; never point `.env` at production. The old unguarded seeds (`prisma/seed.mjs`, `seed-phase4.mjs`, ...) are for a fresh development database only.
 
 ## Checks before calling work done
 - `npx tsc --noEmit` and the relevant `npx vitest run tests/unit/<file>.test.ts`; `npm test` for broad changes (it uses the shared Neon **test** branch via `.env.test`).

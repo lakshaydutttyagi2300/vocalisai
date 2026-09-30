@@ -37,7 +37,7 @@ npm run dev                      # http://localhost:3000
 
 Every variable is described in `.env.example` and [SERVICES_AND_SECRETS.md](SERVICES_AND_SECRETS.md). Connection strings: Neon dashboard → project VoiceisAI → branch → **Connect**.
 
-To get an admin login locally, sign up normally, then set your `role` to `ADMIN` in the development database (Neon SQL editor), or run `node prisma/seed-admin.mjs` against development only.
+To get an admin login locally, sign up normally, then set your `role` to `ADMIN` in the development database (Neon SQL editor), or run `ADMIN_SEED_PASSWORD="<12+ characters>" node prisma/seed-admin.mjs` (it refuses production).
 
 Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":"reachable"}`.
 
@@ -150,7 +150,7 @@ Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":
 
 ## 9. Important warnings
 
-- **Never point `.env` at production**, and never run the unguarded old seeds (`prisma/seed.mjs`, `seed-admin.mjs`, ...) against it ([DATABASE.md](DATABASE.md#seeds-and-data-scripts)).
+- **Never point `.env` at production**, and never run the unguarded old seeds (`prisma/seed.mjs`, `seed-phase4.mjs`, ...) against it ([DATABASE.md](DATABASE.md#seeds-and-data-scripts)).
 - **Before any production data change**, take a Neon backup branch.
 - **Candidate-facing text** must be plain language: no raw JSON, internal ids or technical errors.
 - **AI replies are untrusted**: validate before storing or showing.

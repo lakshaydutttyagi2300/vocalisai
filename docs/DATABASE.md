@@ -104,7 +104,7 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 | `npm run seed:exam-demo` | Three IELTS-style practice tests. | `-- --production` |
 | `npm run generate:question-audio` | Records listening audio with Windows voices and uploads it to R2. | `-- --production` |
 | `prisma/seed.mjs`, `seed-phase4.mjs`, `seed-fluency.mjs`, `seed-writing.mjs`, `seed-conversation-roles.mjs`, `seed-mock-test-template*.mjs` | The original hand-written content and templates, from before the guarded loaders. | **No guard: they run against whatever `DATABASE_URL` points to.** Only run them on a fresh development database. |
-| `prisma/seed-admin.mjs` | Creates a development admin account with a fixed password. | **Never run it against production.** |
+| `prisma/seed-admin.mjs` | Creates a development admin account; the password comes from `ADMIN_SEED_PASSWORD`. | refuses production |
 | `prisma/check-*.mjs` | Read-only counts and checks. | read-only |
 
 Before any production write: take a Neon backup branch (`backup-production-before-<what>`).
