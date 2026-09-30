@@ -77,3 +77,7 @@ The AI character's behaviour changes by level: `LEVEL_BEHAVIOUR` in `src/lib/con
 | Intermediate | Normal pace, some follow-up questions, a mild complication |
 | Advanced | Fast, unclear or changing requests, pushes back, expects professional phrasing |
 | Expert | Irate customer or demanding interviewer, several issues at once, curveballs, no hints |
+
+## Level suggestions
+
+After a typed or multiple-choice practice session, `GET /api/practice/level-suggestion` looks at the candidate's last three sessions in that area and level (answers under 30 minutes apart count as one session; `src/lib/level-suggestion.ts`). An average of 80% or more, with the latest session also at 80% or more, suggests the next level; under 40%, with the latest session also under 40%, suggests the level below. It is only a suggestion, and a level the plan doesn't include links to billing instead. The chosen level is shown as a badge beside "Question N of M" in every practice session.

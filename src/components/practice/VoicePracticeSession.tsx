@@ -398,8 +398,9 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <div className="flex items-center justify-between text-sm text-slate-500">
-        <span>
+        <span className="flex items-center gap-2">
           Question {index + 1} of {questions.length}
+          {difficulty && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">{DIFFICULTY_LABELS[difficulty]}</span>}
         </span>
         <span className={secondsLeft <= 10 ? "font-semibold text-red-600" : ""}>{secondsLeft}s left</span>
       </div>

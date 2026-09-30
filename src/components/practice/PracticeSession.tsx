@@ -9,7 +9,7 @@ import {
   type PracticeModeDef,
 } from "@/lib/practice-taxonomy";
 import { StimulusView } from "@/components/questions/StimulusView";
-import { ArrowLeft, ArrowRight, Check, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import type { Stimulus } from "@/lib/question-stimulus";
 
@@ -32,6 +32,8 @@ type Feedback = {
   explanation: string | null;
 };
 
+type Suggestion = { direction: "up" | "down"; to: Difficulty; average: number; allowed: boolean };
+
 type Stage = "pick-difficulty" | "loading" | "in-progress" | "finished" | "error";
 
 export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
@@ -45,6 +47,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
 
   const startedAtRef = useRef<number>(Date.now());
   const submittedRef = useRef(false);
@@ -73,8 +76,19 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, index]);
 
+  // Move up / down a level, from the last few sessions (a suggestion only).
+  function loadSuggestion() {
+    setSuggestion(null);
+    if (!difficulty) return;
+    fetch(`/api/practice/level-suggestion?category=${mode.category}&difficulty=${difficulty}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setSuggestion(data?.suggestion ?? null))
+      .catch(() => {});
+  }
+
   async function startSession(chosen: Difficulty) {
     setDifficulty(chosen);
+    setSuggestion(null);
     setStage("loading");
     setErrorMessage(null);
 
@@ -152,6 +166,7 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
   function nextQuestion() {
     if (index + 1 >= questions.length) {
       setStage("finished");
+      loadSuggestion();
       return;
     }
     setIndex((i) => i + 1);
@@ -225,6 +240,27 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
             feedback on how to improve them.
           </p>
         )}
+        {suggestion && difficulty && (
+          <div className="sheet mt-6 p-5 text-left">
+            <p className="flex items-center gap-2 font-semibold text-ink-950">
+              <Icon as={suggestion.direction === "up" ? TrendingUp : TrendingDown} className={suggestion.direction === "up" ? "text-green-700" : "text-amber-700"} />
+              {suggestion.direction === "up" ? `Ready for ${DIFFICULTY_LABELS[suggestion.to]}?` : `Try ${DIFFICULTY_LABELS[suggestion.to]} for a while?`}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              You&apos;ve averaged {suggestion.average}% over your last 3 {DIFFICULTY_LABELS[difficulty]} sessions here.{" "}
+              {suggestion.direction === "up" ? "Moving up will stretch you further." : "Building confidence one level down usually helps."} It&apos;s your choice.
+            </p>
+            {suggestion.allowed ? (
+              <button onClick={() => startSession(suggestion.to)} className="btn-primary btn-sm mt-3">
+                Practise at {DIFFICULTY_LABELS[suggestion.to]}
+              </button>
+            ) : (
+              <Link href="/billing" className="btn-primary btn-sm mt-3">
+                {DIFFICULTY_LABELS[suggestion.to]} is on paid plans
+              </Link>
+            )}
+          </div>
+        )}
         <div className="mt-8 flex justify-center gap-3">
           <button onClick={() => setStage("pick-difficulty")} className="btn-secondary">
             <Icon as={RotateCcw} />
@@ -246,8 +282,9 @@ export function PracticeSession({ mode }: { mode: PracticeModeDef }) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <div className="flex items-center justify-between text-sm text-slate-500">
-        <span>
+        <span className="flex items-center gap-2">
           Question {index + 1} of {questions.length}
+          {difficulty && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">{DIFFICULTY_LABELS[difficulty]}</span>}
         </span>
         <span className={secondsLeft <= 10 ? "font-semibold text-red-600" : ""}>
           {secondsLeft}s left
