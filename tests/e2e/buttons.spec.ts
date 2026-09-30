@@ -78,7 +78,12 @@ test("key candidate actions use the premium button system, with every state, on 
       await expectButton(submit, "btn-primary");
       await shoot(page, `${vp.name}-practice-question`);
       await submit.click();
-      await expectButton(page.getByRole("button", { name: /Next question|Finish/ }), "btn-primary");
+      // Saving an answer makes several database round trips (the usage check
+      // runs in a locked transaction); from a PC far from the test database
+      // that can take several seconds, so wait for it before checking the style.
+      const nextQuestion = page.getByRole("button", { name: /Next question|Finish/ });
+      await expect(nextQuestion).toBeVisible({ timeout: 20_000 });
+      await expectButton(nextQuestion, "btn-primary");
 
       // Start Exam flow.
       await page.goto("/mock-tests");
