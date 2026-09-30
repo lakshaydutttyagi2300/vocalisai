@@ -1,15 +1,23 @@
-import { Blocks, BookOpen, BriefcaseBusiness, Building2, GraduationCap, Headset, Landmark, Laptop, MessagesSquare, Puzzle, type LucideIcon } from "lucide-react";
+import { BookOpenCheck, BriefcaseBusiness, Building2, FolderOpen, GraduationCap, Landmark, Languages, Puzzle, School, ScrollText, Shield, TrainFront, Award, type LucideIcon } from "lucide-react";
 
-// One icon per catalogue category (src/lib/catalogue.ts).
-export const CATEGORY_ICONS: Record<string, LucideIcon> = {
+// Icons for the seeded catalogue categories (prisma/catalogue/content.mjs).
+// A category an admin adds later falls back to a folder.
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "government-competitive": Landmark,
+  banking: Building2,
+  ssc: ScrollText,
+  railway: TrainFront,
+  "upsc-civil-services": Award,
+  "state-government": FolderOpen,
+  "police-defence": Shield,
+  teaching: School,
   "university-entrance": GraduationCap,
-  "campus-career": BriefcaseBusiness,
-  "english-communication": MessagesSquare,
-  "professional-skills": Headset,
-  "technology-it": Laptop,
-  "business-management": Building2,
-  "reasoning-aptitude": Puzzle,
-  "subject-practice": BookOpen,
-  "specialised-exams": Blocks,
+  "campus-placement": BriefcaseBusiness,
+  "aptitude-reasoning": Puzzle,
+  "english-communication": Languages,
+  "professional-certification": BookOpenCheck,
 };
+
+export function categoryIcon(slug: string): LucideIcon {
+  return CATEGORY_ICONS[slug] ?? FolderOpen;
+}

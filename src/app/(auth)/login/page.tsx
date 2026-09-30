@@ -31,7 +31,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    // Back to the page that sent them here (?callbackUrl=/explore/...), only ever a path on this site.
+    const back = new URLSearchParams(window.location.search).get("callbackUrl");
+    router.push(back && back.startsWith("/") && !back.startsWith("//") && !back.startsWith("/\\") ? back : "/dashboard");
     router.refresh();
   }
 

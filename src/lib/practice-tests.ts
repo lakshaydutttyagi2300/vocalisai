@@ -314,7 +314,7 @@ export async function practiceTestView(userId: string, testId: string) {
           difficulty: q.difficulty,
           prompt: q.prompt,
           options: parseOptions(q.options),
-          stimulus: candidateStimulus(q.passage, q),
+          stimulus: candidateStimulus(q.passage, q).stimulus,
           passage: q.itemGroup?.type === "PASSAGE" ? { title: q.itemGroup.title, text: q.itemGroup.text } : null,
           subjectName: q.subject?.name ?? null,
           skillName: q.catalogSkill?.name ?? null,

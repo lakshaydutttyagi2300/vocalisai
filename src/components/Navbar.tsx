@@ -23,9 +23,12 @@ const CANDIDATE_NAV: CandidateEntry[] = [
   {
     kind: "group",
     label: "Practice",
-    match: ["/practice", "/skills", "/explore"],
+    match: ["/practice", "/skills", "/explore", "/bookmarks", "/performance"],
     items: [
-      { href: "/explore", label: "Explore exams", hint: "Browse by category, exam, subject and level" },
+      { href: "/explore", label: "Explore exams", hint: "Banking, SSC, railway, UPSC and more, by subject and level" },
+      { href: "/practice-tests", label: "Test history", hint: "Every exam practice test, with review" },
+      { href: "/performance", label: "Performance", hint: "Accuracy and speed by subject, skill and level" },
+      { href: "/bookmarks", label: "Bookmarks", hint: "Questions you saved to revise" },
       { href: "/skills", label: "My skills", hint: "Your strengths, weak spots and quick skill drills" },
       { href: "/practice", label: "Practice library", hint: "Grammar, speaking, aptitude, interviews and more" },
       { href: "/practice/conversation", label: "AI conversation", hint: "Talk live with an AI customer or interviewer" },
