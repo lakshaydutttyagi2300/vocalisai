@@ -312,7 +312,7 @@ export default async function LandingPage() {
                 <p className="eyebrow">Exam library</p>
                 <h2 className="headline mt-4 max-w-xl text-3xl text-ink-950 sm:text-4xl">Practise the format you&apos;ll actually face.</h2>
               </div>
-              <Link href={session ? "/mock-tests" : "/signup"} className="btn-secondary flex-none self-start sm:self-auto">
+              <Link href="/explore" className="btn-secondary flex-none self-start sm:self-auto">
                 Browse exams
                 <Icon as={ArrowUpRight} />
               </Link>

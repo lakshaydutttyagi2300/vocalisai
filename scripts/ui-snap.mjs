@@ -21,7 +21,7 @@ for (const [name, viewport] of [["desktop", { width: 1280, height: 900 }], ["pho
   for (const p of paths) {
     await page.goto(base + p, { waitUntil: "networkidle" });
     await page.waitForTimeout(800);
-    const file = `ui-snaps/${name}${p === "/" ? "_home" : p.replace(/\//g, "_")}.png`;
+    const file = `ui-snaps/${name}${p === "/" ? "_home" : p.replace(/[/?=&]/g, "_")}.png`;
     await page.screenshot({ path: file, fullPage: true });
     console.log(file);
   }

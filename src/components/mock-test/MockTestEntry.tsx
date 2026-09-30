@@ -33,9 +33,17 @@ export function MockTestEntry() {
         const list = data.options as MockTestOption[];
         setOptions(list);
         // A goal plan links straight to its exam: /mock-tests?template=<id>.
-        const wanted = new URLSearchParams(window.location.search).get("template");
+        const query = new URLSearchParams(window.location.search);
+        const wanted = query.get("template");
         const match = wanted ? list.find((o) => o.versionTemplateIds.includes(wanted)) : null;
         if (match) setChosenId(match.templateId);
+        // An Explore exam page links to its exam type: /mock-tests?type=<family slug>.
+        const type = query.get("type");
+        const firstOfType = type ? list.find((o) => o.typeKey === type) : null;
+        if (firstOfType) {
+          setTypeFilter(type!);
+          if (!match) setChosenId(firstOfType.templateId);
+        }
       })
       .catch(() => {});
     return () => {

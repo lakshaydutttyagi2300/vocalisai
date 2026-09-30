@@ -54,7 +54,7 @@ const MODEL_READING_CATEGORIES = new Set(["READING", "PRONUNCIATION"]);
 const AI_SCENARIO_CATEGORIES = new Set(["READING", "PRONUNCIATION", "FLUENCY", "SPEAKING", "CUSTOMER_SERVICE"]);
 const MAX_TOPIC_LENGTH = 100;
 
-export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
+export function VoicePracticeSession({ mode, suggestedLevel = null }: { mode: PracticeModeDef; suggestedLevel?: Difficulty | null }) {
   const [stage, setStage] = useState<Stage>("system-check");
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
@@ -287,7 +287,7 @@ export function VoicePracticeSession({ mode }: { mode: PracticeModeDef }) {
         <p className="mt-8 text-sm font-medium text-slate-700">Choose a difficulty</p>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {DIFFICULTIES.map((d) => (
-            <button key={d} onClick={() => startSession(d)} className="btn-secondary btn-lg justify-between">
+            <button key={d} onClick={() => startSession(d)} className={`${d === suggestedLevel ? "btn-primary" : "btn-secondary"} btn-lg justify-between`}>
               {DIFFICULTY_LABELS[d]}
               <Icon as={ArrowRight} />
             </button>

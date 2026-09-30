@@ -23,8 +23,9 @@ const CANDIDATE_NAV: CandidateEntry[] = [
   {
     kind: "group",
     label: "Practice",
-    match: ["/practice", "/skills"],
+    match: ["/practice", "/skills", "/explore"],
     items: [
+      { href: "/explore", label: "Explore exams", hint: "Browse by category, exam, subject and level" },
       { href: "/skills", label: "My skills", hint: "Your strengths, weak spots and quick skill drills" },
       { href: "/practice", label: "Practice library", hint: "Grammar, speaking, aptitude, interviews and more" },
       { href: "/practice/conversation", label: "AI conversation", hint: "Talk live with an AI customer or interviewer" },
@@ -375,6 +376,9 @@ export function Navbar() {
             </>
           ) : (
             <>
+              <Link href="/explore" className={`hidden text-sm font-medium sm:inline ${onDark ? "text-slate-200 hover:text-white" : "text-slate-700 hover:text-ink-900"}`}>
+                Explore exams
+              </Link>
               <Link href="/login" className={`text-sm font-medium ${onDark ? "text-slate-200 hover:text-white" : "text-slate-700 hover:text-ink-900"}`}>
                 Log in
               </Link>
