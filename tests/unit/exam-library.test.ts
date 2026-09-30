@@ -11,7 +11,6 @@ import { listMockTestOptions, pickVersion, structureKey, versionTitle } from "@/
 
 type Section = [string, string, number];
 type Exam = (typeof EXAM_LIBRARY)[number]["exams"][number];
-const sectionsOf = (exam: Exam): Section[] => exam.papers.flatMap((p) => p.parts.flatMap((r) => r.sections as Section[]));
 const minutesOf = (exam: Exam) => exam.papers.reduce((n, p) => n + p.minutes, 0);
 
 describe("the exam library content", () => {

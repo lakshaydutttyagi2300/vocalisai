@@ -45,7 +45,7 @@ describe("no repeats across practice sessions (test database)", { timeout: 120_0
   const run = Date.now();
   const category = `FRESH_TEST_${run}`;
   let userId = "";
-  let questionIds: string[] = [];
+  const questionIds: string[] = [];
 
   beforeAll(async () => {
     const user = await db.user.create({ data: { email: `fresh-${run}@example.test`, passwordHash: "x", name: "Fresh Test" } });

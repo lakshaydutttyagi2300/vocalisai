@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Mic, Square } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { SystemCheck } from "@/components/system-check/SystemCheck";
 import { useMicLevel } from "@/hooks/useMicLevel";
@@ -60,7 +60,6 @@ type RecordingState = "idle" | "recording" | "uploading";
 
 export default function ConversationPage() {
   const params = useParams<{ sessionId: string }>();
-  const router = useRouter();
   const [stage, setStage] = useState<Stage>("system-check");
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -139,6 +138,7 @@ export default function ConversationPage() {
     recorder.onstop = () => submitTurn(new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" }));
     recorder.start();
     recorderRef.current = recorder;
+    // eslint-disable-next-line react-hooks/purity -- startRecording only runs from the button's onClick, never during render
     recordStartRef.current = Date.now();
     setRecordingState("recording");
   }

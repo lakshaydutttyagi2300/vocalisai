@@ -13,7 +13,7 @@ VocalisAi helps people prepare for English exams, workplace assessments and job 
 |---|---|---|
 | Framework | **Next.js 16** App Router, full-stack (pages and API routes in one app) | Not the Next.js in most tutorials: read `AGENTS.md` and `node_modules/next/dist/docs/`. Middleware is `src/proxy.ts`. `after()` from `next/server` runs work after the response is sent. |
 | UI | React 19, Tailwind CSS 4, `lucide-react` icons through `src/components/ui/Icon.tsx` | Design reference: `design/vocalisai-design-system.html`. |
-| Language | TypeScript 7 | `npx tsc --noEmit` is the type gate. `npm run lint` is broken (see [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) #2). |
+| Language | TypeScript 7 (`tsc`), with the TypeScript 6 API aliased as `typescript` for ESLint and the Next build | Gates: `npx tsc --noEmit` and `npm run lint`. |
 | Validation | `zod` 4 | AI replies, question-type answers, and newer API bodies. |
 | Database | PostgreSQL on **Neon**, through **Prisma 6** | 36 models, 13 additive migrations. See [DATABASE.md](DATABASE.md). |
 | Auth | NextAuth v4: email + password (bcryptjs), JWT sessions, email-verified sign-up | `src/lib/auth.ts`, `src/lib/email-verification.ts`, `src/proxy.ts`. |

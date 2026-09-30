@@ -32,6 +32,7 @@ Check http://localhost:3000/api/health returns `{"ok":true,"database":"reachable
 |---|---|
 | `npm run dev` | Development server |
 | `npx tsc --noEmit` | Type check |
+| `npm run lint` | ESLint (must show 0 errors) |
 | `npm test` | Unit tests (Vitest, against the Neon test branch) |
 | `npm run build` | Production build |
 | `E2E_SERVER=start npx playwright test` | Browser tests against a production build (run `npm run build` first) |

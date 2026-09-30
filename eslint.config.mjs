@@ -1,25 +1,26 @@
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  // "next/typescript" is intentionally omitted for now: its type-aware
-  // rules depend on typescript-eslint, which does not yet support
-  // TypeScript 7.0 (this project's pinned version) - see the tracking
-  // issue linked in typescript-eslint's own runtime error. Re-add it once
-  // that support lands, or if the project deliberately moves to a 6.x
-  // TypeScript line - do not silently change the TypeScript version to
-  // work around this.
-  ...compat.extends("next/core-web-vitals"),
+// The recommended Next.js 16 setup (node_modules/next/dist/docs/01-app/
+// 03-api-reference/05-config/03-eslint.md). typescript-eslint loads the
+// TypeScript 6 API via the "typescript" alias in package.json; `tsc` itself
+// is TypeScript 7 (@typescript/native).
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
-    ignores: [".next/**", "node_modules/**", "test-results/**", "playwright-report/**"],
+    rules: {
+      // Allow the deliberate "copy without these fields" destructuring
+      // (`const { a: _, ...rest } = x`) and _-prefixed placeholders.
+      "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true, argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      // React Compiler guidance (eslint-plugin-react-hooks 7). Existing
+      // effects that reset or load state trip it; kept visible as a warning
+      // while they're converted - docs/TECHNICAL_DEBT.md.
+      "react-hooks/set-state-in-effect": "warn",
+    },
   },
-];
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "test-results/**", "playwright-report/**"]),
+]);
 
 export default eslintConfig;

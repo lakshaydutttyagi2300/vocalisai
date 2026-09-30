@@ -92,7 +92,7 @@ export default function BillingPage() {
 
       <div className="mx-auto max-w-3xl px-6 py-10">
         <h1 className="font-display text-2xl font-bold text-ink-950">Billing</h1>
-        <p className="mt-1 text-sm text-slate-600">Manage your plan and see what you've used this period.</p>
+        <p className="mt-1 text-sm text-slate-600">Manage your plan and see what you&apos;ve used this period.</p>
 
         {error && (
           <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

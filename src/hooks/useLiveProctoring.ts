@@ -56,8 +56,12 @@ export function useLiveProctoring({
   });
 
   const bufferRef = useRef<LoggedProctoringEvent[]>([]);
+  // Read only by the async event flush, so keeping it current after each
+  // render (not during it) is enough.
   const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   function logEvent(eventType: ProctoringEventType, detail?: string) {
     const entry: LoggedProctoringEvent = {
@@ -92,7 +96,6 @@ export function useLiveProctoring({
       clearInterval(interval);
       flush();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tab/window focus.
@@ -289,7 +292,6 @@ export function useLiveProctoring({
       sampler?.close();
       video.srcObject = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraStream]);
 
   return { events, status, flush };

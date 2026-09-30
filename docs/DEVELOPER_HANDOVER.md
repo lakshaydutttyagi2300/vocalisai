@@ -12,7 +12,7 @@ VocalisAi (https://vocalisai.vercel.app) is a subscription web app for English, 
 - **Pushing `main` deploys to production immediately.** Work on a branch (currently `feat/skills-platform`); see [DEPLOYMENT.md](DEPLOYMENT.md).
 - **The Vercel build doesn't run database migrations.** Apply them to production first.
 - **The repository is public.** Never commit a secret, even in a test.
-- **`npm run lint` is broken** (typescript-eslint vs TypeScript 7). Use `npx tsc --noEmit`.
+- **Two TypeScripts are installed on purpose:** `tsc` is TypeScript 7 (`@typescript/native`), while the `typescript` package is aliased to the TypeScript 6 API, which typescript-eslint and the Next.js build load. Don't "fix" the alias.
 - **Unit tests hit a real (shared) Neon test database**, not mocks. Create your own rows with unique names and delete them.
 - **Candidates must never see internal data** (raw JSON, speaker labels like `S1:`, provider errors). Passages go through `src/lib/question-stimulus.ts`; errors are logged, not shown.
 
@@ -46,7 +46,8 @@ Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server |
-| `npx tsc --noEmit` | Type check (the main static gate) |
+| `npx tsc --noEmit` | Type check |
+| `npm run lint` | ESLint (Next.js + TypeScript rules); must show 0 errors |
 | `npm test` | Vitest unit tests (~100 s; uses `.env.test`) |
 | `npx vitest run tests/unit/<file>.test.ts` | One unit test file |
 | `npm run build` | Production build |
@@ -158,7 +159,7 @@ Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":
 
 ## 10. Technical debt
 
-The known issues, with priorities and recommended fixes, are in [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md). The biggest: paid checkout isn't live, lint doesn't run, and there's no CI.
+The known issues, with priorities and recommended fixes, are in [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md). The biggest: paid checkout isn't live, a few parallel-request races remain (the QA findings), and there's no CI.
 
 ## 11. Tools used on this project
 

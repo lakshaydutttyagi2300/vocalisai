@@ -104,7 +104,7 @@ export function MockTestSystemCheck({
       </button>
       {!mandatoryPassed && extra && (
         <p className="mt-2 text-center text-xs text-red-600">
-          Your browser doesn't meet the minimum requirements for a proctored test.
+          Your browser doesn&apos;t meet the minimum requirements for a proctored test.
         </p>
       )}
     </div>

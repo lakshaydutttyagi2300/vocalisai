@@ -3,7 +3,7 @@
 // are solved by trying every arrangement and only kept when the clues give
 // exactly one answer, and syllogisms are checked against every possible
 // Venn diagram. Every wrong option carries the reason it is wrong.
-import { isPrime, makeKit, ordinal } from "./gen-kit.mjs";
+import { isPrime, makeKit } from "./gen-kit.mjs";
 
 const MALE = ["Rahul", "Amit", "Suresh", "Vikram", "Arjun", "Karan", "Rohan", "Manoj", "Deepak", "Nikhil", "Imran", "Joseph"];
 const FEMALE = ["Priya", "Neha", "Anjali", "Kavya", "Meera", "Pooja", "Sneha", "Ritu", "Divya", "Asha", "Fatima", "Grace"];
@@ -401,15 +401,15 @@ export function generatedReaQuestions() {
   const BLOOD = [
     { q: (m, f, x, y) => `${m[0]} is the father of ${m[1]}. ${m[1]} is the brother of ${y}. How is ${m[0]} related to ${y}?`, a: "Father", w: ["Uncle", "Grandfather", "Brother"], why: (m) => `${m[1]} and the other person are siblings, so ${m[0]} is the father of both.` },
     { q: (m, f, x, y) => `${f[0]} is the sister of ${m[0]}. ${m[0]} is the father of ${y}. How is ${f[0]} related to ${y}?`, a: "Aunt", w: ["Mother", "Sister", "Grandmother"], why: (m, f) => `${f[0]} is the sister of the child's father - a paternal aunt.` },
-    { q: (m, f) => `${m[0]} is the son of ${f[0]}. ${f[0]} is the daughter of ${m[1]}. How is ${m[1]} related to ${m[0]}?`, a: "Grandfather", w: ["Father", "Uncle", "Brother"], why: (m, f) => `${m[1]} is the father of ${m[0]}'s mother - his maternal grandfather.` },
+    { q: (m, f) => `${m[0]} is the son of ${f[0]}. ${f[0]} is the daughter of ${m[1]}. How is ${m[1]} related to ${m[0]}?`, a: "Grandfather", w: ["Father", "Uncle", "Brother"], why: (m) => `${m[1]} is the father of ${m[0]}'s mother - his maternal grandfather.` },
     { q: (m, f) => `${f[0]} is the wife of ${m[0]}. ${m[0]} is the brother of ${m[1]}. How is ${f[0]} related to ${m[1]}?`, a: "Sister-in-law", w: ["Sister", "Wife", "Aunt"], why: (m, f) => `${f[0]} is married to ${m[1]}'s brother, so she is his sister-in-law.` },
-    { q: (m, f, x, y) => `${m[1]} is the brother of ${f[0]}. ${f[0]} is the mother of ${m[0]}. How is ${m[1]} related to ${m[0]}?`, a: "Uncle", w: ["Father", "Brother", "Grandfather"], why: (m, f) => `${m[1]} is the brother of ${m[0]}'s mother - a maternal uncle.` },
+    { q: (m, f) => `${m[1]} is the brother of ${f[0]}. ${f[0]} is the mother of ${m[0]}. How is ${m[1]} related to ${m[0]}?`, a: "Uncle", w: ["Father", "Brother", "Grandfather"], why: (m) => `${m[1]} is the brother of ${m[0]}'s mother - a maternal uncle.` },
     { q: (m, f) => `${f[0]} is the daughter of ${m[0]}. ${m[0]} is the only son of ${f[1]}. How is ${f[1]} related to ${f[0]}?`, a: "Grandmother", w: ["Mother", "Aunt", "Sister"], why: (m, f) => `${f[1]} is the mother of ${f[0]}'s father.` },
     { q: (m, f) => `${m[0]}'s father is ${m[1]}. ${m[1]}'s only sister is ${f[0]}. How is ${f[0]} related to ${m[0]}?`, a: "Aunt", w: ["Mother", "Sister", "Grandmother"], why: (m, f) => `${f[0]} is the sister of ${m[0]}'s father.` },
     { q: (m, f) => `${m[0]} is the son of ${m[1]}. ${f[0]} is the daughter of ${m[1]}. How is ${m[0]} related to ${f[0]}?`, a: "Brother", w: ["Father", "Cousin", "Uncle"], why: (m, f) => `Both are children of ${m[1]}, so ${m[0]} is ${f[0]}'s brother.` },
     { q: (m, f, x, y) => `${f[0]} is the mother of ${m[0]}. ${m[0]} is the father of ${y}. How is ${f[0]} related to ${y}?`, a: "Grandmother", w: ["Mother", "Aunt", "Sister"], why: (m, f) => `${f[0]} is the mother of the child's father.` },
     { q: (m, f) => `${m[0]} is the brother of ${m[1]}. ${m[1]} is the son of ${f[0]}. How is ${f[0]} related to ${m[0]}?`, a: "Mother", w: ["Aunt", "Sister", "Grandmother"], why: (m, f) => `${m[0]} and ${m[1]} are brothers, so ${f[0]} is the mother of both.` },
-    { q: (m, f) => `${f[0]} is the only daughter of ${m[0]}. ${m[1]} is the son of ${f[0]}. How is ${m[0]} related to ${m[1]}?`, a: "Grandfather", w: ["Father", "Uncle", "Brother"], why: (m, f) => `${m[0]} is the father of ${m[1]}'s mother.` },
+    { q: (m, f) => `${f[0]} is the only daughter of ${m[0]}. ${m[1]} is the son of ${f[0]}. How is ${m[0]} related to ${m[1]}?`, a: "Grandfather", w: ["Father", "Uncle", "Brother"], why: (m) => `${m[0]} is the father of ${m[1]}'s mother.` },
     { q: (m, f) => `${m[0]} is the husband of ${f[0]}. ${f[1]} is the sister of ${f[0]}. How is ${m[0]} related to ${f[1]}?`, a: "Brother-in-law", w: ["Brother", "Husband", "Uncle"], why: (m, f) => `${m[0]} is married to ${f[1]}'s sister.` },
   ];
   add(take(60, (i) => {

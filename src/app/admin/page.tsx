@@ -102,7 +102,7 @@ export default function AdminOverviewPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Link href="/admin/candidates" className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
           <h2 className="font-display font-bold text-ink-900">Candidates</h2>
-          <p className="mt-1 text-sm text-slate-600">View every candidate's real scores, sessions and activity.</p>
+          <p className="mt-1 text-sm text-slate-600">View every candidate&apos;s real scores, sessions and activity.</p>
         </Link>
         <Link href="/admin/templates" className="card group block p-5 transition hover:border-brand-300 hover:shadow-md">
           <h2 className="font-display font-bold text-ink-900">Mock Test Templates</h2>

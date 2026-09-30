@@ -8,20 +8,20 @@ export default function RefundPolicyPage() {
 
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-slate-700">
         <p>
-          VocalisAi's paid plans (Starter, Professional, Premium) are billed monthly in advance
+          VocalisAi&apos;s paid plans (Starter, Professional, Premium) are billed monthly in advance
           through our payment processor, Paddle.com.
         </p>
         <p>
           <strong>You can cancel anytime.</strong> Cancelling stops future renewals immediately -
-          you won't be charged again. Cancelling does not refund the current billing period: you
-          keep access to your plan's features for the rest of the period you've already paid for,
+          you won&apos;t be charged again. Cancelling does not refund the current billing period: you
+          keep access to your plan&apos;s features for the rest of the period you&apos;ve already paid for,
           and your account then moves to the FREE plan.
         </p>
         <p>
           <strong>We do not offer refunds for partial months or unused portions of a billing
           period.</strong> Because our plans have monthly usage limits rather than a fixed
           number of credits, a period is considered used once it has started, regardless of how
-          much of your plan's limits you actually used.
+          much of your plan&apos;s limits you actually used.
         </p>
         <p>
           <strong>Billing errors are the exception.</strong> If you were charged in error - for
@@ -30,7 +30,7 @@ export default function RefundPolicyPage() {
           <a href="mailto:pcircuit@yahoo.com" className="text-brand-600 hover:underline">
             pcircuit@yahoo.com
           </a>{" "}
-          and we'll investigate and correct it, including a refund where a genuine error is
+          and we&apos;ll investigate and correct it, including a refund where a genuine error is
           confirmed.
         </p>
         <p>

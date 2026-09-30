@@ -283,6 +283,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-medium">
+          {/* eslint-disable @next/next/no-html-link-for-pages -- file downloads from API routes, not page navigation */}
           <a href="/api/admin/questions/template?format=xlsx" className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50">
             Download Template (XLSX)
           </a>
@@ -295,6 +296,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
           <a href="/api/admin/questions/export?format=csv" className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50">
             Export Question Bank (CSV)
           </a>
+          {/* eslint-enable @next/next/no-html-link-for-pages */}
         </div>
       </div>
 

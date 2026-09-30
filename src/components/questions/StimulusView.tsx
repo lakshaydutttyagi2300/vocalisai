@@ -135,6 +135,7 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
       audioRef.current = audio;
     }
     const a = audio;
+    // eslint-disable-next-line react-hooks/immutability -- a ref-held <audio> set up inside the play click handler, not during render
     a.onended = () => setState("idle");
     a.onplaying = () => setState("playing");
     a.onerror = () => {

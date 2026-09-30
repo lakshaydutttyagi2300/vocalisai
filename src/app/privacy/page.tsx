@@ -51,13 +51,13 @@ export default function PrivacyPolicyPage() {
           signals.
         </p>
         <p>
-          <strong>Usage data:</strong> which features you've used and how many times, so we can
-          apply your plan's limits correctly.
+          <strong>Usage data:</strong> which features you&apos;ve used and how many times, so we can
+          apply your plan&apos;s limits correctly.
         </p>
         <p>
           <strong>Billing data:</strong> if you subscribe to a paid plan, our payment processor
           Paddle collects and processes your payment details directly - we receive confirmation
-          that you're subscribed and to which plan, but never your full card number.
+          that you&apos;re subscribed and to which plan, but never your full card number.
         </p>
       </Section>
 
@@ -75,7 +75,7 @@ export default function PrivacyPolicyPage() {
 
       <Section title="3. Who we share it with">
         <p>
-          We use a small number of third-party service providers ("subprocessors") to run the
+          We use a small number of third-party service providers (&quot;subprocessors&quot;) to run the
           Service. Each one only receives the data it needs to do its job:
         </p>
         <ul className="list-disc space-y-1 pl-5">
@@ -95,19 +95,19 @@ export default function PrivacyPolicyPage() {
           </li>
         </ul>
         <p>
-          If you're a candidate whose mock assessment results are visible to an administrator on
-          your organization's account, that administrator can see your scores, recordings, and
+          If you&apos;re a candidate whose mock assessment results are visible to an administrator on
+          your organization&apos;s account, that administrator can see your scores, recordings, and
           usage - the same real data you see yourself, never a separately fabricated summary.
         </p>
         <p>
-          We don't currently use third-party analytics or advertising trackers. If that changes,
-          we'll update this policy first.
+          We don&apos;t currently use third-party analytics or advertising trackers. If that changes,
+          we&apos;ll update this policy first.
         </p>
       </Section>
 
       <Section title="4. Cookies">
         <p>
-          We use one essential cookie to keep you logged in (a session token). We don't use
+          We use one essential cookie to keep you logged in (a session token). We don&apos;t use
           cookies for advertising or cross-site tracking.
         </p>
       </Section>
@@ -117,7 +117,7 @@ export default function PrivacyPolicyPage() {
           We keep your account data and practice history for as long as your account is active,
           so your progress and history stay available to you. If you ask us to delete your
           account, we will delete your personal data and recordings within a reasonable time,
-          except where we're required to keep certain records (for example, billing records) for
+          except where we&apos;re required to keep certain records (for example, billing records) for
           legal or tax purposes.
         </p>
       </Section>
@@ -130,7 +130,7 @@ export default function PrivacyPolicyPage() {
           <a href="mailto:pcircuit@yahoo.com" className="text-brand-600 hover:underline">
             pcircuit@yahoo.com
           </a>{" "}
-          - we'll respond within a reasonable time.
+          - we&apos;ll respond within a reasonable time.
         </p>
       </Section>
 
@@ -138,8 +138,8 @@ export default function PrivacyPolicyPage() {
         <p>
           We take reasonable technical measures to protect your data, including hashing
           passwords and restricting who can access recordings and scores to you and, where
-          applicable, your organization's administrator. No system is perfectly secure, and we
-          can't guarantee absolute security.
+          applicable, your organization&apos;s administrator. No system is perfectly secure, and we
+          can&apos;t guarantee absolute security.
         </p>
       </Section>
 
@@ -150,7 +150,7 @@ export default function PrivacyPolicyPage() {
       <Section title="9. Changes to this policy">
         <p>
           We may update this Privacy Policy from time to time. If we make a material change,
-          we'll make a reasonable effort to notify you before it takes effect.
+          we&apos;ll make a reasonable effort to notify you before it takes effect.
         </p>
       </Section>
     </div>

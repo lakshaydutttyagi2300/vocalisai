@@ -22,7 +22,8 @@ Next.js 16 + React 19 + TypeScript 7 + Prisma 6 (Neon Postgres) + NextAuth, depl
 - `npx tsc --noEmit` and the relevant `npx vitest run tests/unit/<file>.test.ts`; `npm test` for broad changes (it uses the shared Neon **test** branch via `.env.test`).
 - UI changes: open the page (desktop and 390 px phone width).
 - Before a release: `npm run build`, then `E2E_SERVER=start npx playwright test`, with no other test run or server on port 3000.
-- `npm run lint` is broken (typescript-eslint vs TS 7) - see `docs/TECHNICAL_DEBT.md`.
+- `npm run lint` must report 0 errors (the `react-hooks/set-state-in-effect` warnings are known - `docs/TECHNICAL_DEBT.md` #2). Don't disable rules to get there; a per-line disable needs a `-- reason`.
+- `package.json` aliases `typescript` to the TypeScript 6 API (for typescript-eslint and the Next build) and `@typescript/native` to TypeScript 7 (the `tsc` command). Keep both.
 
 ## Don't break (details: `docs/DO_NOT_BREAK.md`)
 - Candidates never see raw JSON, speaker labels (`S1:`), stack traces or provider errors. Passages go through `src/lib/question-stimulus.ts`; errors are logged and replaced by a plain sentence.
