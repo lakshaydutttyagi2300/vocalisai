@@ -7,7 +7,7 @@ import { readRecording } from "@/lib/storage";
 import { extensionForMimeType, canonicalAudioMimeType } from "@/lib/uploads";
 import { createGroqWhisperProvider } from "@/lib/providers/groq-whisper-provider";
 import { createGeminiConversationProvider } from "@/lib/providers/gemini-conversation-provider";
-import { getRoleDef } from "@/lib/conversation-roles";
+import { getRoleDef, personaPrompt } from "@/lib/conversation-roles";
 import { getEffectivePlan, interviewSimulationMaxTurns } from "@/lib/entitlements";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -111,7 +111,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         text: t.text,
       }));
       const nextTurn = await conversationProvider.generateNextTurn({
-        systemPrompt: roleDef.systemPrompt,
+        systemPrompt: personaPrompt(roleDef, convoSession.question?.difficulty),
         scenario,
         history,
       });
