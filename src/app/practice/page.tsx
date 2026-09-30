@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ArrowRight, ArrowUpRight, Mic, Timer, Target } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 
 const GROUPS: { id: string; title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
@@ -48,83 +50,104 @@ const GROUPS: { id: string; title: string; blurb: string; categories: string[]; 
   },
 ];
 
-function ModeCard({ mode }: { mode: PracticeModeDef }) {
+function ModeRow({ mode }: { mode: PracticeModeDef }) {
   return (
-    <Link
-      href={`/practice/${mode.slug}`}
-      className="card group block p-5 transition hover:border-brand-300 hover:shadow-md"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="font-display font-bold text-ink-900">{mode.label}</h3>
-        {mode.requiresVoice && <span className="badge badge-skill flex-none">Needs mic</span>}
-      </div>
-      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{mode.description}</p>
-      <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
-        Beginner &rarr; Expert
-      </span>
-    </Link>
+    <li>
+      <Link href={`/practice/${mode.slug}`} className="group flex items-start gap-4 px-5 py-4 transition-colors hover:bg-slate-50">
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-semibold text-ink-950 group-hover:text-brand-700">{mode.label}</span>
+            {mode.requiresVoice && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                <Icon as={Mic} size="xs" />
+                Needs mic
+              </span>
+            )}
+          </span>
+          <span className="mt-1 block text-sm leading-relaxed text-slate-600">{mode.description}</span>
+        </span>
+        <span className="hidden flex-none pt-0.5 text-xs text-slate-400 sm:block">Beginner &rarr; Expert</span>
+        <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 transition-colors group-hover:text-brand-600" />
+      </Link>
+    </li>
   );
 }
 
 export default function PracticeHubPage() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink-950">Practice Library</h1>
-      <p className="mt-1 max-w-2xl text-sm text-slate-600">
-        Find out exactly why your speaking performance may be holding you back in Voice &amp;
-        Accent interviews - then practice it directly. Every mode has Beginner through Expert
-        difficulty; speaking modes ask for microphone access first.
+    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
+      <p className="eyebrow">Practice</p>
+      <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Practice Library</h1>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
+        Pick one skill and practise it at your level, from Beginner to Expert. Speaking modes ask for microphone access first.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-sm">
-        <Link href="/goal" className="font-medium text-brand-600 hover:underline">
-          Not sure where to start? Tell us what you&apos;re preparing for &rarr;
+      <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Link href="/practice/conversation" className="panel-ink group block overflow-hidden rounded-[1.25rem] p-7 text-white sm:p-8">
+          <p className="eyebrow eyebrow-on-ink">AI voice conversation · Needs mic</p>
+          <h2 className="display mt-4 max-w-xl text-2xl sm:text-3xl">Talk with an AI customer, interviewer, supervisor or conversation partner</h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300">
+            A real back-and-forth conversation, not a scripted quiz - the closest thing to a live Voice &amp; Accent interview you can practice on your own.
+          </p>
+          <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-amber-300">
+            Start a conversation
+            <Icon as={ArrowRight} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
         </Link>
-        <span className="text-slate-300">|</span>
-        <Link href="/practice/quick" className="font-medium text-brand-600 hover:underline">
-          Short on time? Try a Quick Practice drill &rarr;
-        </Link>
+        <div className="grid gap-4">
+          <Link href="/practice/quick" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+              <Icon as={Timer} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-950">Short on time?</span>
+              <span className="mt-1 block text-sm text-slate-600">Try a Quick Practice drill &rarr;</span>
+            </span>
+          </Link>
+          <Link href="/goal" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <Icon as={Target} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-950">Not sure where to start?</span>
+              <span className="mt-1 block text-sm text-slate-600">Tell us what you&apos;re preparing for &rarr;</span>
+            </span>
+          </Link>
+        </div>
       </div>
 
-      <Link
-        href="/practice/conversation"
-        className="card mt-8 block bg-ink-950 p-6 text-white transition hover:border-brand-400"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="badge badge-ai">AI Voice Conversation</span>
-            <h2 className="mt-2 font-display font-bold">Talk with an AI customer, interviewer, supervisor or conversation partner</h2>
-          </div>
-          <span className="badge badge-neutral flex-none" style={{ backgroundColor: "rgba(255,255,255,.1)", color: "#e2e8e6" }}>
-            Needs mic
-          </span>
-        </div>
-        <p className="mt-2 text-sm text-slate-300">
-          A real back-and-forth conversation, not a scripted quiz - the closest thing to a live
-          Voice &amp; Accent interview you can practice on your own.
-        </p>
-      </Link>
+      <nav aria-label="Skill groups" className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        {GROUPS.map((g) => (
+          <a key={g.id} href={`#${g.id}`} className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400">
+            {g.title}
+          </a>
+        ))}
+      </nav>
 
-      {GROUPS.map((group) => {
-        const modes = PRACTICE_MODES.filter((m) => group.categories.includes(m.category));
-        if (modes.length === 0) return null;
-        return (
-          <section key={group.title} id={group.id} className="mt-10 scroll-mt-24">
-            <h2 className="font-display text-lg font-bold text-ink-950">{group.title}</h2>
-            <p className="mt-1 text-sm text-slate-600">{group.blurb}</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {modes.map((mode) => (
-                <ModeCard key={mode.slug} mode={mode} />
-              ))}
-            </div>
-            {group.liveConversationHref && (
-              <Link href={group.liveConversationHref} className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
-                Or do a live AI conversation instead &rarr;
-              </Link>
-            )}
-          </section>
-        );
-      })}
+      <div className="mt-8 grid gap-10">
+        {GROUPS.map((group) => {
+          const modes = PRACTICE_MODES.filter((m) => group.categories.includes(m.category));
+          if (modes.length === 0) return null;
+          return (
+            <section key={group.title} id={group.id} className="grid scroll-mt-24 items-start gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10">
+              <div>
+                <h2 className="headline text-xl text-ink-950">{group.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{group.blurb}</p>
+                {group.liveConversationHref && (
+                  <Link href={group.liveConversationHref} className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline">
+                    Or do a live AI conversation instead &rarr;
+                  </Link>
+                )}
+              </div>
+              <ul className="sheet divide-y divide-slate-100 overflow-hidden">
+                {modes.map((mode) => (
+                  <ModeRow key={mode.slug} mode={mode} />
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }
