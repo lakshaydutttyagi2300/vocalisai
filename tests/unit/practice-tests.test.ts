@@ -24,7 +24,7 @@ let archived = "";
 async function question(difficulty: string, i: number, extra: Record<string, unknown> = {}) {
   const q = await db.practiceQuestion.create({
     data: {
-      category: "GRAMMAR",
+      category: "CATALOG",
       subjectId,
       difficulty,
       type: "MULTIPLE_CHOICE",
@@ -123,7 +123,7 @@ describe("practice test engine", { timeout: 180_000 }, () => {
     const view = await practiceTestView(userId, testId);
     expect(view.deadline).not.toBeNull();
     const q = view.questions[0];
-    expect(await answerPracticeQuestion(userId, testId, { questionId: q.id, answer: "wrong", timeTakenSeconds: 4 })).toEqual({ saved: true, firstAnswer: true, skillId: null });
+    expect(await answerPracticeQuestion(userId, testId, { questionId: q.id, answer: "wrong", timeTakenSeconds: 4 })).toEqual({ saved: true, firstAnswer: true, skillId: null }); // no marking in the reply
     await answerPracticeQuestion(userId, testId, { questionId: q.id, answer: "right", timeTakenSeconds: 6 });
     expect((await practiceTestView(userId, testId)).questions[0]).toMatchObject({ answered: true, isCorrect: null, correctAnswer: null });
     await submitPracticeTest(userId, testId);
