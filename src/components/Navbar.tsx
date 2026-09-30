@@ -310,13 +310,21 @@ export function Navbar() {
     );
   }
 
+  // Signed-out visitors on the landing page get a dark bar that continues
+  // the hero; every other page keeps the light bar its menus are built for.
+  const onDark = pathname === "/" && status === "unauthenticated";
+
   return (
-    <header className="site-header sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <header
+      className={`site-header sticky top-0 z-40 border-b backdrop-blur-sm ${
+        onDark ? "border-white/10 bg-ink-950/85" : "border-slate-200/80 bg-white/80"
+      }`}
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
           <BrandGlyph tone="teal" />
-          <span className="font-display text-lg font-bold tracking-tight text-ink-950">
-            Vocalis<span className="text-brand-600">Ai</span>
+          <span className={`font-display text-lg font-bold tracking-tight ${onDark ? "text-white" : "text-ink-950"}`}>
+            Vocalis<span className={onDark ? "text-amber-300" : "text-brand-600"}>Ai</span>
           </span>
         </Link>
 
@@ -367,7 +375,7 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-slate-700 hover:text-ink-900">
+              <Link href="/login" className={`text-sm font-medium ${onDark ? "text-slate-200 hover:text-white" : "text-slate-700 hover:text-ink-900"}`}>
                 Log in
               </Link>
               <Link href="/signup" className="btn-primary">

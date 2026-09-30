@@ -1,606 +1,465 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getServerSession } from "next-auth";
+import { ArrowRight, ArrowUpRight, Check, Lock, Mic, MonitorCheck, ScanFace, Timer } from "lucide-react";
 import { authOptions } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { PLANS, PLAN_LIMITS, FEATURE_LABELS, FEATURE_LABELS_PLURAL, PLAN_DIFFICULTY_ACCESS, type Plan } from "@/lib/entitlements";
 import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
-import Reveal from "@/components/Reveal";
-import { AudioLines, CircleCheck, ClipboardCheck, Lock, Scale, Sparkles, TrendingUp, Video } from "lucide-react";
-import { Icon, IconBadge } from "@/components/ui/Icon";
+import { TRACK_COPY } from "@/lib/goal-tracks";
+import { Icon } from "@/components/ui/Icon";
+import HeroAnalysis from "@/components/landing/HeroAnalysis";
+import LessonsSlider, { type Lesson } from "@/components/landing/LessonsSlider";
+import GoalExplorer, { type GoalOption } from "@/components/landing/GoalExplorer";
 
-// Unsplash License (free to use, no permission required) - chosen for
-// direct relevance to online assessment/proctoring, not generic stock.
-const IMG_HERO = "https://images.unsplash.com/photo-1573166364489-49b728b7817b"; // candidate wearing a headset, taking a test on a laptop
-const IMG_TRUST = "https://images.unsplash.com/photo-1720723652002-dc1f2fb0527b"; // professional candidate speaking at a laptop with a microphone
-const IMG_PROCTOR = "https://images.unsplash.com/photo-1762681290673-ba1ad4ea0875"; // webcam mounted on a monitor - proctoring
-const IMG_CTA = "https://images.unsplash.com/photo-1513258496099-48168024aec0"; // candidate with headset in front of a laptop
-
-const HOW_IT_WORKS = [
-  {
-    step: "Choose Practice",
-    text: "Pick the skill or exam-style task you need - speaking, listening, reading, writing, grammar, vocabulary, or a role-specific scenario - and get a realistic question.",
-  },
-  {
-    step: "Take the Test",
-    text: "Answer for real: record your spoken response, or answer written questions, under the same conditions as the real assessment.",
-  },
-  {
-    step: "Get AI Analysis",
-    text: "Your actual recording and transcript are analyzed for pronunciation, fluency, grammar, vocabulary, pace and delivery.",
-  },
-  {
-    step: "Improve & Retake",
-    text: "Review exactly what to fix, see a stronger version of your own answer, and practice the same skill again with new material.",
-  },
+const STEPS = [
+  { title: "Pick a skill or an exam", text: `${PRACTICE_MODES.length} practice modes, short skill drills, or a full timed exam.` },
+  { title: "Answer for real", text: "Speak into your microphone or write, under the same timing as the real test." },
+  { title: "Get specific feedback", text: "Your recording and transcript are analysed; every point quotes what you said." },
+  { title: "Practise what's weak", text: "Your skill scores update, and the next questions target the gaps." },
 ];
 
-const KEY_FEATURES = [
+// Micro-lessons written for VocalisAi (docs/MEDIA_SOURCES.md). Videos are
+// our own screen recordings of the product.
+const LESSONS: Lesson[] = [
   {
-    title: "AI Speaking & Pronunciation Analysis",
-    text: "Real audio, genuinely listened to - pronunciation, articulation and delivery scored from your actual recording, not guessed from a transcript.",
+    topic: "Speaking",
+    title: "Answer, give one reason, add one example",
+    body: "Interviewers and examiners listen for shape before vocabulary. Three short parts beat one long ramble.",
+    video: { src: "/media/practice-question.webm", poster: "/media/practice-question.jpg", label: "Answering a practice question in VocalisAi" },
   },
   {
-    title: "Practice Across Every Core Skill",
-    text: "Focused exercises across 13 categories - reading, listening, writing, grammar, vocabulary, spoken fluency, and role-specific scenarios.",
+    topic: "Fluency",
+    title: "Swap the filler for a pause",
+    body: "Half a second of silence sounds more confident than “um” or “like”. Your analysis counts fillers, so you can watch the number fall.",
   },
   {
-    title: "Full Proctored Mock Exams",
-    text: "A complete, timed, proctored practice exam with camera and microphone checks and a full results breakdown at the end.",
+    topic: "Pronunciation",
+    title: "Stress the words that carry the meaning",
+    body: "In “I can help you with that today”, lean on help and today. Flat stress makes clear English sound unsure.",
   },
   {
-    title: "Detailed Speech & Language Feedback",
-    text: "Mispronounced words with a plain-language phonetic hint, plus specific grammar, vocabulary and delivery notes.",
+    topic: "Listening",
+    title: "Read the question before the audio starts",
+    body: "Use the preview time to decide what you are listening for: a number, a name, a reason. Then listen only for that.",
+    video: { src: "/media/listening-exam.webm", poster: "/media/listening-exam.jpg", label: "A timed listening paper in VocalisAi" },
   },
   {
-    title: "Interview & Role-Play Simulation",
-    text: "A live, spoken back-and-forth with an AI playing an interviewer, a customer, a supervisor, or a casual conversation partner - for recruitment interviews, BPO/MNC assessments, and everyday professional scenarios.",
+    topic: "Listening",
+    title: "Listen for signpost words",
+    body: "However, actually, so, in the end. The answer usually comes straight after them.",
   },
   {
-    title: "Comprehensive Question Bank",
-    text: "A growing bank of real practice questions spanning language-proficiency skills, workplace English, and role-specific assessments.",
+    topic: "Interviews",
+    title: "Use STAR for “tell me about a time”",
+    body: "Situation, Task, Action, Result, in about a minute. Spend most of it on what you did.",
   },
   {
-    title: "Detailed Performance Reports",
-    text: "A category-by-category breakdown of every response - what was strong, what needs work, and why.",
+    topic: "Grammar",
+    title: "“Will” takes the base verb",
+    body: "“I will help you”, not “I will helping you”. A small slip that stands out in a spoken assessment.",
   },
   {
-    title: "Progress Tracking",
-    text: "Your real scores across every completed mock exam, tracked over time so improvement is something you can see.",
-  },
-  {
-    title: "Secure Proctored Exam Experience",
-    text: "Camera and microphone checks, timed sections and a fixed question order once started - the same format as a real exam or assessment.",
-  },
-];
-
-const SHOWCASE = [
-  {
-    label: "Practice mode",
-    title: "Skill & exam-style practice",
-    text: "13 focused categories covering the core skills tested across English proficiency exams, academic and workplace assessments, and placement tests - grammar, vocabulary, reading comprehension, listening, writing, read-aloud, pronunciation, fluency, speaking, and situational judgement.",
-    meta: "Untimed by default · answer at your own pace · repeatable with new material",
-  },
-  {
-    label: "Interview & role-play simulation",
-    title: "Live spoken conversation",
-    text: "A real-time back-and-forth with an AI playing an interviewer, customer, supervisor or conversation partner - for recruitment interviews, BPO/MNC assessments, and other role-specific scenarios, not a fixed list of questions.",
-    meta: "Spoken, spontaneous responses · feedback after the conversation ends",
-  },
-  {
-    label: "Full mock exam",
-    title: "Complete proctored assessment",
-    text: "A timed, multi-section mock exam built from an admin-configured template - camera and microphone checks first, then a fixed question order for the rest of the session, in the same format as a real proctored exam.",
-    meta: "Camera + microphone check · timed sections · no going back once started",
-  },
-];
-
-const AI_METRICS = [
-  { name: "Pronunciation", text: "Mispronounced words, difficult sounds, and a simple phonetic hint for each - from your actual audio." },
-  { name: "Fluency", text: "Hesitations, filler words, repetitions and long pauses, measured from your real recording." },
-  { name: "Grammar", text: "Specific issues quoted from your own transcript, each with the exact correction." },
-  { name: "Vocabulary", text: "Word choice and professional terms used, with any repetitive phrasing flagged." },
-  { name: "Pace", text: "Words-per-minute, classified as too slow, balanced, fast or very fast - a real, calculated number." },
-  { name: "Voice clarity & delivery", text: "Articulation, volume, confidence indicators and how complete your response was." },
-];
-
-const WHY_CANDIDATES = [
-  {
-    title: "Lack of practice under real exam conditions",
-    text: "Most candidates prepare for a language test, assessment or interview having read about it, never having actually done it under timed, proctored conditions. Every exercise here is real practice, not a description of one.",
-  },
-  {
-    title: "Anxiety before speaking tests and interviews",
-    text: "The proctored mock exam and interview simulation exist so the first time you experience that format isn't on exam day or in front of a recruiter.",
-  },
-  {
-    title: "Pronunciation issues you can't hear yourself",
-    text: "It's hard to know which words you're mispronouncing until someone - or something - actually listens and tells you.",
-  },
-  {
-    title: "No feedback loop",
-    text: "Most practice ends with no idea what went wrong. Every response here comes back with specific, grounded feedback on what you actually said.",
-  },
-  {
-    title: "Not knowing when you're ready",
-    text: "Your Progress page tracks your real scores across every mock exam, so \"am I ready?\" has an answer based on your own history, not a guess.",
+    topic: "Exam strategy",
+    title: "In a timed paper, flag it and move on",
+    body: "A question you can't crack in its time is costing you two you could answer. Mark it, keep going, come back.",
+    video: { src: "/media/mock-exam-check.webm", poster: "/media/mock-exam-check.jpg", label: "The camera and microphone check before a mock exam" },
   },
 ];
 
 const PLAN_DISPLAY: Record<Plan, { label: string; blurb: string }> = {
-  FREE: { label: "Free", blurb: "A one-time sample of the platform, at your own pace." },
-  STARTER: { label: "Starter", blurb: "For candidates actively preparing for an upcoming exam, assessment or interview." },
-  PROFESSIONAL: { label: "Professional", blurb: "For serious, repeated practice across every skill." },
-  PREMIUM: { label: "Premium", blurb: "Full access, for the most thorough preparation." },
+  FREE: { label: "Free", blurb: "A one-time sample, at your own pace." },
+  STARTER: { label: "Starter", blurb: "For an exam or interview coming up soon." },
+  PROFESSIONAL: { label: "Professional", blurb: "Regular practice across every skill." },
+  PREMIUM: { label: "Premium", blurb: "The most practice, for the most thorough preparation." },
 };
 const PLAN_HIGHLIGHT_FEATURES = ["PRACTICE_SESSION", "SPEECH_ANALYSIS", "MOCK_ASSESSMENT", "INTERVIEW_SIMULATION"] as const;
 
+// Live figures and catalogue for the page. The landing page must never fail
+// because the database is unreachable, so it renders without them instead.
+async function loadCatalogue() {
+  try {
+    const [questions, families, tracks] = await Promise.all([
+      db.practiceQuestion.count({ where: { isActive: true } }),
+      db.examFamily.findMany({
+        where: { isActive: true },
+        orderBy: { name: "asc" },
+        select: { slug: true, name: true, description: true, variants: { where: { isActive: true }, select: { id: true } } },
+      }),
+      db.goalTrack.findMany({ where: { enabled: true }, orderBy: { sortOrder: "asc" }, select: { slug: true, name: true } }),
+    ]);
+    const examTypes = families.filter((f) => f.variants.length > 0).map((f) => ({ slug: f.slug, name: f.name, description: f.description, exams: f.variants.length }));
+    const goals: GoalOption[] = tracks.filter((t) => TRACK_COPY[t.slug]).map((t) => ({ slug: t.slug, name: t.name, ...TRACK_COPY[t.slug] }));
+    return { questions, examTypes, exams: examTypes.reduce((n, t) => n + t.exams, 0), goals };
+  } catch (err) {
+    console.error("landing page: catalogue unavailable", err);
+    return null;
+  }
+}
+
+// A stylised recording of one spoken answer: filler words (amber) and a long
+// pause (gap) marked the way the analysis marks them. Deterministic heights.
+function AnswerWaveform() {
+  const bars = Array.from({ length: 64 }, (_, i) => 18 + Math.round(Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.45)) * 70));
+  const fillers = new Set([9, 10, 41, 42]);
+  const pause = new Set([26, 27, 28, 29, 30]);
+  return (
+    <figure className="my-8 flex flex-1 flex-col justify-center" aria-label="Example: a spoken answer with two filler words and one long pause">
+      <div className="flex h-24 items-center gap-[3px]" aria-hidden="true">
+        {bars.map((h, i) => (
+          <span
+            key={i}
+            className={`flex-1 rounded-full ${pause.has(i) ? "bg-transparent" : fillers.has(i) ? "bg-amber-400" : "bg-brand-200"}`}
+            style={{ height: pause.has(i) ? "2px" : `${h}%` }}
+          />
+        ))}
+      </div>
+      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-amber-400" /> 2 fillers
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-0.5 w-3 bg-slate-300" /> 1 long pause
+        </span>
+        <span className="num">142 wpm · balanced</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+function roundDown(n: number, step: number) {
+  return n >= step ? `${(Math.floor(n / step) * step).toLocaleString("en-US")}+` : String(n);
+}
+
 export default async function LandingPage() {
-  const session = await getServerSession(authOptions);
+  const [session, catalogue] = await Promise.all([getServerSession(authOptions), loadCatalogue()]);
+  const startHref = session ? "/dashboard" : "/signup";
+  const free = PLAN_LIMITS.FREE;
+
+  const facts = catalogue
+    ? [
+        { value: roundDown(catalogue.questions, 100), label: "practice questions, fresh ones first" },
+        { value: String(catalogue.exams), label: `timed exams across ${catalogue.examTypes.length} exam types` },
+        { value: String(PRACTICE_MODES.length), label: "practice modes, from grammar to role-play" },
+      ]
+    : null;
 
   return (
     <div className="overflow-x-hidden">
-      {/* 1. Hero - full-bleed photo of a candidate testing, dark navy scrim
-          for a "secure assessment platform" feel rather than a plain
-          light gradient. */}
-      <section className="relative isolate overflow-hidden bg-ink-950">
-        <Image
-          src={IMG_HERO}
-          alt="A candidate wearing a headset, taking an online assessment on a laptop"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center opacity-60"
-        />
-        <div className="hero-dark-scrim absolute inset-0" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 sm:py-32 lg:grid-cols-[1.1fr_0.9fr] lg:py-40">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-              <Icon as={Sparkles} className="text-amber-400" />
-              AI-Powered English Practice &amp; Proctored Assessment Platform
-            </span>
-            <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Prepare for your English test or assessment
-              <span className="block text-brand-300">before it actually counts.</span>
+      {/* Hero: headline, then the product itself. */}
+      <section className="panel-ink">
+        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:gap-16 lg:pt-24">
+          <div className="min-w-0">
+            <p className="eyebrow eyebrow-on-ink">English exams · Workplace assessments · Interviews</p>
+            <h1 className="display mt-6 text-[2.6rem] text-white sm:text-6xl lg:text-[4.25rem]">
+              Rehearse the real test <span className="text-amber-300">before it counts.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-200">
-              VocalisAi is a premium AI-powered practice platform for English language tests and
-              professional assessments - IELTS-style speaking, listening, reading and writing
-              practice, general English proficiency and placement tests, academic and workplace
-              English, recruitment and pre-employment assessments, and BPO/MNC interviews. Record
-              real spoken answers, get real AI feedback on your pronunciation, fluency and grammar,
-              and take full proctored mock exams - so exam day or assessment day isn&apos;t the
-              first time you&apos;ve done any of this.
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-300">
+              Timed, camera-checked mock exams and AI feedback on the way you actually speak.
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              {session ? (
-                <Link href="/dashboard" className="btn-primary btn-lg">
-                  Go to your dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/signup" className="btn-primary btn-lg">
-                    Start Practising
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center justify-center gap-2 rounded-[0.625rem] border border-white/25 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
-                  >
-                    Take a Free Mock Test
-                  </Link>
-                </>
-              )}
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link href={startHref} className="btn-primary btn-lg">
+                {session ? "Go to your dashboard" : "Start free"}
+                <Icon as={ArrowRight} />
+              </Link>
+              <a href="#how-it-works" className="btn-dark btn-lg">
+                See how it works
+              </a>
             </div>
-            <p className="mt-4 text-xs text-slate-300">No credit card required to start on the Free plan.</p>
+            {!session && (
+              <p className="mt-5 text-sm text-slate-400">
+                Free plan: {free.PRACTICE_SESSION} practice sessions and {free.SPEECH_ANALYSIS} speech analyses. No card needed.
+              </p>
+            )}
           </div>
-
-          {/* Premium product-in-action visual */}
-          <Reveal delayMs={150} className="relative">
-            <div className="card mx-auto max-w-md overflow-hidden p-0 shadow-[var(--shadow-card-lg)]">
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
-                <span className="text-xs font-semibold text-ink-700">Speech Analysis · Speaking Practice</span>
-                <span className="badge badge-ai">AI Analyzed</span>
-              </div>
-              <div className="space-y-4 p-5">
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-ink-900">Fluency</span>
-                    <span className="font-semibold text-brand-700">Strong</span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full w-[85%] rounded-full bg-brand-500" />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-ink-900">Pronunciation</span>
-                    <span className="font-semibold text-amber-700">Adequate</span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full w-[62%] rounded-full bg-amber-500" />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-ink-900">Grammar</span>
-                    <span className="font-semibold text-brand-700">Strong</span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full w-[90%] rounded-full bg-brand-500" />
-                  </div>
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-                  <span className="font-semibold text-ink-900">Pace: </span>
-                  148 WPM · Balanced
-                </div>
-              </div>
-            </div>
-            <div className="pointer-events-none absolute -bottom-6 -left-6 hidden h-28 w-28 rounded-full bg-brand-400/30 blur-2xl sm:block" />
-            <div className="pointer-events-none absolute -right-8 -top-8 hidden h-32 w-32 rounded-full bg-amber-300/30 blur-2xl sm:block" />
-          </Reveal>
+          <HeroAnalysis />
         </div>
-      </section>
 
-      {/* Trust strip - reassurance directly under the hero, the way
-          exam/certification vendors lead with credibility signals. */}
-      <div className="border-b border-slate-200 bg-white py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-2 px-6 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <span className="flex items-center gap-1.5">
-            <Icon as={Lock} className="text-brand-600" />
-            Private &amp; secure
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Icon as={Video} className="text-brand-600" />
-            Real proctored format
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Icon as={AudioLines} className="text-brand-600" />
-            AI-analyzed feedback
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Icon as={Scale} className="text-brand-600" />
-            Honest, grounded scoring
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Trust / Value */}
-      <section className="border-b border-slate-200 bg-white py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <Reveal className="relative order-2 lg:order-1">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-[var(--shadow-card-lg)]">
-              <Image
-                src={IMG_TRUST}
-                alt="A professional candidate completing an online assessment at a laptop"
-                fill
-                sizes="(min-width: 1024px) 40vw, 90vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-5 -right-5 hidden rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[var(--shadow-card-lg)] sm:block">
-              <p className="text-xs font-semibold text-ink-900">Readiness score</p>
-              <p className="font-display text-2xl font-bold text-brand-600">82<span className="text-sm text-slate-400">/100</span></p>
-            </div>
-          </Reveal>
-          <div className="order-1 lg:order-2">
-            <h2 className="font-display text-2xl font-bold text-ink-950 sm:text-3xl">
-              A single platform for English exams, assessments and interviews
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Whichever test or assessment is next - a language-proficiency exam, an academic or
-              workplace English assessment, a recruitment or pre-employment test, or a BPO/MNC
-              interview - the same realistic practice and honest AI feedback apply.
-            </p>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              {[
-                { title: "AI-powered practice", icon: Sparkles, text: "Every exercise is built around the real demands of language tests, assessments, and interviews - not generic drills." },
-                { title: "Realistic assessments", icon: ClipboardCheck, text: "Timed, proctored mock exams with camera and microphone checks - the real format, not a preview of it." },
-                { title: "Real speech analysis", icon: AudioLines, text: "Feedback grounded in your actual audio and transcript, never a generic estimate." },
-                { title: "Progress tracking", icon: TrendingUp, text: "Your real scores across every mock exam, tracked over time." },
-              ].map((v) => (
-                <div key={v.title}>
-                  <IconBadge as={v.icon} />
-                  <h3 className="mt-3 font-display font-bold text-ink-900">{v.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{v.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. How It Works */}
-      <section id="how-it-works" className="bg-ink-950 py-20 text-white">
-        <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-center font-display text-2xl font-bold">How it works</h2>
-          <p className="mx-auto mt-2 max-w-xl text-center text-sm text-slate-300">
-            The same simple loop, every time - whatever exam, assessment or interview you&apos;re
-            preparing for - designed to build real confidence through repetition, not a one-time
-            lesson.
-          </p>
-          <div className="relative mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {HOW_IT_WORKS.map((j, i) => (
-              <Reveal key={j.step} delayMs={i * 90}>
-                <div className="h-full rounded-xl border border-white/10 bg-white/5 p-5 transition-colors hover:border-brand-400/40 hover:bg-white/[0.08]">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-3 font-display font-bold">{j.step}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-300">{j.text}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Key Features */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="text-center font-display text-2xl font-bold text-ink-950">Key features</h2>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
-          Everything you need to prepare for a language test, an academic or workplace English
-          assessment, a recruitment assessment, or an interview - and walk in prepared.
-        </p>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {KEY_FEATURES.map((f, i) => (
-            <Reveal key={f.title} delayMs={(i % 3) * 80}>
-              <div className="card h-full p-6 hover:-translate-y-1 hover:shadow-[var(--shadow-card-lg)]">
-                <h3 className="font-display font-bold text-ink-900">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.text}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. Practice / Exam Showcase */}
-      <section className="border-y border-slate-200 bg-slate-50 py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center font-display text-2xl font-bold text-ink-950">
-            Practice modes &amp; exam types
-          </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
-            Three ways to practice, from a quick skill-focused exercise to a full proctored
-            assessment.
-          </p>
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {SHOWCASE.map((s, i) => (
-              <Reveal key={s.title} delayMs={i * 100}>
-                <div className="card h-full overflow-hidden p-0">
-                  {s.label === "Full mock assessment" && (
-                    <div className="relative h-36 w-full">
-                      <Image
-                        src={IMG_PROCTOR}
-                        alt="A webcam mounted on a monitor, used for proctored online exams"
-                        fill
-                        sizes="(min-width: 1024px) 33vw, 90vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <span className="badge badge-neutral">{s.label}</span>
-                    <h3 className="mt-3 font-display font-bold text-ink-900">{s.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.text}</p>
-                    <p className="mt-4 border-t border-slate-100 pt-3 text-xs font-medium text-slate-500">{s.meta}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {PRACTICE_MODES.map((m) => (
-              <span key={m.slug} className="badge badge-skill">
-                {m.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. AI Analysis Preview */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-ink-950">
-              Feedback grounded in what you actually said
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Your recording is transcribed and genuinely analyzed - the AI listens to your actual
-              audio for pronunciation and delivery, and reads your actual transcript for grammar
-              and vocabulary. Every claim is grounded in something real, quoted directly from your
-              response.
-            </p>
-            <dl className="mt-8 grid gap-4 sm:grid-cols-2">
-              {AI_METRICS.map((m) => (
-                <div key={m.name}>
-                  <dt className="font-display text-sm font-bold text-ink-900">{m.name}</dt>
-                  <dd className="mt-1 text-sm leading-relaxed text-slate-600">{m.text}</dd>
+        {facts && (
+          <div className="border-t border-white/10">
+            <dl className="mx-auto grid max-w-6xl gap-6 px-5 py-8 sm:grid-cols-3 sm:px-6">
+              {facts.map((f) => (
+                <div key={f.label} className="flex items-baseline gap-3 sm:block">
+                  <dt className="sr-only">{f.label}</dt>
+                  <dd className="num text-3xl font-semibold text-white sm:text-4xl">{f.value}</dd>
+                  <dd className="text-sm text-slate-400 sm:mt-1">{f.label}</dd>
                 </div>
               ))}
             </dl>
           </div>
-
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-ink-700">Grammar</span>
-              <span className="badge badge-ai">AI Analyzed</span>
-            </div>
-            <div className="mt-4 space-y-3">
-              <div className="rounded-lg border border-slate-200 p-3">
-                <p className="text-xs text-slate-500">Excerpt</p>
-                <p className="mt-1 text-sm text-ink-900">&ldquo;I will helping the customer with that.&rdquo;</p>
-              </div>
-              <div className="rounded-lg border border-amber-100 bg-amber-50 p-3">
-                <p className="text-xs font-semibold text-amber-700">Issue</p>
-                <p className="mt-1 text-sm text-ink-900">Incorrect verb form after &ldquo;will&rdquo;.</p>
-              </div>
-              <div className="rounded-lg border border-brand-100 bg-brand-50 p-3">
-                <p className="text-xs font-semibold text-brand-700">Correction</p>
-                <p className="mt-1 text-sm text-ink-900">&ldquo;I will help the customer with that.&rdquo;</p>
-              </div>
-            </div>
-            <p className="mt-4 text-xs text-slate-500">Illustrative example - your own feedback is generated from your own recording.</p>
-          </div>
-        </div>
+        )}
       </section>
 
-      {/* 7. Candidate Results / Progress */}
-      <section className="border-y border-slate-200 bg-white py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="font-display text-2xl font-bold text-ink-950">Track real improvement, not a feeling</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
-            Every mock exam produces a real Readiness score, and your Progress page tracks it
-            across every attempt - alongside a category-by-category breakdown of where you&apos;re
-            genuinely improving and where you still need work, whatever exam or assessment
-            you&apos;re preparing for. It&apos;s calculated from your own completed sessions, never
-            invented.
-          </p>
-          <div className="card mx-auto mt-10 max-w-lg p-6 text-left">
-            <div className="flex items-center justify-between text-xs font-semibold text-ink-700">
-              <span>Overall trend</span>
-              <span className="text-slate-400">Last 5 attempts</span>
+      {/* How a session works: a real sequence. */}
+      <section id="how-it-works" className="scroll-mt-20 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16">
+            <div>
+              <p className="eyebrow">How it works</p>
+              <h2 className="headline mt-4 text-3xl text-ink-950 sm:text-4xl">One loop, repeated until it feels easy.</h2>
             </div>
-            <div className="mt-4 flex h-24 items-end gap-3">
-              {[42, 51, 58, 55, 69].map((v, i) => (
-                <div key={i} className="flex-1 rounded-t bg-brand-500/80" style={{ height: `${v}%` }} />
+            <ol className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+              {STEPS.map((s, i) => (
+                <li key={s.title} className="flex gap-5 bg-white p-6 sm:p-8">
+                  <span className="num flex-none text-sm font-semibold text-brand-600">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-lg font-bold text-ink-950">{s.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.text}</p>
+                  </div>
+                </li>
               ))}
-            </div>
-            <p className="mt-4 text-xs text-slate-500">Illustrative example - your own trend is built from your own attempts.</p>
+            </ol>
           </div>
         </div>
       </section>
 
-      {/* 8. Why Candidates Use It */}
-      <section className="mx-auto max-w-4xl px-6 py-20">
-        <h2 className="text-center font-display text-2xl font-bold text-ink-950">
-          Built for the problems candidates actually have
-        </h2>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
-          Whether you&apos;re preparing for a language-proficiency exam, an academic or workplace
-          assessment, a recruitment test, or a BPO/MNC interview, the underlying problems are the
-          same.
-        </p>
-        <div className="mt-10 space-y-6">
-          {WHY_CANDIDATES.map((w) => (
-            <div key={w.title} className="flex gap-4">
-              <Icon as={CircleCheck} size="lg" className="mt-0.5 text-brand-600" />
-              <div>
-                <h3 className="font-display font-bold text-ink-900">{w.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-slate-600">{w.text}</p>
+      {/* Capabilities as a bento, each tile showing the thing itself. */}
+      <section className="bg-slate-50">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+          <p className="eyebrow">What you can do</p>
+          <h2 className="headline mt-4 max-w-2xl text-3xl text-ink-950 sm:text-4xl">Practice that listens, and exams that feel like the real thing.</h2>
+
+          <div className="mt-12 grid gap-4 lg:grid-cols-6">
+            <article className="sheet flex flex-col p-7 lg:col-span-4 lg:row-span-2 sm:p-9">
+              <h3 className="headline text-2xl text-ink-950">Feedback on how you actually sound</h3>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-600">
+                Your recording is transcribed and rated on six dimensions. Every comment quotes your own words.
+              </p>
+              <AnswerWaveform />
+              <dl className="mt-8 grid gap-x-8 gap-y-5 border-t border-slate-100 pt-7 sm:grid-cols-2">
+                {[
+                  ["Pronunciation", "Words you mispronounced, with a simple sound-it-out hint"],
+                  ["Fluency", "Hesitations, fillers, repetitions and long pauses"],
+                  ["Grammar", "Quoted from your transcript, each with the correction"],
+                  ["Vocabulary", "Word choice, professional terms, repetition"],
+                  ["Pace", "Words per minute, measured, not guessed"],
+                  ["Delivery", "Clarity, confidence and how complete the answer was"],
+                ].map(([name, text]) => (
+                  <div key={name} className="min-w-0">
+                    <dt className="text-sm font-semibold text-ink-950">{name}</dt>
+                    <dd className="mt-1 text-sm leading-relaxed text-slate-600">{text}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+
+            <article className="panel-ink overflow-hidden rounded-[1.25rem] p-7 lg:col-span-2">
+              <h3 className="headline text-xl">Proctored mock exams</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">Timed sections and a fixed question order, like the real test.</p>
+              <ul className="mt-6 grid gap-2.5 text-sm">
+                {[
+                  [ScanFace, "One person in frame"],
+                  [Mic, "Microphone checked"],
+                  [MonitorCheck, "Tab switches noticed"],
+                  [Timer, "Timed papers"],
+                ].map(([Glyph, text]) => (
+                  <li key={text as string} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-slate-200">
+                    <Icon as={Glyph as typeof Mic} className="text-amber-300" />
+                    {text as string}
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="sheet p-7 lg:col-span-2">
+              <h3 className="headline text-xl text-ink-950">Role-play out loud</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">An AI interviewer, customer or manager replies to what you actually said.</p>
+              <div className="mt-6 grid gap-2 text-sm">
+                <p className="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 px-4 py-2.5 text-ink-800">Tell me about a time you handled an upset customer.</p>
+                <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-brand-600 px-4 py-2.5 text-white">Last month a customer&apos;s order arrived damaged, so I…</p>
               </div>
-            </div>
-          ))}
+            </article>
+
+            <article className="sheet p-7 lg:col-span-3">
+              <h3 className="headline text-xl text-ink-950">Know which skills are weak</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">Every answer updates a mastery score per skill; recent and harder answers count more.</p>
+              <ul className="mt-6 grid gap-3">
+                {[
+                  { skill: "Tenses", band: "Mastered", value: 92, tone: "bg-brand-600" },
+                  { skill: "Listening for detail", band: "Proficient", value: 74, tone: "bg-brand-400" },
+                  { skill: "Word stress", band: "Weak", value: 38, tone: "bg-amber-500" },
+                ].map((s) => (
+                  <li key={s.skill} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 text-sm">
+                    <span className="truncate font-medium text-ink-800">{s.skill}</span>
+                    <span className="text-xs font-semibold text-slate-500">{s.band}</span>
+                    <span className="col-span-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <span className={`block h-full rounded-full ${s.tone}`} style={{ width: `${s.value}%` }} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs text-slate-400">Example scores.</p>
+            </article>
+
+            <article className="sheet flex flex-col p-7 lg:col-span-3">
+              <h3 className="headline text-xl text-ink-950">No repeated questions</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                Practice, drills and exams pick questions you haven&apos;t seen before, until a topic runs out.
+              </p>
+              <div className="mt-auto flex items-end justify-between gap-4 pt-8">
+                <p className="num text-5xl font-semibold text-ink-950">{catalogue ? roundDown(catalogue.questions, 100) : "—"}</p>
+                <p className="max-w-[10rem] text-right text-xs leading-relaxed text-slate-500">questions, every one tagged to a skill and level</p>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
-      {/* 9. Pricing / Plans */}
-      <section className="border-y border-slate-200 bg-white py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center font-display text-2xl font-bold text-ink-950">Plans</h2>
-          <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
-            Every plan includes every practice mode. What changes is how much you can do each
-            month, and which difficulty levels are unlocked.
-          </p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {PLANS.map((plan) => {
+      {/* The exam library as a horizontal rail. */}
+      {catalogue && catalogue.examTypes.length > 0 && (
+        <section className="bg-white">
+          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="eyebrow">Exam library</p>
+                <h2 className="headline mt-4 max-w-xl text-3xl text-ink-950 sm:text-4xl">Practise the format you&apos;ll actually face.</h2>
+              </div>
+              <Link href={session ? "/mock-tests" : "/signup"} className="btn-secondary flex-none self-start sm:self-auto">
+                Browse exams
+                <Icon as={ArrowUpRight} />
+              </Link>
+            </div>
+            <ul className="rail mt-10 [grid-auto-columns:minmax(15rem,17rem)]" aria-label="Exam types">
+              {catalogue.examTypes.map((t) => (
+                <li key={t.slug} className="flex min-h-[11rem] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 transition-colors hover:border-brand-300 hover:bg-white">
+                  <p className="num text-xs text-slate-500">
+                    {t.exams} exam{t.exams === 1 ? "" : "s"}
+                  </p>
+                  <h3 className="mt-3 font-display text-lg font-bold text-ink-950">{t.name}</h3>
+                  {t.description && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600">{t.description}</p>}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 max-w-2xl text-xs leading-relaxed text-slate-400">
+              &ldquo;-style&rdquo; exams are original practice material in the format of those tests. VocalisAi is not affiliated with or endorsed by their owners.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Micro-lessons: short, specific, and some show the product. */}
+      <section className="panel-ink">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-end">
+            <div>
+              <p className="eyebrow eyebrow-on-ink">Micro-lessons</p>
+              <h2 className="headline mt-4 text-3xl text-white sm:text-4xl">Small habits that examiners notice.</h2>
+            </div>
+            <p className="text-sm leading-relaxed text-slate-400">One idea each, under a minute to read. Practise it straight away in the matching mode.</p>
+          </div>
+          <div className="mt-10">
+            <LessonsSlider lessons={LESSONS} />
+          </div>
+        </div>
+      </section>
+
+      {/* Goals as tabs. */}
+      {catalogue && catalogue.goals.length > 0 && (
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+            <p className="eyebrow">Built around your goal</p>
+            <h2 className="headline mt-4 max-w-2xl text-3xl text-ink-950 sm:text-4xl">Tell us what you&apos;re preparing for. Get a plan for it.</h2>
+            <div className="mt-12">
+              <GoalExplorer goals={catalogue.goals} ctaHref={session ? "/goal/choose" : "/signup"} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Plans: one comparison, not four floating boxes. */}
+      <section id="plans" className="scroll-mt-20 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
+            <div>
+              <p className="eyebrow">Plans</p>
+              <h2 className="headline mt-4 text-3xl text-ink-950 sm:text-4xl">Every mode on every plan. Pay for more of it.</h2>
+            </div>
+            <p className="text-sm leading-relaxed text-slate-600">Plans differ in how much you can do each month and which difficulty levels unlock. Free limits are a one-time sample.</p>
+          </div>
+
+          <div className="mt-12 grid overflow-hidden rounded-2xl border border-slate-200 sm:grid-cols-2 lg:grid-cols-4">
+            {PLANS.map((plan, i) => {
               const limits = PLAN_LIMITS[plan];
               const difficulties = PLAN_DIFFICULTY_ACCESS[plan];
               const featured = plan === "PROFESSIONAL";
               return (
                 <div
                   key={plan}
-                  className={`card flex flex-col p-6 ${featured ? "border-2 border-brand-500 shadow-lg shadow-brand-900/10" : ""}`}
+                  className={`flex flex-col p-7 ${featured ? "bg-ink-950 text-white" : "bg-white"} ${i > 0 ? "border-t border-slate-200 sm:border-t-0" : ""} ${
+                    i % 2 === 1 ? "sm:border-l sm:border-slate-200" : ""
+                  } ${i >= 2 ? "sm:border-t lg:border-t-0" : ""} ${i > 0 ? "lg:border-l lg:border-slate-200" : ""}`}
                 >
-                  {featured && <span className="badge badge-ai mb-3 w-fit">Most popular</span>}
-                  <h3 className="font-display text-lg font-bold text-ink-900">{PLAN_DISPLAY[plan].label}</h3>
-                  <p className="mt-1 text-xs text-slate-500">{PLAN_DISPLAY[plan].blurb}</p>
-                  <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink-700">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className={`font-display text-lg font-bold ${featured ? "text-white" : "text-ink-950"}`}>{PLAN_DISPLAY[plan].label}</h3>
+                    {featured && <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[0.7rem] font-bold text-ink-950">Recommended</span>}
+                  </div>
+                  <p className={`mt-2 min-h-[2.5rem] text-sm ${featured ? "text-slate-300" : "text-slate-600"}`}>{PLAN_DISPLAY[plan].blurb}</p>
+                  <ul className={`mt-6 flex-1 space-y-3 border-t pt-6 text-sm ${featured ? "border-white/10 text-slate-200" : "border-slate-100 text-ink-800"}`}>
                     {PLAN_HIGHLIGHT_FEATURES.map((feature) => {
                       const count = limits[feature];
                       if (count === 0) {
                         return (
-                          <li key={feature} className="flex items-start gap-2 text-slate-500">
+                          <li key={feature} className={`flex items-start gap-2.5 ${featured ? "text-slate-400" : "text-slate-500"}`}>
                             <Icon as={Lock} className="mt-0.5" />
                             <span>{FEATURE_LABELS_PLURAL[feature]} on paid plans</span>
                           </li>
                         );
                       }
                       return (
-                        <li key={feature} className="flex items-start gap-2">
-                          <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
+                        <li key={feature} className="flex items-start gap-2.5">
+                          <Icon as={Check} className={`mt-0.5 ${featured ? "text-amber-300" : "text-brand-600"}`} />
                           <span>
-                            {count} {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
-                            {plan === "FREE" ? " (lifetime)" : "/month"}
+                            <span className="num font-semibold">{count}</span> {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
+                            <span className={featured ? "text-slate-400" : "text-slate-500"}>{plan === "FREE" ? " (lifetime)" : "/month"}</span>
                           </span>
                         </li>
                       );
                     })}
-                    <li className="flex items-start gap-2">
-                      <Icon as={CircleCheck} className="mt-0.5 text-brand-500" />
+                    <li className="flex items-start gap-2.5">
+                      <Icon as={Check} className={`mt-0.5 ${featured ? "text-amber-300" : "text-brand-600"}`} />
                       <span>
                         {difficulties.length === 4 ? "All difficulty levels" : `${difficulties.map((d) => d.charAt(0) + d.slice(1).toLowerCase()).join(" & ")} difficulty`}
                       </span>
                     </li>
                   </ul>
-                  <Link
-                    href="/signup"
-                    className={`mt-6 text-center ${featured ? "btn-primary" : "btn-secondary"} w-full`}
-                  >
+                  <Link href={session ? "/billing" : "/signup"} className={`mt-8 w-full ${featured ? "btn-primary" : "btn-secondary"}`}>
                     {plan === "FREE" ? "Start free" : `Choose ${PLAN_DISPLAY[plan].label}`}
                   </Link>
                 </div>
               );
             })}
           </div>
-          <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-slate-500">
-            Full feature-by-feature limits for every plan are shown on your account page after
-            signup.
-          </p>
         </div>
       </section>
 
-      {/* 10. Final CTA */}
+      {/* Closing call to action. */}
       {!session && (
-        <section className="relative isolate overflow-hidden bg-ink-950">
-          <Image
-            src={IMG_CTA}
-            alt="A candidate wearing a headset, practicing on a laptop"
-            fill
-            sizes="100vw"
-            className="object-cover object-center opacity-50"
-          />
-          <div className="hero-dark-scrim absolute inset-0" />
-          <div className="relative mx-auto max-w-2xl px-6 py-24 text-center">
-            <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
-              Your next exam, assessment or interview doesn&apos;t have to be a guess.
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-200">
-              Create a free account and take your first practice session in minutes.
-            </p>
-            <div className="mt-8">
-              <Link href="/signup" className="btn-primary btn-lg">
-                Start Practising Now
-              </Link>
-            </div>
+        <section className="panel-ink">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-20 sm:px-6 sm:py-24 lg:flex-row lg:items-end lg:justify-between">
+            <h2 className="display max-w-2xl text-4xl text-white sm:text-5xl">Make exam day the second time you&apos;ve done it.</h2>
+            <Link href="/signup" className="btn-primary btn-lg flex-none self-start lg:self-auto">
+              Start free
+              <Icon as={ArrowRight} />
+            </Link>
           </div>
         </section>
       )}
 
-      {/* 11. Footer */}
-      <footer className="border-t border-white/10 bg-ink-950 py-10">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-slate-300">
-              Vocalis<span className="font-semibold text-white">Ai</span> - practice with purpose.
-            </p>
-            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-slate-400">
-              <Link href="/dashboard" className="hover:text-brand-300">Dashboard</Link>
-              <Link href="/practice" className="hover:text-brand-300">Practice</Link>
-              <Link href="/terms" className="hover:text-brand-300">Terms</Link>
-              <Link href="/privacy" className="hover:text-brand-300">Privacy</Link>
-              <Link href="/refund-policy" className="hover:text-brand-300">Refunds</Link>
-            </nav>
-          </div>
+      <footer className="border-t border-white/10 bg-ink-950 text-sm">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-slate-400">
+            <span className="font-display font-bold text-white">
+              Vocalis<span className="text-amber-300">Ai</span>
+            </span>{" "}
+            · Practice with purpose.
+          </p>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400">
+            <Link href="/practice" className="hover:text-white">Practice</Link>
+            <Link href="/mock-tests" className="hover:text-white">Mock exams</Link>
+            <a href="#plans" className="hover:text-white">Plans</a>
+            <Link href="/terms" className="hover:text-white">Terms</Link>
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link href="/refund-policy" className="hover:text-white">Refunds</Link>
+          </nav>
         </div>
       </footer>
     </div>
