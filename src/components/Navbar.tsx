@@ -138,6 +138,8 @@ const ADMIN_NAV: ({ kind: "link" } & AdminLink | { kind: "group"; label: string;
       { href: "/admin/item-groups", label: "Item groups", hint: "Passages, audio, charts" },
       { href: "/admin/exams", label: "Exams", hint: "Exam formats, papers and parts" },
       { href: "/admin/templates", label: "Templates", hint: "Mock test line-ups" },
+      { href: "/admin/catalogue", label: "Exam catalogue", hint: "Categories, exams, subjects and skills" },
+      { href: "/admin/catalogue/questions", label: "Catalogue questions", hint: "Question bank by exam, subject, skill and level" },
     ],
   },
   {

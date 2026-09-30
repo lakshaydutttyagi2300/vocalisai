@@ -376,7 +376,10 @@ export interface ImportResult {
 }
 
 function cell(v: unknown): string {
-  return v === null || v === undefined ? "" : String(v).trim();
+  if (v === null || v === undefined) return "";
+  // Spreadsheets read TRUE/FALSE cells as yes/no values; keep them as the words.
+  if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
+  return String(v).trim();
 }
 
 function list(v: unknown, sep: RegExp): string[] {

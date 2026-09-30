@@ -112,6 +112,9 @@ describe("catalogue admin", { timeout: 180_000 }, () => {
     expect(imported).toMatchObject({ difficulty: "BEGINNER", catalogSkillId: skillId, tags: ["states", "south"] });
     expect(imported.exams).toHaveLength(1);
     expect((await importQuestions([good], true)).errors[0].message).toMatch(/Already in the question bank/);
+    // A spreadsheet TRUE cell arrives as a boolean.
+    const tf = await importQuestions([{ subject: subjectSlug, difficulty: "BEGINNER", type: "TRUE_FALSE_NOT_GIVEN", question: "The Ganga flows into the Bay of Bengal.", correctAnswer: true }], true);
+    expect(tf.errors).toEqual([]);
   });
 
   it("edits the structure and refuses to delete what's in use", async () => {
