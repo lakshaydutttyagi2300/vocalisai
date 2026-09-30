@@ -39,6 +39,9 @@ model User {
   usageEvents         UsageEvent[]
   passwordResetTokens PasswordResetToken[]
   skillMastery        UserSkillMastery[]
+  questionsSeen       QuestionSeen[]
+  bookmarks           QuestionBookmark[]
+  practiceTests       PracticeTest[]
 }
 
 // ---------------------------------------------------------------------------
@@ -246,8 +249,25 @@ model PracticeQuestion {
   rubric            Rubric? @relation(fields: [rubricId], references: [id])
   bankStatus        String? // draft | review | live | retired (null = legacy, live)
 
+  // Exam catalogue (docs/CATALOGUE.md) - all nullable/additive. subjectId
+  // and catalogSkillId place the question in Category -> Exam -> Subject ->
+  // Skill; QuestionExam limits it to named exams (none = every exam with
+  // this subject). Status: isActive true = Active, false = Inactive;
+  // archivedAt set = Archived (kept for attempt history, never served).
+  subjectId      String?
+  subject        CatalogSubject? @relation(fields: [subjectId], references: [id])
+  catalogSkillId String?
+  catalogSkill   CatalogSkill?   @relation(fields: [catalogSkillId], references: [id])
+  tags           String[]        @default([])
+  archivedAt     DateTime?
+  exams          QuestionExam[]
+  seenBy         QuestionSeen[]
+  bookmarks      QuestionBookmark[]
+
   @@index([category, difficulty])
   @@index([category, difficulty, isActive])
+  @@index([subjectId, difficulty, isActive])
+  @@index([catalogSkillId, difficulty, isActive])
   @@index([itemGroupId, orderInGroup])
   @@index([examPartId])
   @@index([skillId, level])
@@ -333,7 +353,14 @@ model PracticeAttempt {
   skill   Skill?  @relation(fields: [skillId], references: [id])
   level   Int?
 
+  // Set when answered inside a catalogue practice test (PracticeTest).
+  practiceTestId String?
+  practiceTest   PracticeTest? @relation(fields: [practiceTestId], references: [id], onDelete: SetNull)
+
   @@index([userId, createdAt])
+  @@index([practiceTestId])
+  // One answer per question per catalogue test (NULLs, i.e. other attempts, never clash).
+  @@unique([practiceTestId, questionId])
   @@index([userId, category])
   @@index([mockTestSessionId])
   @@index([userId, skillId])
@@ -912,4 +939,168 @@ model EmailVerification {
   createdAt    DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Exam catalogue (docs/CATALOGUE.md): Category -> Exam -> Subject -> Skill,
+// with the level on each question. Managed by admins; subjects and skills
+// are shared, so one Reasoning subject serves every exam that lists it.
+// ---------------------------------------------------------------------------
+
+model CatalogCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exams CatalogExam[]
+}
+
+model CatalogExam {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  categoryId  String
+  category    CatalogCategory @relation(fields: [categoryId], references: [id])
+  name        String
+  description String?
+  keywords    String? // extra search words, e.g. "ibps po probationary officer"
+  isPopular   Boolean         @default(false)
+  sortOrder   Int             @default(0)
+  isActive    Boolean         @default(true)
+  // Full mock: total time; question counts come from CatalogExamSubject.
+  mockMinutes Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  subjects  CatalogExamSubject[]
+  questions QuestionExam[]
+  tests     PracticeTest[]
+
+  @@index([categoryId, sortOrder])
+}
+
+model CatalogSubject {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  description    String?
+  // Optional bridge to an existing bank: PracticeQuestion.category (e.g.
+  // "GRAMMAR"). Questions in that category count as this subject's
+  // questions too, so the existing English/aptitude banks work unchanged.
+  legacyCategory String?
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  exams     CatalogExamSubject[]
+  skills    CatalogSkill[]
+  questions PracticeQuestion[]
+  tests     PracticeTest[]
+}
+
+model CatalogExamSubject {
+  examId            String
+  exam              CatalogExam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subjectId         String
+  subject           CatalogSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  sortOrder         Int            @default(0)
+  mockQuestionCount Int            @default(0) // questions from this subject in the exam's full mock
+
+  @@id([examId, subjectId])
+  @@index([subjectId])
+}
+
+model CatalogSkill {
+  id          String         @id @default(cuid())
+  subjectId   String
+  subject     CatalogSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  slug        String
+  name        String
+  description String?
+  sortOrder   Int            @default(0)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  questions PracticeQuestion[]
+  tests     PracticeTest[]
+
+  @@unique([subjectId, slug])
+}
+
+// A question limited to named exams. No rows = usable by every exam that
+// lists the question's subject.
+model QuestionExam {
+  questionId String
+  question   PracticeQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  examId     String
+  exam       CatalogExam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, examId])
+  @@index([examId])
+}
+
+// One row per candidate and question: the anti-repetition memory. Written
+// when a question is served (seen) and when it is answered (attempted).
+model QuestionSeen {
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        PracticeQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  timesSeen       Int              @default(0)
+  timesAttempted  Int              @default(0)
+  timesCorrect    Int              @default(0)
+  lastSeenAt      DateTime         @default(now())
+  lastAttemptedAt DateTime?
+  lastCorrect     Boolean?
+
+  @@id([userId, questionId])
+  @@index([userId, lastSeenAt])
+}
+
+model QuestionBookmark {
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   PracticeQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+
+  @@id([userId, questionId])
+  @@index([userId, createdAt])
+}
+
+// One catalogue practice session or test: what was asked, in which order,
+// and how it went. Answers are PracticeAttempt rows with practiceTestId.
+model PracticeTest {
+  id               String          @id @default(cuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId           String?
+  exam             CatalogExam?    @relation(fields: [examId], references: [id], onDelete: SetNull)
+  subjectId        String?
+  subject          CatalogSubject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  catalogSkillId   String?
+  catalogSkill     CatalogSkill?   @relation(fields: [catalogSkillId], references: [id], onDelete: SetNull)
+  difficulty       String
+  mode             String // PRACTICE | TIMED | WEAK_AREAS | REVISION | BOOKMARKS | FULL_MOCK
+  timed            Boolean         @default(false)
+  timeLimitSeconds Int?
+  questionIds      String[]
+  status           String          @default("IN_PROGRESS") // IN_PROGRESS | SUBMITTED
+  startedAt        DateTime        @default(now())
+  submittedAt      DateTime?
+  totalCount       Int
+  answeredCount    Int?
+  correctCount     Int?
+  scorePercent     Int?
+  totalTimeSeconds Int?
+
+  attempts PracticeAttempt[]
+
+  @@index([userId, startedAt])
 }

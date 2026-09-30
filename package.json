@@ -20,7 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "seed:exam-library": "node --no-warnings prisma/seed-exam-library.mjs"
+    "seed:exam-library": "node --no-warnings prisma/seed-exam-library.mjs",
+    "seed:catalogue": "node --no-warnings prisma/seed-catalogue.mjs"
   },
   "license": "UNLICENSED",
   "dependencies": {

@@ -76,6 +76,9 @@ export const config = {
     "/exam/:path*", // P1-E exam runner v2 results
     "/skills/:path*", // Skills platform: dashboard, drills, diagnostics
     "/goal/:path*", // Goal Tracks: choose a goal, goal plan
+    "/practice-tests/:path*", // catalogue tests, history and review
+    "/bookmarks/:path*",
+    "/performance/:path*",
     // API equivalents - a suspended account or a candidate probing for
     // admin access must be blocked by calling the endpoint directly, not
     // just by the page around it being unreachable. /api/auth/*,
@@ -93,5 +96,7 @@ export const config = {
     "/api/skills/:path*",
     "/api/tts/:path*", // natural-voice playback
     "/api/goal/:path*",
+    "/api/practice-tests/:path*",
+    "/api/bookmarks/:path*",
   ],
 };
