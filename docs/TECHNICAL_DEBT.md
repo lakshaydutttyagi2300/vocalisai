@@ -1,6 +1,6 @@
 # Technical debt and open issues
 
-Last reviewed: 29 Sep 2026. This replaces the old `KNOWN_ISSUES.md` and the open items of `NEXT_STEPS.md`.
+Last reviewed: 30 Sep 2026. This replaces the old `KNOWN_ISSUES.md` and the open items of `NEXT_STEPS.md`.
 
 Every item below was found by reading the code, the live configuration or the test runs. There are no `TODO`/`FIXME` comments in the code, so this file is the list.
 
@@ -21,7 +21,7 @@ Every item below was found by reading the code, the live configuration or the te
 | 9 | P3 | **Proctoring is enforced on the candidate's device** | A modified browser could suppress camera or tab-switch events. | Detection (MediaPipe, on-device) and event reporting run client-side; the server records and scores what it receives. | Inherent to on-device detection (chosen for privacy and zero cost). Server-side video analysis would be a paid, privacy-heavy feature. |
 | 10 | P3 | **No continuous integration** | Every check (type check, unit tests, build, browser tests) is run by hand before a release. | No `.github/workflows`. | A GitHub Action running `npx tsc --noEmit` and `npm test` on each push (needs a test-database connection string as a repository secret). |
 | 11 | P3 | **Browser tests share one database and port** | Two runs at once corrupt each other (it happened on 28 Sep). | `tests/e2e` use the Neon **test** branch and port 3000. | Run one at a time (see [DEVELOPER_HANDOVER.md](DEVELOPER_HANDOVER.md#common-problems)). For CI, give each run its own Neon branch. |
-| 12 | P3 | **Large page components** | Harder to change safely. | `src/app/admin/questions/page.tsx` (912 lines), `src/app/page.tsx` (598, mostly landing-page copy), `src/components/practice/VoicePracticeSession.tsx` (498). | Split the admin Question Bank page into filters / table / editor components when it next changes. Don't split just for size. |
+| 12 | P3 | **Large page components** | Harder to change safely. | `src/app/admin/questions/page.tsx` (912 lines), `src/app/page.tsx` (466, mostly landing-page copy), `src/components/practice/VoicePracticeSession.tsx` (498). | Split the admin Question Bank page into filters / table / editor components when it next changes. Don't split just for size. |
 | 13 | P3 | **10 `react-hooks/exhaustive-deps` suppressions** | Each hides a possible stale-value bug. | `// eslint-disable-next-line react-hooks/exhaustive-deps` in the practice, mock-test and exam-runner components (lint confirms each still suppresses a real report). | Review each one; most are "run once on mount" effects that could be restructured. |
 | 14 | P3 | **Frontend API calls are hand-written in each page** | Loading and error handling vary slightly page to page. | About 80 `fetch()` calls in 33 files; no shared client or data library. | Keep the pattern (it is simple and consistent enough). If pages multiply, add one small typed `apiFetch` helper rather than a data-fetching library. |
 | 15 | P3 | **Text columns used as enums** | The database doesn't reject an invalid category, role or plan; the code does. | Fields such as `role`, `plan`, `category`, `difficulty` are `String` (the project started on SQLite, which has no enums). | Keep validating in code (`src/lib/plans-and-roles.ts`, `practice-taxonomy.ts`). Converting to Prisma enums needs migrations on live data. |
@@ -44,6 +44,13 @@ Reproductions for 22-26 are in `tests/unit/qa-open-findings.test.ts` (skipped bl
 | 25 | P3 | Parallel sign-up code guesses can test more than 5 codes per emailed code. | Take the attempt atomically (`updateMany ... attempts: { lt: MAX }`, increment) before comparing. |
 | 26 | P3 | Admin candidate search treats `%` and `_` as wildcards. | Escape them in `getAdminUsers()`. |
 | 27 | P3 (voices are off) | The daily voice limit has the same count-then-generate race as plan limits had. | Same advisory-lock pattern as `checkAndRecordUsage()` in `src/lib/tts/service.ts`. |
+
+### From the UI redesign (30 Sep 2026)
+
+| # | Priority | Problem | Recommended fix |
+|---|---|---|---|
+| 28 | P3 | **Older page style on secondary pages**: progress, speech analysis, coach, profile, results, auth and admin pages still use the pre-redesign header and equal-weight cards. | Apply `docs/UI_DESIGN_SYSTEM.md` (eyebrow + headline header, `sheet` groups instead of many cards) when each page next changes. |
+| 29 | P3 | **Two landing-page lessons have no clip** (listening and timed-paper strategy). A timed-exam clip needs a camera feed that isn't a test pattern. | Record them with a real volunteer's consent, or leave them as text. See `docs/MEDIA_SOURCES.md`. |
 
 ## Resolved on 29-30 Sep 2026
 

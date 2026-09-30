@@ -24,3 +24,15 @@ The foundations are sound: one colour scale (navy brand, gold accent, cool greys
 ## What not to change
 
 Behaviour, routes, API calls, exam logic, proctoring, and the accessible names the browser tests rely on (e.g. "What are you preparing for?", "Choose my goal", "Open my plan", the "Speech analyses" and "Mock exam results" lists, "Toggle menu", the "Main" navigation, "Choose a mock test").
+
+## Status (30 Sep 2026)
+
+| Area | Done |
+|---|---|
+| Landing page | Rebuilt: dark product-led hero with a live example analysis, a bento of real features, exam-library rail, micro-lesson slider with two of our own product clips, goal explorer, one pricing grid. Stock photos removed; "Start free" replaces the broken free-mock promise. |
+| Navigation | Dark over the landing hero; unchanged elsewhere. |
+| Candidate dashboard | Reordered around next step → performance → what to improve → recent activity. |
+| Mock exams | Goal-linked tests first, grouped compact rows, a sticky panel for the chosen test; phones keep a fixed start bar. |
+| Practice library | Featured AI conversation and quick drill, jump links, one indexed list per skill group. |
+| Billing | Current plan with usage meters; a plan comparison that shows what each plan includes. |
+| Still to do | Progress, speech analysis, coach, profile, results, auth and admin pages keep the older page header and card style (see `TECHNICAL_DEBT.md` #28). Exam screens are intentionally unchanged. |
