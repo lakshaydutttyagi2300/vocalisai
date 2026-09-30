@@ -3,7 +3,7 @@
 Sources:
 - `CHANGES.md` (the detailed history, phase by phase; read it for depth);
 - code comments;
-- the owner's instructions recorded in CLAUDE_CODE_SETUP.md.
+- the owner's instructions (now in `CLAUDE.md`).
 
 "Still follow?" is the recommendation for future work.
 
@@ -31,3 +31,8 @@ Sources:
 | 20 | **`npm run lint` left broken** | `typescript-eslint` doesn't support TypeScript 7 yet | Downgrade TypeScript | the gates are `tsc --noEmit` and `build` | Revisit when typescript-eslint supports TS 7 |
 | 21 | **IELTS-style content is original and labelled "-style"** with a trademark disclaimer | Avoid trademark or copyright problems | Copy real exam papers | `prisma/exam-demo/`, `TrademarkDisclaimer.tsx` | **Yes** |
 | 22 | **Coding and personality tests out of scope** | Blueprint rev. 2 | | taxonomy comment | Yes |
+| 23 | **Validate at trust boundaries with zod**: every AI reply; the body of every new or changed API route | TypeScript types don't check data at runtime, and Gemini's JSON mode guarantees JSON, not the shape | Rewrite all existing routes at once (risky churn) | `src/lib/providers/gemini-json.ts`, `src/app/api/profile/route.ts` | **Yes** |
+| 24 | **Refund a plan use when the failure is ours**, never when it's the candidate's (e.g. a silent recording) | FREE gets 2 speech analyses in total; nobody should pay for our outages | Charge only after success (reopens the parallel-overspend race) | `refundUsage()` in `src/lib/entitlements.ts` | **Yes** |
+| 25 | **Serialize limit checks with a Postgres advisory lock inside a transaction** | Parallel requests overspent limits (8 parallel FREE analyses got 6 through a limit of 2) | Unique "slot" rows; serializable isolation | `checkAndRecordUsage()`, `createMockAttemptWithinLimit()` | **Yes** |
+| 26 | **The database is the source of truth for role and suspension** in `src/proxy.ts` | The login token is written once at sign-in, so demotions didn't take effect | Short token lifetimes | `src/proxy.ts` | **Yes** |
+| 27 | **Documentation lives in `docs/` and `CLAUDE.md`**, not in AI-session handover files | A new developer must be able to work from the code and docs alone | Keep the per-session snapshot files | `docs/*`, `README.md`, `CLAUDE.md` | **Yes** |
