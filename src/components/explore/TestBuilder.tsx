@@ -115,7 +115,7 @@ export function TestBuilder({
 
   const step = (n: number, title: string) => (
     <h2 className="flex items-center gap-3 text-sm font-semibold text-ink-950">
-      <span className="num flex h-6 w-6 items-center justify-center rounded-full bg-ink-950 text-xs text-white">{n}</span>
+      <span className="num flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs text-white">{n}</span>
       {title}
     </h2>
   );
@@ -155,7 +155,7 @@ export function TestBuilder({
                             type="button"
                             aria-pressed={on}
                             onClick={() => setSkillId(k.id)}
-                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${on ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
                           >
                             {k.name}
                             {n !== null && <span className={on ? "text-slate-300" : "text-slate-400"}> {n}</span>}
@@ -197,7 +197,7 @@ export function TestBuilder({
                   role="radio"
                   aria-checked={on}
                   onClick={() => setLevel(l.id)}
-                  className={`flex flex-col rounded-xl border p-3 text-left transition ${on ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-ink-950 hover:border-slate-400"}`}
+                  className={`flex flex-col rounded-xl border p-3 text-left transition ${on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-ink-950 hover:border-slate-400"}`}
                 >
                   <span className="flex items-center justify-between gap-2 text-sm font-semibold">
                     {l.label}
@@ -248,7 +248,7 @@ export function TestBuilder({
                     role="radio"
                     aria-checked={count === n}
                     onClick={() => setCount(n)}
-                    className={`num rounded-lg border px-3 py-1.5 text-sm font-semibold ${count === n ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-slate-700"}`}
+                    className={`num rounded-lg border px-3 py-1.5 text-sm font-semibold ${count === n ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700"}`}
                   >
                     {n}
                   </button>

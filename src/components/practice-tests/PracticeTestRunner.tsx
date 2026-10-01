@@ -184,7 +184,7 @@ export function PracticeTestRunner({ initial }: { initial: PracticeTestView }) {
         {test.questions.map((q, i) => {
           const tone =
             i === index
-              ? "border-ink-950 bg-ink-950 text-white"
+              ? "border-brand-600 bg-brand-600 text-white"
               : q.answered && q.isCorrect === true
                 ? "border-green-200 bg-green-50 text-green-800"
                 : q.answered && q.isCorrect === false

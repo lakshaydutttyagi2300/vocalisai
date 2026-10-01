@@ -15,15 +15,19 @@
      navy-blue: it reads as institutional, secure and trustworthy rather
      than playful - deliberately closer to a proctoring/certification
      vendor's palette than a consumer AI app's. */
-  --color-brand-50: #eef3fb;
-  --color-brand-100: #d7e3f5;
-  --color-brand-200: #aec7ea;
-  --color-brand-300: #7fa6da;
-  --color-brand-400: #4c7dc2;
-  --color-brand-500: #2c5da3;
-  --color-brand-600: #1e4483;
-  --color-brand-700: #16336a;
-  --color-brand-900: #0b1e46;
+  /* Oct 2026 light redesign: a brighter professional blue leaning toward
+     indigo - energetic and trustworthy on white, instead of the old deep
+     navy. brand-600 is the action colour (~6:1 on white); 700+ for text. */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dde8ff;
+  --color-brand-200: #c0d4ff;
+  --color-brand-300: #93b4fd;
+  --color-brand-400: #5f8df8;
+  --color-brand-500: #3a6cf0;
+  --color-brand-600: #2453d8;
+  --color-brand-700: #1d42ae;
+  --color-brand-800: #1c3a8a;
+  --color-brand-900: #172d69;
 
   /* Accent = warm gold ("readiness / achievement"), used sparingly for
      AI-related highlights and premium accents against the navy brand. */
@@ -59,8 +63,11 @@
   --color-slate-600: #526078;
   --color-slate-700: #3c4a61;
 
-  --shadow-premium: 0 24px 48px -16px rgb(11 30 70 / 0.28);
-  --shadow-card-lg: 0 20px 40px -20px rgb(11 30 70 / 0.35);
+  --shadow-premium: 0 24px 48px -20px rgb(29 66 174 / 0.22);
+  --shadow-card-lg: 0 20px 40px -20px rgb(29 66 174 / 0.25);
+  /* Soft resting card shadow and its hover lift. */
+  --shadow-soft: 0 1px 2px rgb(23 45 105 / 0.05), 0 8px 24px -12px rgb(23 45 105 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(23 45 105 / 0.05), 0 18px 36px -16px rgb(29 66 174 / 0.24);
   /* One floating elevation, for product previews only (see docs/UI_DESIGN_SYSTEM.md). */
   --shadow-float: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 30px 60px -30px rgb(6 12 24 / 0.45), 0 12px 24px -12px rgb(6 12 24 / 0.18);
 
@@ -77,7 +84,7 @@ html {
 }
 
 body {
-  background-color: var(--color-slate-50);
+  background-color: #f7f9fc;
   color: var(--color-ink-900);
   font-family: var(--font-sans);
 }
@@ -97,8 +104,8 @@ h1, h2, h3, h4 {
   .card {
     background-color: white;
     border: 1px solid var(--color-slate-200);
-    border-radius: 0.875rem;
-    box-shadow: 0 1px 3px 0 rgb(11 30 70 / 0.06), 0 1px 2px -1px rgb(11 30 70 / 0.06);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-soft);
     transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
   }
 
@@ -257,12 +264,12 @@ h1, h2, h3, h4 {
   }
 
   .btn-dark {
-    background-color: rgb(255 255 255 / 0.06);
+    background-color: rgb(255 255 255 / 0.12);
     border-color: rgb(255 255 255 / 0.18);
     color: white;
   }
   .btn-dark:hover:not(:disabled) {
-    background-color: rgb(255 255 255 / 0.12);
+    background-color: rgb(255 255 255 / 0.2);
     border-color: rgb(255 255 255 / 0.3);
   }
 
@@ -379,7 +386,7 @@ h1, h2, h3, h4 {
     color: var(--color-brand-600);
   }
   .eyebrow-on-ink {
-    color: var(--color-amber-300);
+    color: rgb(255 255 255 / 0.78);
   }
   .display {
     font-family: var(--font-display);
@@ -404,15 +411,27 @@ h1, h2, h3, h4 {
   /* A quiet surface: hairline, no shadow. The default container. */
   .sheet {
     background-color: white;
-    border: 1px solid rgb(11 30 70 / 0.08);
+    border: 1px solid rgb(23 45 105 / 0.08);
     border-radius: 1.25rem;
+    box-shadow: var(--shadow-soft);
   }
-  /* The dark "ink" surface used for rhythm (hero, next-step panel, CTA). */
+  /* Link cards: lift a little on hover. */
+  .lift {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+  /* The one accent surface per page (next step, plan, call to action): a
+     vivid blue-to-indigo panel with white text. Name kept from the old
+     dark navy version so every page picks up the new look. */
   .panel-ink {
     position: relative;
-    background-color: var(--color-ink-950);
+    background: linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-600) 45%, #4338ca 100%);
     color: white;
     isolation: isolate;
+    box-shadow: var(--shadow-premium);
   }
   .panel-ink::before {
     content: "";
@@ -420,9 +439,43 @@ h1, h2, h3, h4 {
     inset: 0;
     z-index: -1;
     background:
-      radial-gradient(60rem 30rem at 85% -10%, rgb(44 93 163 / 0.35), transparent 60%),
-      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 100% 2.5rem;
+      radial-gradient(40rem 22rem at 90% -20%, rgb(255 255 255 / 0.22), transparent 60%),
+      radial-gradient(30rem 18rem at -10% 120%, rgb(129 140 248 / 0.35), transparent 60%);
     pointer-events: none;
+  }
+  /* Light hero backdrop: white into soft blue, with two blurred colour glows. */
+  .hero-light {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, #ffffff 0%, #f3f7ff 60%, #f7f9fc 100%);
+  }
+  .hero-light::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(38rem 26rem at 88% 8%, rgb(58 108 240 / 0.16), transparent 65%),
+      radial-gradient(30rem 22rem at 6% 90%, rgb(99 102 241 / 0.12), transparent 65%);
+    pointer-events: none;
+  }
+  /* Hero slider: slides cross-fade; the active one drifts very slowly. */
+  .hero-slide {
+    opacity: 0;
+    transition: opacity 900ms ease;
+  }
+  .hero-slide[data-active="true"] {
+    opacity: 1;
+  }
+  .hero-slide[data-active="true"] .hero-media {
+    animation: hero-drift 9s ease-out both;
+  }
+  .hero-progress {
+    transform-origin: left;
+    animation: hero-progress var(--hero-duration, 6s) linear both;
+  }
+  .hero-progress[data-paused="true"] {
+    animation-play-state: paused;
   }
   /* Horizontal, touch-friendly rail (scroll-snap; no JS needed). */
   .rail {
@@ -445,6 +498,31 @@ h1, h2, h3, h4 {
   }
 }
 
+/* On the blue accent panel: the main button turns white, and grey text
+   becomes soft white so it stays readable. Unlayered on purpose, so these
+   win over the plain utility classes the pages already use. */
+.panel-ink .btn-primary {
+  background: white;
+  color: var(--color-brand-700);
+  box-shadow: 0 10px 24px -12px rgb(6 12 24 / 0.45);
+}
+.panel-ink .btn-primary:hover:not(:disabled) {
+  background: var(--color-brand-50);
+  color: var(--color-brand-800);
+}
+.panel-ink .text-slate-200 {
+  color: rgb(255 255 255 / 0.92);
+}
+.panel-ink .text-slate-300 {
+  color: rgb(255 255 255 / 0.85);
+}
+.panel-ink .text-slate-400 {
+  color: rgb(255 255 255 / 0.74);
+}
+.panel-ink .text-slate-500 {
+  color: rgb(255 255 255 / 0.68);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -453,6 +531,24 @@ h1, h2, h3, h4 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@keyframes hero-drift {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes hero-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }
 

@@ -63,7 +63,7 @@ export function PracticeTestReview({ test, onChange }: { test: PracticeTestView;
               ["UNANSWERED", "Unanswered"],
             ] as [Filter, string][]
           ).map(([key, label]) => (
-            <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${filter === key ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-slate-700"}`}>
+            <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${filter === key ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700"}`}>
               {label}
             </button>
           ))}

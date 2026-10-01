@@ -110,7 +110,7 @@ export function MockTestEntry() {
                   aria-pressed={active}
                   onClick={() => setTypeFilter(key)}
                   className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                    active ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                    active ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
                   }`}
                 >
                   {label} <span className={active ? "text-amber-300" : "text-slate-400"}>{count}</span>

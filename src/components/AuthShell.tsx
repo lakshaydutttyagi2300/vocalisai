@@ -11,18 +11,20 @@ const BRAND_POINTS = [
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-[calc(100vh-65px)] lg:grid-cols-2">
-      <div className="hidden flex-col justify-between bg-ink-950 p-12 text-white lg:flex">
+      <div className="hidden flex-col justify-between panel-ink p-12 text-white lg:flex">
         <div className="font-display text-lg font-bold">
-          Vocalis<span className="text-brand-500">Ai</span>
+          Vocalis<span className="text-white/75">Ai</span>
         </div>
         <div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a ~25 KB WebP poster from /public/media/hero (docs/MEDIA_SOURCES.md) */}
+          <img src="/media/hero/celebrate.webp" alt="Colleagues high-fiving in an office" width={960} height={540} loading="lazy" className="mb-10 aspect-video w-full rounded-2xl object-cover shadow-xl ring-1 ring-white/20" />
           <h2 className="font-display text-2xl font-semibold leading-snug">
             Practice smarter. Speak clearer. Walk into your next assessment ready.
           </h2>
           <ul className="mt-8 space-y-4">
             {BRAND_POINTS.map((point) => (
               <li key={point} className="flex items-start gap-3 text-sm text-slate-300">
-                <Icon as={CircleCheck} className="mt-0.5 text-brand-400" />
+                <Icon as={CircleCheck} className="mt-0.5 text-white" />
                 {point}
               </li>
             ))}

@@ -157,7 +157,7 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
                 <div
                   key={p.plan}
                   className={`flex flex-col p-7 [&:not(:first-child)]:border-t lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-t-0 ${
-                    featured ? "border-ink-800 bg-ink-950 text-white" : "border-slate-200"
+                    featured ? "panel-ink border-brand-700 text-white" : "border-slate-200"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">

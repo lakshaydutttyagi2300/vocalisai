@@ -47,7 +47,7 @@ export default function GoalExplorer({ goals, ctaHref }: { goals: GoalOption[]; 
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(i)}
               className={`group flex flex-none items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors lg:py-4 ${
-                selected ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-ink-800 hover:border-slate-300"
+                selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-ink-800 hover:border-slate-300"
               }`}
             >
               <span className="whitespace-nowrap">{g.name}</span>

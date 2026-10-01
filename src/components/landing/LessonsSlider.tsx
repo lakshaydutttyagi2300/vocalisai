@@ -55,14 +55,14 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
   return (
     <div role="region" aria-roledescription="carousel" aria-label="English micro-lessons">
       <div className="flex items-center justify-between gap-4">
-        <p className="num text-sm text-slate-400" aria-live="polite">
-          {String(index + 1).padStart(2, "0")} <span className="text-slate-600">/ {String(lessons.length).padStart(2, "0")}</span>
+        <p className="num text-sm text-slate-500" aria-live="polite">
+          {String(index + 1).padStart(2, "0")} <span className="text-slate-400">/ {String(lessons.length).padStart(2, "0")}</span>
         </p>
         <div className="flex gap-2">
-          <button type="button" className="btn-dark btn-sm" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous lesson">
+          <button type="button" className="btn-secondary btn-sm" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous lesson">
             <Icon as={ChevronLeft} />
           </button>
-          <button type="button" className="btn-dark btn-sm" onClick={() => go(index + 1)} disabled={index === lessons.length - 1} aria-label="Next lesson">
+          <button type="button" className="btn-secondary btn-sm" onClick={() => go(index + 1)} disabled={index === lessons.length - 1} aria-label="Next lesson">
             <Icon as={ChevronRight} />
           </button>
         </div>
@@ -73,7 +73,7 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
         onScroll={onScroll}
         onKeyDown={onKeyDown}
         tabIndex={0}
-        className="rail mt-6 [grid-auto-columns:minmax(17rem,1fr)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300 sm:[grid-auto-columns:minmax(20rem,24rem)]"
+        className="rail mt-6 [grid-auto-columns:minmax(17rem,1fr)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400 sm:[grid-auto-columns:minmax(20rem,24rem)]"
       >
         {lessons.map((lesson, i) => (
           <article
@@ -81,13 +81,13 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${lessons.length}: ${lesson.title}`}
-            className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
+            className="lift flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-soft)]"
           >
             {lesson.video && <LessonVideo video={lesson.video} />}
             <div className="flex flex-1 flex-col p-6">
-              <p className="eyebrow eyebrow-on-ink">{lesson.topic}</p>
-              <h3 className="headline mt-3 text-xl text-white">{lesson.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-300">{lesson.body}</p>
+              <p className="eyebrow">{lesson.topic}</p>
+              <h3 className="headline mt-3 text-xl text-ink-950">{lesson.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">{lesson.body}</p>
             </div>
           </article>
         ))}
@@ -100,7 +100,7 @@ function LessonVideo({ video }: { video: NonNullable<Lesson["video"]> }) {
   const [playing, setPlaying] = useState(false);
   return (
     <figure>
-      <div className="relative aspect-video bg-ink-900">
+      <div className="relative aspect-video bg-slate-100">
         {playing ? (
           <video src={video.src} poster={video.poster} controls autoPlay muted playsInline preload="none" className="h-full w-full object-cover">
             {video.label}
@@ -117,7 +117,7 @@ function LessonVideo({ video }: { video: NonNullable<Lesson["video"]> }) {
           </button>
         )}
       </div>
-      <figcaption className="px-6 pt-3 text-xs text-slate-400">{video.label}</figcaption>
+      <figcaption className="px-6 pt-3 text-xs text-slate-500">{video.label}</figcaption>
     </figure>
   );
 }

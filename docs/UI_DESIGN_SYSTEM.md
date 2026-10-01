@@ -1,6 +1,9 @@
 # UI design system
 
-The rules behind the candidate-facing pages. Tokens and classes live in
+The rules behind the candidate-facing pages. Since the October 2026 redesign the
+theme is light: white and soft grey surfaces, a bright professional blue leaning
+indigo, rounded cards with soft shadows (the owner asked to move away from the
+dark look). Tokens and classes live in
 `src/app/globals.css`; fonts in `src/app/layout.tsx`; icons via
 `src/components/ui/Icon.tsx`. Use these before inventing new styles.
 
@@ -8,9 +11,10 @@ The rules behind the candidate-facing pages. Tokens and classes live in
 
 | Token | Use |
 | --- | --- |
-| `brand-50 … brand-900` (navy) | Primary actions, links, focus rings, data bars |
-| `ink-700 … ink-950` | Headings, dark panels (`panel-ink`), the landing hero |
-| `amber-300 … amber-700` (gold) | One accent per view: eyebrows on dark, "needs work" bars, highlights. Never for body text on white |
+| `brand-50 … brand-900` (bright blue) | Primary actions, links, focus rings, selected states, data bars |
+| `ink-700 … ink-950` | Headings and body text — not backgrounds on candidate pages |
+| `indigo-*` (Tailwind) | Only as the far end of the brand gradient (`panel-ink`, the hero headline) |
+| `amber-300 … amber-700` (gold) | "Needs work" bars and small highlights. Never for body text on white |
 | `slate-*` | Body text (600), secondary text (500), hairlines (100–200) |
 | `red-*`, `green-*` | Only for right/wrong and scores under 60 — never decoration |
 
@@ -27,8 +31,9 @@ The rules behind the candidate-facing pages. Tokens and classes live in
 
 ## Surfaces
 
-- **`.sheet`** — white, hairline border, 1.25 rem radius. The default container for a group of content. Prefer one sheet with internal dividers over many small cards.
-- **`.panel-ink`** — the dark navy panel with a faint grid. At most one per page, for the thing that matters most (landing hero, dashboard next step).
+- **`.sheet`** — white, hairline border, 1.25 rem radius, soft shadow. The default container for a group of content. Prefer one sheet with internal dividers over many small cards. Add `.lift` to a sheet that is a link (rises slightly on hover).
+- **`.panel-ink`** — the blue-to-indigo accent panel (name kept from its old dark version). At most one per page, for the thing that matters most (dashboard next step, current plan, closing call to action). Inside it `.btn-primary` turns white and `text-slate-*` turns soft white automatically.
+- **`.hero-light`** — the landing hero backdrop: white into pale blue with two soft colour glows.
 - **`.card`** — the older card; still used inside practice and exam screens. Don't add new ones to marketing or dashboard pages.
 - **`.rail`** — a horizontal scroll-snap row (sliders, exam library). Must stay keyboard-focusable with arrow-key support where it's a carousel (`LessonsSlider`).
 
@@ -41,13 +46,13 @@ The rules behind the candidate-facing pages. Tokens and classes live in
 - Page container: `mx-auto max-w-6xl px-5 sm:px-6`.
 - Order content by the question the user has: next action → status → what to improve → history (dashboard); headline → product → action → proof (landing).
 - Every page is designed at 390 px as well as desktop: stack columns, full-width primary buttons, no horizontal page scroll (only rails scroll).
-- Exam and practice screens stay plain and focused: no dark panels, animation or marketing elements while a candidate is answering.
+- Exam and practice screens stay plain and focused: no accent panels, animation or marketing elements while a candidate is answering. The proctored mock-exam room keeps its dark focus surface (`.focus-surface`).
 
 ## Motion and media
 
 - Motion is short (≤ 400 ms), purposeful, and disabled under `prefers-reduced-motion` (global rule in `globals.css`).
-- Videos never autoplay: a poster image with a play button loads the clip only on click, muted, with controls and a visible caption.
-- No stock photos of people and no invented testimonials, logos, user counts or success rates. Examples of results are labelled "Example".
+- The landing hero (`HeroSlider`) is the one place clips play by themselves: silent 5-second loops (~250 KB), loaded only after the page has loaded and only for the slide on screen, never with reduced motion or Save-Data, paused off-screen, in background tabs and by its Pause button. Everywhere else videos play only on click (poster + play button).
+- Stock footage of people is allowed only in the hero slider and the sign-in panel, from Pexels (docs/MEDIA_SOURCES.md), captioned with what VocalisAi does, never as users, testimonials or results. No invented testimonials, logos, user counts or success rates. Examples of results are labelled "Example".
 
 ## Candidate-safe content
 

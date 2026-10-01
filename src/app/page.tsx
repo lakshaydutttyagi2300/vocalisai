@@ -9,7 +9,18 @@ import { TRACK_COPY } from "@/lib/goal-tracks";
 import { Icon } from "@/components/ui/Icon";
 import HeroAnalysis from "@/components/landing/HeroAnalysis";
 import LessonsSlider, { type Lesson } from "@/components/landing/LessonsSlider";
+import HeroSlider, { type HeroSlide } from "@/components/landing/HeroSlider";
 import GoalExplorer, { type GoalOption } from "@/components/landing/GoalExplorer";
+
+// Hero clips: free Pexels stock footage, trimmed to 5-second loops (docs/MEDIA_SOURCES.md).
+// The people shown are not VocalisAi users; the captions describe what VocalisAi helps with.
+const HERO_SLIDES: HeroSlide[] = [
+  { name: "presenting", tag: "Spoken English", title: "Speak with confidence", text: "Practise presentations and answers out loud, with feedback on every one.", alt: "A smiling professional presenting with a microphone" },
+  { name: "office", tag: "Company assessments", title: "Clear the aptitude round", text: "Reasoning, aptitude and English practice for AMCAT, TCS NQT, Infosys and more.", alt: "A young professional working at a laptop in a bright office" },
+  { name: "interview", tag: "Interviews", title: "Walk into the interview prepared", text: "Rehearse with an AI interviewer that replies to what you actually say.", alt: "A candidate smiling during a job interview" },
+  { name: "offer", tag: "Mock tests", title: "Know you're ready before the real one", text: "Timed mock tests show exactly where you stand, skill by skill.", alt: "A smiling professional at a desk in a bright office" },
+  { name: "celebrate", tag: "Your career", title: "Celebrate the offer", text: "Steady practice, measurable progress, and a result worth cheering.", alt: "Colleagues high-fiving in an office" },
+];
 
 const STEPS = [
   { title: "Pick a skill or an exam", text: `${PRACTICE_MODES.length} practice modes, short skill drills, or a full timed exam.` },
@@ -125,13 +136,27 @@ function AnswerWaveform() {
   );
 }
 
+function HeroFacts({ facts, className }: { facts: { value: string; label: string }[]; className: string }) {
+  return (
+    <dl className={`grid-cols-3 gap-4 border-t border-slate-200 pt-6 ${className}`}>
+      {facts.map((f) => (
+        <div key={f.label} className="min-w-0">
+          <dt className="sr-only">{f.label}</dt>
+          <dd className="num text-2xl font-semibold text-ink-950 sm:text-3xl">{f.value}</dd>
+          <dd className="mt-1 text-xs leading-snug text-slate-500 sm:text-sm">{f.label}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function roundDown(n: number, step: number) {
   return n >= step ? `${(Math.floor(n / step) * step).toLocaleString("en-US")}+` : String(n);
 }
 
 export default async function LandingPage() {
   const [session, catalogue] = await Promise.all([getServerSession(authOptions), loadCatalogue()]);
-  const startHref = session ? "/dashboard" : "/signup";
+  const practiceHref = session ? "/practice" : "/signup";
   const free = PLAN_LIMITS.FREE;
 
   const facts = catalogue
@@ -144,69 +169,62 @@ export default async function LandingPage() {
 
   return (
     <div className="overflow-x-hidden">
-      {/* Hero: headline, then the product itself. */}
-      <section className="panel-ink">
-        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:gap-16 lg:pt-24">
+      {/* Hero: the promise, two clear actions, and the career moments slider. */}
+      <section className="hero-light overflow-hidden">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,35rem)] lg:gap-14 lg:pt-16">
           <div className="min-w-0">
-            <p className="eyebrow eyebrow-on-ink">English exams · Workplace assessments · Interviews</p>
-            <h1 className="display mt-6 text-[2.6rem] text-white sm:text-6xl lg:text-[4.25rem]">
-              Rehearse the real test <span className="text-amber-300">before it counts.</span>
-            </h1>
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-300">
-              Timed, camera-checked mock exams and AI feedback on the way you actually speak.
+            <p className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
+              Company tests · Interviews · Spoken English
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href={startHref} className="btn-primary btn-lg">
-                {session ? "Go to your dashboard" : "Start free"}
+            <h1 className="display mt-6 text-[2.6rem] text-ink-950 sm:text-6xl lg:text-[4.1rem]">
+              Get job‑ready. <span className="bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">Walk in prepared.</span>
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-600">
+              Practise the aptitude tests, interviews and spoken English that employers check, with AI feedback on every answer and timed mock tests that feel like the real one.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href={practiceHref} className="btn-primary btn-lg">
+                Start Practice
                 <Icon as={ArrowRight} />
               </Link>
-              <a href="#how-it-works" className="btn-dark btn-lg">
-                See how it works
-              </a>
+              <Link href="/explore" className="btn-secondary btn-lg">
+                Explore Exams
+              </Link>
             </div>
             {!session && (
-              <p className="mt-5 text-sm text-slate-400">
+              <p className="mt-4 text-sm text-slate-500">
                 Free plan: {free.PRACTICE_SESSION} practice sessions and {free.SPEECH_ANALYSIS} speech analyses. No card needed.
               </p>
             )}
+            {facts && <HeroFacts facts={facts} className="mt-10 hidden lg:grid" />}
           </div>
-          <HeroAnalysis />
+          <HeroSlider slides={HERO_SLIDES} />
+          {/* On phones and tablets the slider comes first, then the figures. */}
+          {facts && <HeroFacts facts={facts} className="grid lg:hidden" />}
         </div>
-
-        {facts && (
-          <div className="border-t border-white/10">
-            <dl className="mx-auto grid max-w-6xl gap-6 px-5 py-8 sm:grid-cols-3 sm:px-6">
-              {facts.map((f) => (
-                <div key={f.label} className="flex items-baseline gap-3 sm:block">
-                  <dt className="sr-only">{f.label}</dt>
-                  <dd className="num text-3xl font-semibold text-white sm:text-4xl">{f.value}</dd>
-                  <dd className="text-sm text-slate-400 sm:mt-1">{f.label}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        )}
       </section>
 
       {/* How a session works: a real sequence. */}
       <section id="how-it-works" className="scroll-mt-20 bg-white">
         <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16">
-            <div>
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:gap-16">
+            <div className="min-w-0">
               <p className="eyebrow">How it works</p>
               <h2 className="headline mt-4 text-3xl text-ink-950 sm:text-4xl">One loop, repeated until it feels easy.</h2>
+              <ol className="mt-10 grid gap-4">
+                {STEPS.map((s, i) => (
+                  <li key={s.title} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)]">
+                    <span className="num flex h-9 w-9 flex-none items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-700">{i + 1}</span>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-base font-bold text-ink-950">{s.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{s.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <ol className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
-              {STEPS.map((s, i) => (
-                <li key={s.title} className="flex gap-5 bg-white p-6 sm:p-8">
-                  <span className="num flex-none text-sm font-semibold text-brand-600">{String(i + 1).padStart(2, "0")}</span>
-                  <div className="min-w-0">
-                    <h3 className="font-display text-lg font-bold text-ink-950">{s.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <HeroAnalysis />
           </div>
         </div>
       </section>
@@ -243,7 +261,7 @@ export default async function LandingPage() {
 
             <article className="panel-ink overflow-hidden rounded-[1.25rem] p-7 lg:col-span-2">
               <h3 className="headline text-xl">Proctored mock exams</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">Timed sections and a fixed question order, like the real test.</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/80">Timed sections and a fixed question order, like the real test.</p>
               <ul className="mt-6 grid gap-2.5 text-sm">
                 {[
                   [ScanFace, "One person in frame"],
@@ -251,8 +269,8 @@ export default async function LandingPage() {
                   [MonitorCheck, "Tab switches noticed"],
                   [Timer, "Timed papers"],
                 ].map(([Glyph, text]) => (
-                  <li key={text as string} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-slate-200">
-                    <Icon as={Glyph as typeof Mic} className="text-amber-300" />
+                  <li key={text as string} className="flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-3 py-2.5 text-white">
+                    <Icon as={Glyph as typeof Mic} className="text-white" />
                     {text as string}
                   </li>
                 ))}
@@ -319,7 +337,7 @@ export default async function LandingPage() {
             </div>
             <ul className="rail mt-10 [grid-auto-columns:minmax(15rem,17rem)]" aria-label="Exam types">
               {catalogue.examTypes.map((t) => (
-                <li key={t.slug} className="flex min-h-[11rem] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 transition-colors hover:border-brand-300 hover:bg-white">
+                <li key={t.slug} className="lift flex min-h-[11rem] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)] hover:border-brand-200">
                   <p className="num text-xs text-slate-500">
                     {t.exams} exam{t.exams === 1 ? "" : "s"}
                   </p>
@@ -336,14 +354,14 @@ export default async function LandingPage() {
       )}
 
       {/* Micro-lessons: short, specific, and some show the product. */}
-      <section className="panel-ink">
+      <section className="bg-[#f3f7ff]">
         <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-end">
             <div>
-              <p className="eyebrow eyebrow-on-ink">Micro-lessons</p>
-              <h2 className="headline mt-4 text-3xl text-white sm:text-4xl">Small habits that examiners notice.</h2>
+              <p className="eyebrow">Micro-lessons</p>
+              <h2 className="headline mt-4 text-3xl text-ink-950 sm:text-4xl">Small habits that interviewers and examiners notice.</h2>
             </div>
-            <p className="text-sm leading-relaxed text-slate-400">One idea each, under a minute to read. Practise it straight away in the matching mode.</p>
+            <p className="text-sm leading-relaxed text-slate-600">One idea each, under a minute to read. Practise it straight away in the matching mode.</p>
           </div>
           <div className="mt-10">
             <LessonsSlider lessons={LESSONS} />
@@ -383,21 +401,21 @@ export default async function LandingPage() {
               return (
                 <div
                   key={plan}
-                  className={`flex flex-col p-7 ${featured ? "bg-ink-950 text-white" : "bg-white"} ${i > 0 ? "border-t border-slate-200 sm:border-t-0" : ""} ${
+                  className={`flex flex-col p-7 ${featured ? "panel-ink" : "bg-white"} ${i > 0 ? "border-t border-slate-200 sm:border-t-0" : ""} ${
                     i % 2 === 1 ? "sm:border-l sm:border-slate-200" : ""
                   } ${i >= 2 ? "sm:border-t lg:border-t-0" : ""} ${i > 0 ? "lg:border-l lg:border-slate-200" : ""}`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <h3 className={`font-display text-lg font-bold ${featured ? "text-white" : "text-ink-950"}`}>{PLAN_DISPLAY[plan].label}</h3>
-                    {featured && <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[0.7rem] font-bold text-ink-950">Recommended</span>}
+                    {featured && <span className="rounded-full bg-white px-2.5 py-0.5 text-[0.7rem] font-bold text-brand-700">Recommended</span>}
                   </div>
-                  <p className={`mt-2 min-h-[2.5rem] text-sm ${featured ? "text-slate-300" : "text-slate-600"}`}>{PLAN_DISPLAY[plan].blurb}</p>
-                  <ul className={`mt-6 flex-1 space-y-3 border-t pt-6 text-sm ${featured ? "border-white/10 text-slate-200" : "border-slate-100 text-ink-800"}`}>
+                  <p className={`mt-2 min-h-[2.5rem] text-sm ${featured ? "text-white/80" : "text-slate-600"}`}>{PLAN_DISPLAY[plan].blurb}</p>
+                  <ul className={`mt-6 flex-1 space-y-3 border-t pt-6 text-sm ${featured ? "border-white/20 text-white" : "border-slate-100 text-ink-800"}`}>
                     {PLAN_HIGHLIGHT_FEATURES.map((feature) => {
                       const count = limits[feature];
                       if (count === 0) {
                         return (
-                          <li key={feature} className={`flex items-start gap-2.5 ${featured ? "text-slate-400" : "text-slate-500"}`}>
+                          <li key={feature} className={`flex items-start gap-2.5 ${featured ? "text-white/70" : "text-slate-500"}`}>
                             <Icon as={Lock} className="mt-0.5" />
                             <span>{FEATURE_LABELS_PLURAL[feature]} on paid plans</span>
                           </li>
@@ -405,22 +423,22 @@ export default async function LandingPage() {
                       }
                       return (
                         <li key={feature} className="flex items-start gap-2.5">
-                          <Icon as={Check} className={`mt-0.5 ${featured ? "text-amber-300" : "text-brand-600"}`} />
+                          <Icon as={Check} className={`mt-0.5 ${featured ? "text-white" : "text-brand-600"}`} />
                           <span>
                             <span className="num font-semibold">{count}</span> {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
-                            <span className={featured ? "text-slate-400" : "text-slate-500"}>{plan === "FREE" ? " (lifetime)" : "/month"}</span>
+                            <span className={featured ? "text-white/70" : "text-slate-500"}>{plan === "FREE" ? " (lifetime)" : "/month"}</span>
                           </span>
                         </li>
                       );
                     })}
                     <li className="flex items-start gap-2.5">
-                      <Icon as={Check} className={`mt-0.5 ${featured ? "text-amber-300" : "text-brand-600"}`} />
+                      <Icon as={Check} className={`mt-0.5 ${featured ? "text-white" : "text-brand-600"}`} />
                       <span>
                         {difficulties.length === 4 ? "All difficulty levels" : `${difficulties.map((d) => d.charAt(0) + d.slice(1).toLowerCase()).join(" & ")} difficulty`}
                       </span>
                     </li>
                   </ul>
-                  <Link href={session ? "/billing" : "/signup"} className={`mt-8 w-full ${featured ? "btn-primary" : "btn-secondary"}`}>
+                  <Link href={session ? "/billing" : "/signup"} className="btn-secondary mt-8 w-full">
                     {plan === "FREE" ? "Start free" : `Choose ${PLAN_DISPLAY[plan].label}`}
                   </Link>
                 </div>
@@ -432,32 +450,41 @@ export default async function LandingPage() {
 
       {/* Closing call to action. */}
       {!session && (
-        <section className="panel-ink">
-          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-20 sm:px-6 sm:py-24 lg:flex-row lg:items-end lg:justify-between">
-            <h2 className="display max-w-2xl text-4xl text-white sm:text-5xl">Make exam day the second time you&apos;ve done it.</h2>
-            <Link href="/signup" className="btn-primary btn-lg flex-none self-start lg:self-auto">
-              Start free
-              <Icon as={ArrowRight} />
-            </Link>
+        <section className="bg-white px-5 py-16 sm:px-6 sm:py-20">
+          <div className="panel-ink mx-auto flex max-w-6xl flex-col gap-8 overflow-hidden rounded-[2rem] px-7 py-14 sm:px-12 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="display max-w-2xl text-4xl text-white sm:text-5xl">Make the real test the second time you&apos;ve done it.</h2>
+              <p className="mt-4 max-w-xl text-white/80">Start free: practice sessions and speech analyses, no card needed.</p>
+            </div>
+            <div className="flex flex-none flex-col gap-3 sm:flex-row">
+              <Link href="/signup" className="btn-secondary btn-lg">
+                Start Practice
+                <Icon as={ArrowRight} />
+              </Link>
+              <Link href="/explore" className="btn-dark btn-lg">
+                Explore Exams
+              </Link>
+            </div>
           </div>
         </section>
       )}
 
-      <footer className="border-t border-white/10 bg-ink-950 text-sm">
+      <footer className="border-t border-slate-200 bg-white text-sm">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p className="text-slate-400">
-            <span className="font-display font-bold text-white">
-              Vocalis<span className="text-amber-300">Ai</span>
+          <p className="text-slate-500">
+            <span className="font-display font-bold text-ink-950">
+              Vocalis<span className="text-brand-600">Ai</span>
             </span>{" "}
             · Practice with purpose.
           </p>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400">
-            <Link href="/practice" className="hover:text-white">Practice</Link>
-            <Link href="/mock-tests" className="hover:text-white">Mock exams</Link>
-            <a href="#plans" className="hover:text-white">Plans</a>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/refund-policy" className="hover:text-white">Refunds</Link>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-slate-600">
+            <Link href="/explore" className="hover:text-brand-700">Explore exams</Link>
+            <Link href="/practice" className="hover:text-brand-700">Practice</Link>
+            <Link href="/mock-tests" className="hover:text-brand-700">Mock exams</Link>
+            <a href="#plans" className="hover:text-brand-700">Plans</a>
+            <Link href="/terms" className="hover:text-brand-700">Terms</Link>
+            <Link href="/privacy" className="hover:text-brand-700">Privacy</Link>
+            <Link href="/refund-policy" className="hover:text-brand-700">Refunds</Link>
           </nav>
         </div>
       </footer>
