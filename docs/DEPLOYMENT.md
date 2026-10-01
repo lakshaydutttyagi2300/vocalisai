@@ -33,6 +33,7 @@
    npm run seed:catalogue -- --production
    ```
    Run `seed:exam-library` before `seed:skills`: the goal-track exam blueprints look up exams by name.
+   `seed:catalogue` only adds what is missing. If the Explore catalogue's structure changed (moved, renamed or retired exams, sections), also run `node prisma/catalogue/apply.mjs --production` (docs/CATALOGUE.md).
 5. **Deploy:**
    ```bash
    git checkout main
