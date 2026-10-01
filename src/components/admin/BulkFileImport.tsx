@@ -65,6 +65,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
 
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [makeLive, setMakeLive] = useState(false);
+  const [showAllRows, setShowAllRows] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number; duplicateCount: number; errorCount: number; live: number } | null>(null);
@@ -76,6 +77,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
     setFileName(null);
     setHeaders([]);
     setRawRows([]);
+    setShowAllRows(false);
     setMapping({});
     setParseError(null);
     setValidateResult(null);
@@ -403,13 +405,13 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
             </p>
           )}
 
-          <div className="mt-4 overflow-x-auto rounded-md border border-slate-200">
+          <div className="mt-4 max-h-96 overflow-auto rounded-md border border-slate-200">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50">
+              <thead className="sticky top-0 bg-slate-50">
                 <tr>{headers.map((h) => <th key={h} className="px-2 py-1.5 font-medium text-slate-600">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rawRows.slice(0, 5).map((r, i) => (
+                {(showAllRows ? rawRows : rawRows.slice(0, 5)).map((r, i) => (
                   <tr key={i}>
                     {headers.map((h) => (
                       <td key={h} className="max-w-[200px] truncate px-2 py-1.5 text-slate-700">{String(r[h] ?? "")}</td>
@@ -418,8 +420,12 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
                 ))}
               </tbody>
             </table>
-            {rawRows.length > 5 && <p className="px-2 py-1.5 text-xs text-slate-400">...and {rawRows.length - 5} more row(s).</p>}
           </div>
+          {rawRows.length > 5 && (
+            <button type="button" onClick={() => setShowAllRows((v) => !v)} className="btn-ghost btn-sm mt-2">
+              {showAllRows ? "Show only the first 5 rows" : `Show all ${rawRows.length} rows`}
+            </button>
+          )}
 
           <div className="mt-4 flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-ink-900">
