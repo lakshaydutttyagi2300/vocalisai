@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import * as XLSX from "xlsx";
 import { TEMPLATE_COLUMNS, questionToRow } from "@/lib/question-file-format";
+import { filtersFromParams } from "@/lib/question-bank-admin";
+import { buildReviewWorkbook } from "@/lib/question-review-export";
 
 // Downloads the real question bank (same filters as the admin list view)
 // as XLSX or CSV - same column layout as the import template, so an admin
@@ -12,12 +14,30 @@ export async function GET(req: Request) {
   if (!admin.ok) return admin.response;
 
   const { searchParams } = new URL(req.url);
+
+  // layout=review: one workbook for checking by hand - a sheet per category plus possible duplicates.
+  if (searchParams.get("layout") === "review") {
+    try {
+      const buffer = await buildReviewWorkbook(filtersFromParams(searchParams));
+      return new NextResponse(new Uint8Array(buffer), {
+        headers: {
+          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Content-Disposition": `attachment; filename="question-bank-review-${new Date().toISOString().slice(0, 10)}.xlsx"`,
+        },
+      });
+    } catch (err) {
+      console.error("[questions/export review]", err);
+      return NextResponse.json({ error: "Couldn't build the review file. Please try again." }, { status: 500 });
+    }
+  }
+
   const format = searchParams.get("format") === "csv" ? "csv" : "xlsx";
   const category = searchParams.get("category");
   const difficulty = searchParams.get("difficulty");
   const active = searchParams.get("active");
 
   const where = {
+    archivedAt: null, // archived = removed from the bank (bulk delete keeps used questions this way)
     ...(category ? { category } : {}),
     ...(difficulty ? { difficulty } : {}),
     ...(active === "true" ? { isActive: true } : active === "false" ? { isActive: false } : {}),

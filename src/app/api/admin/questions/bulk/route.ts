@@ -35,7 +35,7 @@ export async function PATCH(req: Request) {
   }
 
   const result = await db.practiceQuestion.updateMany({
-    where: { ...(category ? { category } : {}), ...(difficulty ? { difficulty } : {}), isActive: !isActive },
+    where: { ...(category ? { category } : {}), ...(difficulty ? { difficulty } : {}), isActive: !isActive, archivedAt: null },
     data: { isActive },
   });
 

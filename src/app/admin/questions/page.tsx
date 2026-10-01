@@ -58,6 +58,17 @@ export default function AdminQuestionsPage() {
   const [totalCoverage, setTotalCoverage] = useState<Coverage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [duplicatesOnly, setDuplicatesOnly] = useState(false);
+  const [extraCopyIds, setExtraCopyIds] = useState<string[]>([]);
+  // Bulk delete: ticked ids, or every question matching the filters.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [allMatching, setAllMatching] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [importText, setImportText] = useState("");
   const [importing, setImporting] = useState(false);
@@ -201,6 +212,8 @@ export default function AdminQuestionsPage() {
     if (difficulty) params.set("difficulty", difficulty);
     if (search) params.set("search", search);
     if (activeFilter) params.set("active", activeFilter);
+    if (duplicatesOnly) params.set("duplicates", "true");
+    params.set("page", String(page));
     fetch(`/api/admin/questions?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
@@ -210,12 +223,84 @@ export default function AdminQuestionsPage() {
           setTotal(data.total);
           setCoverage(data.coverage);
           setTotalCoverage(data.totalCoverage);
+          setExtraCopyIds(data.extraCopyIds ?? []);
         }
       })
       .catch(() => setError("Couldn't load questions."));
   }
 
-  useEffect(load, [category, difficulty, search, activeFilter]);
+  useEffect(load, [category, difficulty, search, activeFilter, duplicatesOnly, page]);
+
+  /** A filter changed: back to page 1, nothing selected. */
+  function resetView() {
+    setPage(1);
+    clearSelection();
+  }
+
+  function clearSelection() {
+    setSelected(new Set());
+    setAllMatching(false);
+    setConfirmingDelete(false);
+    setConfirmText("");
+  }
+
+  function toggleSelected(id: string) {
+    setAllMatching(false);
+    setSelected((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function togglePage(checked: boolean) {
+    setAllMatching(false);
+    setSelected((cur) => {
+      const next = new Set(cur);
+      for (const q of questions ?? []) {
+        if (checked) next.add(q.id);
+        else next.delete(q.id);
+      }
+      return next;
+    });
+  }
+
+  const selectedCount = allMatching ? total : selected.size;
+  const pageAllSelected = !!questions?.length && questions.every((q) => allMatching || selected.has(q.id));
+  const pages = Math.max(1, Math.ceil(total / 25));
+  // Typing DELETE is required for big deletes, and always for "everything matching the filters".
+  const needsTypedConfirm = allMatching || selectedCount > 50;
+
+  async function deleteSelected() {
+    setDeleting(true);
+    setDeleteError(null);
+    setDeleteMessage(null);
+    try {
+      const body = allMatching
+        ? { filters: { category, difficulty, search, active: activeFilter, duplicates: duplicatesOnly }, confirmAll: true }
+        : { ids: [...selected] };
+      const res = await fetch("/api/admin/questions/bulk-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDeleteError(data.error ?? "Couldn't delete the questions. Please try again.");
+        return;
+      }
+      setDeleteMessage(
+        `Deleted ${data.deleted} question${data.deleted === 1 ? "" : "s"}.` +
+          (data.archived
+            ? ` ${data.archived} had already been used by candidates, so they were switched off and archived instead (their results are kept).`
+            : "")
+      );
+      clearSelection();
+      setPage(1);
+      load();
+    } catch {
+      setDeleteError("Couldn't delete the questions. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function deleteQuestion(id: string) {
     setBusyId(id);
@@ -795,7 +880,7 @@ export default function AdminQuestionsPage() {
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col text-xs text-slate-600">
             Category
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+            <select value={category} onChange={(e) => { setCategory(e.target.value); resetView(); }} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
               <option value="">All</option>
               {PRACTICE_MODES.map((m) => (
                 <option key={m.category} value={m.category}>{m.label}</option>
@@ -804,7 +889,7 @@ export default function AdminQuestionsPage() {
           </label>
           <label className="flex flex-col text-xs text-slate-600">
             Difficulty
-            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+            <select value={difficulty} onChange={(e) => { setDifficulty(e.target.value); resetView(); }} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
               <option value="">All</option>
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d}>{DIFFICULTY_LABELS[d]}</option>
@@ -813,7 +898,7 @@ export default function AdminQuestionsPage() {
           </label>
           <label className="flex flex-col text-xs text-slate-600">
             Status
-            <select value={activeFilter} onChange={(e) => setActiveFilter(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+            <select value={activeFilter} onChange={(e) => { setActiveFilter(e.target.value); resetView(); }} className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm">
               <option value="">All</option>
               <option value="true">Active</option>
               <option value="false">Disabled</option>
@@ -824,12 +909,23 @@ export default function AdminQuestionsPage() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); resetView(); }}
               className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
               placeholder="e.g. refund"
             />
           </label>
+          <label className="flex items-center gap-2 pb-2 text-sm text-ink-900">
+            <input type="checkbox" checked={duplicatesOnly} onChange={(e) => { setDuplicatesOnly(e.target.checked); resetView(); }} />
+            Duplicates only
+          </label>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- file download from an API route, not page navigation */}
+          <a href="/api/admin/questions/export?layout=review" className="btn-secondary btn-sm ml-auto mb-1">
+            Download all for review (Excel)
+          </a>
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          The Excel file has a Summary, a &ldquo;Possible duplicates&rdquo; sheet and one sheet per category, with each question&rsquo;s ID.
+        </p>
 
         {category && (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md bg-slate-50 px-3 py-2">
@@ -856,10 +952,74 @@ export default function AdminQuestionsPage() {
           </div>
         )}
 
+        {duplicatesOnly && extraCopyIds.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <span>
+              {total} questions share their text with another. {extraCopyIds.length} of them are extra copies.
+            </span>
+            <button type="button" onClick={() => { setAllMatching(false); setSelected(new Set(extraCopyIds)); }} className="btn-secondary btn-sm max-w-full whitespace-normal text-left">
+              Select the extra copies (keeps the oldest of each)
+            </button>
+          </div>
+        )}
+
+        {(selectedCount > 0 || deleteMessage || deleteError) && (
+          <div role="region" aria-label="Selected questions" className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+            {selectedCount > 0 && (
+              <div className="flex flex-wrap items-center gap-3">
+                <strong className="text-ink-950">{selectedCount} selected</strong>
+                {pageAllSelected && !allMatching && total > (questions?.length ?? 0) && (
+                  <button type="button" onClick={() => setAllMatching(true)} className="text-xs font-medium text-brand-600 hover:underline">
+                    Select all {total} questions matching these filters
+                  </button>
+                )}
+                <button type="button" onClick={() => setConfirmingDelete(true)} disabled={deleting} className="btn-sm rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+                  Delete selected
+                </button>
+                <button type="button" onClick={clearSelection} className="text-xs font-medium text-slate-600 hover:underline">
+                  Clear selection
+                </button>
+              </div>
+            )}
+            {confirmingDelete && selectedCount > 0 && (
+              <div role="alertdialog" aria-label="Confirm delete" className="mt-3 rounded-md border border-red-200 bg-white p-3">
+                <p className="text-ink-950">
+                  Delete {selectedCount} question{selectedCount === 1 ? "" : "s"}? This can&rsquo;t be undone. Questions candidates have already
+                  answered are switched off and archived instead, so their results are kept.
+                </p>
+                {needsTypedConfirm && (
+                  <label className="mt-2 block text-xs text-slate-600">
+                    Type DELETE to confirm
+                    <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="mt-1 block rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+                  </label>
+                )}
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={deleteSelected}
+                    disabled={deleting || (needsTypedConfirm && confirmText.trim() !== "DELETE")}
+                    className="btn-sm rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {deleting ? "Deleting..." : `Yes, delete ${selectedCount}`}
+                  </button>
+                  <button type="button" onClick={() => setConfirmingDelete(false)} className="btn-ghost btn-sm">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            {deleteMessage && <p role="status" className="mt-1 text-green-800">{deleteMessage}</p>}
+            {deleteError && <p role="alert" className="mt-1 text-red-700">{deleteError}</p>}
+          </div>
+        )}
+
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-xs text-slate-500">
+                <th className="pb-2 pr-3">
+                  <input type="checkbox" aria-label="Select all on this page" checked={pageAllSelected} onChange={(e) => togglePage(e.target.checked)} />
+                </th>
                 <th className="pb-2 pr-4">Prompt</th>
                 <th className="pb-2 pr-4">Category</th>
                 <th className="pb-2 pr-4">Difficulty</th>
@@ -871,6 +1031,9 @@ export default function AdminQuestionsPage() {
             <tbody className="divide-y divide-slate-100">
               {questions?.map((q) => (
                 <tr key={q.id} className={q.isActive ? "" : "opacity-60"}>
+                  <td className="py-2 pr-3">
+                    <input type="checkbox" aria-label={`Select: ${q.prompt.slice(0, 60)}`} checked={allMatching || selected.has(q.id)} onChange={() => toggleSelected(q.id)} />
+                  </td>
                   <td className="py-2 pr-4 text-ink-900">{q.prompt.slice(0, 70)}{q.prompt.length > 70 ? "..." : ""}</td>
                   <td className="py-2 pr-4 text-slate-600">{q.category}</td>
                   <td className="py-2 pr-4 text-slate-600">{q.difficulty}</td>
@@ -900,12 +1063,25 @@ export default function AdminQuestionsPage() {
               ))}
               {questions?.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-sm text-slate-500">No questions match these filters.</td>
+                  <td colSpan={7} className="py-6 text-center text-sm text-slate-500">No questions match these filters.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        {pages > 1 && (
+          <nav aria-label="Pages" className="mt-4 flex items-center gap-3 text-sm">
+            <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="btn-ghost btn-sm">
+              Previous
+            </button>
+            <span className="text-slate-600">
+              Page {page} of {pages}
+            </span>
+            <button type="button" onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="btn-ghost btn-sm">
+              Next
+            </button>
+          </nav>
+        )}
       </div>
     </div>
   );

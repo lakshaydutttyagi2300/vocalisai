@@ -56,6 +56,15 @@ interface Subject {
   _count: { exams: number };
 }
 
+const n = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+/** A delete waiting for the admin to confirm it. */
+interface PendingDelete {
+  title: string;
+  detail: string;
+  run: () => Promise<unknown>;
+}
+
 type Selection = { kind: "category"; id: string | null } | { kind: "exam"; id: string | null; categoryId: string } | { kind: "subject"; id: string | null } | null;
 
 const input = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-ink-950 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
@@ -83,6 +92,58 @@ export default function AdminCataloguePage() {
   const [selected, setSelected] = useState<Selection>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingDelete | null>(null);
+  const [pendingBusy, setPendingBusy] = useState(false);
+  const allExams = useMemo(() => data?.categories.flatMap((c) => c.exams) ?? [], [data]);
+
+  async function confirmPending() {
+    if (!pending) return;
+    setPendingBusy(true);
+    await pending.run();
+    setPendingBusy(false);
+    setPending(null);
+  }
+
+  function deleteCategory(c: Category) {
+    setPending({
+      title: `Delete the category "${c.name}"?`,
+      detail: c.exams.length
+        ? `Its ${n(c.exams.length, "exam")} will be deleted too. Questions stay in the question bank, and candidates keep their past results.`
+        : "It has no exams.",
+      run: () =>
+        save(`/api/admin/catalogue/categories/${c.id}`, "DELETE", undefined, c.exams.length ? `Category "${c.name}" deleted, with its ${n(c.exams.length, "exam")}.` : `Category "${c.name}" deleted.`, () =>
+          setSelected((cur) => (cur && cur.kind !== "subject" && (cur.kind === "category" ? cur.id : cur.categoryId) === c.id ? null : cur))
+        ),
+    });
+  }
+
+  function deleteExam(e: Exam) {
+    setPending({
+      title: `Delete the exam "${e.name}"?`,
+      detail: `Its sections and question links go with it. The questions stay in the question bank, and candidates keep their past results (${n(e._count.tests, "test")}).`,
+      run: () => save(`/api/admin/catalogue/exams/${e.id}`, "DELETE", undefined, `Exam "${e.name}" deleted.`, () => setSelected((cur) => (cur?.kind === "exam" && cur.id === e.id ? { kind: "category", id: cur.categoryId } : cur))),
+    });
+  }
+
+  function deleteSubject(sub: Subject) {
+    setPending({
+      title: `Delete the subject "${sub.name}"?`,
+      detail: `Its ${n(sub.skills.length, "skill")} go with it, and it is removed from ${n(sub._count.exams, "exam")}. Its ${n(sub.questionCount, "question")} stay in the question bank, no longer linked to this subject.`,
+      run: () => save(`/api/admin/catalogue/subjects/${sub.id}`, "DELETE", undefined, `Subject "${sub.name}" deleted.`, () => setSelected((cur) => (cur?.kind === "subject" && cur.id === sub.id ? null : cur))),
+    });
+  }
+
+  function deleteSkill(k: Skill) {
+    setPending({
+      title: `Delete the skill "${k.name}"?`,
+      detail: `Its ${n(k._count.questions, "question")} stay in the question bank, no longer linked to this skill.`,
+      run: () => save(`/api/admin/catalogue/skills/${k.id}`, "DELETE", undefined, `Skill "${k.name}" deleted.`),
+    });
+  }
+
+  function toggleExam(e: Exam) {
+    return save(`/api/admin/catalogue/exams/${e.id}`, "PATCH", { isActive: !e.isActive }, `"${e.name}" is now ${e.isActive ? "off (hidden from candidates)" : "on (visible to candidates)"}.`);
+  }
 
   const load = useCallback(async () => {
     try {
@@ -154,6 +215,27 @@ export default function AdminCataloguePage() {
         </p>
       )}
 
+      {pending && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/40 px-4" onClick={() => !pendingBusy && setPending(null)}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title" className="sheet w-full max-w-md p-5" onClick={(ev) => ev.stopPropagation()}>
+            <h2 id="confirm-delete-title" className="font-semibold text-ink-950">
+              {pending.title}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">{pending.detail}</p>
+            <p className="mt-2 text-sm font-medium text-red-700">This can&apos;t be undone.</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setPending(null)} disabled={pendingBusy} className="btn-ghost btn-sm">
+                Cancel
+              </button>
+              <button type="button" onClick={confirmPending} disabled={pendingBusy} className="btn-sm inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+                <Icon as={Trash2} />
+                {pendingBusy ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {tab === "exams" ? (
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
           <div className="sheet overflow-hidden">
@@ -188,14 +270,16 @@ export default function AdminCataloguePage() {
                     if (res.item && !id) setSelected((cur) => (cur?.kind === "category" && cur.id === null ? { kind: "category", id: res.item!.id } : cur));
                   })
                 }
-                onDelete={(id) => save(`/api/admin/catalogue/categories/${id}`, "DELETE", undefined, "Category deleted.", () => setSelected((cur) => (cur?.kind === "category" && cur.id === id ? null : cur)))}
+                onDelete={deleteCategory}
                 onEditExam={(examId, categoryId) => setSelected({ kind: "exam", id: examId, categoryId })}
+                onToggleExam={toggleExam}
+                onDeleteExam={deleteExam}
               />
             )}
             {selected?.kind === "exam" && (
               <ExamEditor
                 key={selected.id ?? "new"}
-                exam={data.categories.flatMap((c) => c.exams).find((e) => e.id === selected.id) ?? null}
+                exam={allExams.find((e) => e.id === selected.id) ?? null}
                 categoryId={selected.categoryId}
                 categories={data.categories}
                 subjects={data.subjects}
@@ -205,7 +289,7 @@ export default function AdminCataloguePage() {
                     if (res.item && !id) setSelected((cur) => (cur?.kind === "exam" && cur.id === null ? { kind: "exam", id: res.item!.id, categoryId: res.item!.categoryId ?? cur.categoryId } : cur));
                   })
                 }
-                onDelete={(id) => save(`/api/admin/catalogue/exams/${id}`, "DELETE", undefined, "Exam deleted.", () => setSelected((cur) => (cur?.kind === "exam" && cur.id === id ? { kind: "category", id: cur.categoryId } : cur)))}
+                onDelete={deleteExam}
               />
             )}
             {!selected && <p className="sheet p-6 text-sm text-slate-500">Choose a category to edit it and its exams, or add a new one.</p>}
@@ -242,8 +326,9 @@ export default function AdminCataloguePage() {
                     if (res.item && !id) setSelected((cur) => (cur?.kind === "subject" && cur.id === null ? { kind: "subject", id: res.item!.id } : cur));
                   })
                 }
-                onDelete={(id) => save(`/api/admin/catalogue/subjects/${id}`, "DELETE", undefined, "Subject deleted.", () => setSelected((cur) => (cur?.kind === "subject" && cur.id === id ? null : cur)))}
-                onSkill={(method, body, id) => save(id ? `/api/admin/catalogue/skills/${id}` : "/api/admin/catalogue/skills", method, body, method === "DELETE" ? "Skill deleted." : "Skill saved.")}
+                onDelete={deleteSubject}
+                onSkill={(method, body, id) => save(id ? `/api/admin/catalogue/skills/${id}` : "/api/admin/catalogue/skills", method, body, "Skill saved.")}
+                onDeleteSkill={deleteSkill}
               />
             ) : (
               <div className="sheet p-6 text-sm leading-relaxed text-slate-600">
@@ -260,6 +345,26 @@ export default function AdminCataloguePage() {
   );
 }
 
+/** On/Off switch that saves straight away. */
+function OnOffSwitch({ on, label, busy, onToggle }: { on: boolean; label: string; busy?: boolean; onToggle: () => void }) {
+  return (
+    <span className="flex flex-none items-center gap-1.5">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        disabled={busy}
+        onClick={onToggle}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-60 ${on ? "bg-green-600" : "bg-slate-300"}`}
+      >
+        <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`} />
+      </button>
+      <span className={`w-6 text-xs font-semibold ${on ? "text-green-700" : "text-slate-500"}`}>{on ? "On" : "Off"}</span>
+    </span>
+  );
+}
+
 function ActiveToggle({ value, onChange, label = "Visible to candidates" }: { value: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
     <label className="flex items-center gap-2 text-sm text-ink-950">
@@ -269,7 +374,8 @@ function ActiveToggle({ value, onChange, label = "Visible to candidates" }: { va
   );
 }
 
-function CategoryEditor({ category, onSave, onDelete, onEditExam }: { category: Category | null; onSave: (body: object, id?: string) => unknown; onDelete: (id: string) => unknown; onEditExam: (examId: string | null, categoryId: string) => void }) {
+function CategoryEditor({ category, onSave, onDelete, onEditExam, onToggleExam, onDeleteExam }: { category: Category | null; onSave: (body: object, id?: string) => unknown; onDelete: (c: Category) => void; onEditExam: (examId: string | null, categoryId: string) => void; onToggleExam: (e: Exam) => Promise<unknown>; onDeleteExam: (e: Exam) => void }) {
+  const [toggling, setToggling] = useState<string | null>(null);
   const [form, setForm] = useState({ name: category?.name ?? "", slug: category?.slug ?? "", description: category?.description ?? "", sortOrder: category?.sortOrder ?? 0, isActive: category?.isActive ?? true });
   return (
     <div className="grid gap-6">
@@ -301,9 +407,9 @@ function CategoryEditor({ category, onSave, onDelete, onEditExam }: { category: 
         <div className="flex gap-2">
           <button className="btn-primary btn-sm">Save</button>
           {category && (
-            <button type="button" onClick={() => onDelete(category.id)} className="btn-ghost btn-sm text-red-700">
+            <button type="button" onClick={() => onDelete(category)} className="btn-ghost btn-sm text-red-700">
               <Icon as={Trash2} />
-              Delete
+              Delete category
             </button>
           )}
         </div>
@@ -320,15 +426,28 @@ function CategoryEditor({ category, onSave, onDelete, onEditExam }: { category: 
           </div>
           <ul className="divide-y divide-slate-100">
             {category.exams.map((e) => (
-              <li key={e.id}>
-                <button onClick={() => onEditExam(e.id, category.id)} className="flex w-full items-center justify-between gap-3 px-5 py-3 text-left text-sm hover:bg-slate-50">
-                  <span className={`flex items-center gap-2 ${e.isActive ? "text-ink-950" : "text-slate-400 line-through"}`}>
+              <li key={e.id} className="flex items-center gap-2 pr-3 hover:bg-slate-50">
+                <button onClick={() => onEditExam(e.id, category.id)} className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 pl-5 text-left text-sm">
+                  <span className={`flex min-w-0 items-center gap-2 ${e.isActive ? "text-ink-950" : "text-slate-400"}`}>
                     {e.isPopular && <Icon as={Star} size="xs" className="text-amber-500" />}
                     {e.name}
                   </span>
                   <span className="num text-xs text-slate-400">
                     {e.subjects.length} subjects · {e._count.tests} tests
                   </span>
+                </button>
+                <OnOffSwitch
+                  on={e.isActive}
+                  label={`${e.name} visible to candidates`}
+                  busy={toggling === e.id}
+                  onToggle={async () => {
+                    setToggling(e.id);
+                    await onToggleExam(e);
+                    setToggling(null);
+                  }}
+                />
+                <button type="button" onClick={() => onDeleteExam(e)} aria-label={`Delete ${e.name}`} title="Delete exam" className="btn-ghost btn-sm text-red-700">
+                  <Icon as={Trash2} />
                 </button>
               </li>
             ))}
@@ -340,7 +459,7 @@ function CategoryEditor({ category, onSave, onDelete, onEditExam }: { category: 
   );
 }
 
-function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, onDelete }: { exam: Exam | null; categoryId: string; categories: Category[]; subjects: Subject[]; onBack: () => void; onSave: (body: object, id?: string) => unknown; onDelete: (id: string) => unknown }) {
+function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, onDelete }: { exam: Exam | null; categoryId: string; categories: Category[]; subjects: Subject[]; onBack: () => void; onSave: (body: object, id?: string) => unknown; onDelete: (e: Exam) => void }) {
   const [form, setForm] = useState({
     categoryId: exam?.categoryId ?? categoryId,
     name: exam?.name ?? "",
@@ -459,9 +578,9 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
       <div className="flex gap-2">
         <button className="btn-primary btn-sm">Save exam</button>
         {exam && (
-          <button type="button" onClick={() => onDelete(exam.id)} className="btn-ghost btn-sm text-red-700">
+          <button type="button" onClick={() => onDelete(exam)} className="btn-ghost btn-sm text-red-700">
             <Icon as={Trash2} />
-            Delete
+            Delete exam
           </button>
         )}
       </div>
@@ -469,7 +588,7 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
   );
 }
 
-function SubjectEditor({ subject, onSave, onDelete, onSkill }: { subject: Subject | null; onSave: (body: object, id?: string) => unknown; onDelete: (id: string) => unknown; onSkill: (method: string, body: object | undefined, id?: string) => unknown }) {
+function SubjectEditor({ subject, onSave, onDelete, onSkill, onDeleteSkill }: { subject: Subject | null; onSave: (body: object, id?: string) => unknown; onDelete: (s: Subject) => void; onSkill: (method: string, body: object | undefined, id?: string) => unknown; onDeleteSkill: (k: Skill) => void }) {
   const [form, setForm] = useState({ name: subject?.name ?? "", slug: subject?.slug ?? "", description: subject?.description ?? "", legacyCategory: subject?.legacyCategory ?? "", sortOrder: subject?.sortOrder ?? 0, isActive: subject?.isActive ?? true });
   const [newSkill, setNewSkill] = useState("");
 
@@ -518,9 +637,9 @@ function SubjectEditor({ subject, onSave, onDelete, onSkill }: { subject: Subjec
         <div className="flex gap-2">
           <button className="btn-primary btn-sm">Save</button>
           {subject && (
-            <button type="button" onClick={() => onDelete(subject.id)} className="btn-ghost btn-sm text-red-700">
+            <button type="button" onClick={() => onDelete(subject)} className="btn-ghost btn-sm text-red-700">
               <Icon as={Trash2} />
-              Delete
+              Delete subject
             </button>
           )}
         </div>
@@ -548,8 +667,9 @@ function SubjectEditor({ subject, onSave, onDelete, onSkill }: { subject: Subjec
                   >
                     Rename
                   </button>
-                  <button onClick={() => onSkill("DELETE", undefined, k.id)} aria-label={`Delete ${k.name}`} className="btn-ghost btn-sm text-red-700">
+                  <button onClick={() => onDeleteSkill(k)} aria-label={`Delete ${k.name}`} className="btn-ghost btn-sm text-red-700">
                     <Icon as={Trash2} />
+                    Delete
                   </button>
                 </span>
               </li>

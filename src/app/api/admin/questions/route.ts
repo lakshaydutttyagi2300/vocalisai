@@ -3,25 +3,18 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/audit-log";
 import { processQuestionBatch } from "@/lib/question-import";
+import { bankWhere, filtersFromParams, findDuplicates } from "@/lib/question-bank-admin";
 
 export async function GET(req: Request) {
   const admin = await requireAdmin();
   if (!admin.ok) return admin.response;
 
   const { searchParams } = new URL(req.url);
-  const category = searchParams.get("category");
-  const difficulty = searchParams.get("difficulty");
-  const search = searchParams.get("search")?.trim();
-  const active = searchParams.get("active"); // "true" | "false" | absent (all)
+  const filters = filtersFromParams(searchParams); // category, difficulty, search, active, duplicates
   const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
   const pageSize = 25;
-
-  const where = {
-    ...(category ? { category } : {}),
-    ...(difficulty ? { difficulty } : {}),
-    ...(search ? { prompt: { contains: search, mode: "insensitive" as const } } : {}),
-    ...(active === "true" ? { isActive: true } : active === "false" ? { isActive: false } : {}),
-  };
+  const dupes = filters.duplicates ? await findDuplicates() : undefined;
+  const where = await bankWhere(filters, dupes);
 
   // Coverage counts active questions - that's what a candidate can
   // actually be served, which is the number an admin needs to see to
@@ -34,14 +27,19 @@ export async function GET(req: Request) {
     db.practiceQuestion.count({ where }),
     db.practiceQuestion.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      // Duplicates sit next to each other (oldest copy first); otherwise newest first.
+      orderBy: dupes ? [{ prompt: "asc" }, { createdAt: "asc" }] : { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
       select: { id: true, category: true, difficulty: true, type: true, prompt: true, source: true, isActive: true, createdAt: true },
     }),
-    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], where: { isActive: true }, _count: { _all: true } }),
-    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], _count: { _all: true } }),
+    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], where: { isActive: true, archivedAt: null }, _count: { _all: true } }),
+    db.practiceQuestion.groupBy({ by: ["category", "difficulty"], where: { archivedAt: null }, _count: { _all: true } }),
   ]);
+  // In the duplicates view: every copy except the oldest, among the questions matching the filters.
+  const extraCopyIds = dupes
+    ? (await db.practiceQuestion.findMany({ where, select: { id: true } })).map((q) => q.id).filter((id) => (dupes.copy.get(id) ?? 1) > 1)
+    : undefined;
 
   return NextResponse.json({
     total,
@@ -50,6 +48,7 @@ export async function GET(req: Request) {
     questions,
     coverage: activeCounts.map((c) => ({ category: c.category, difficulty: c.difficulty, count: c._count._all })),
     totalCoverage: allCounts.map((c) => ({ category: c.category, difficulty: c.difficulty, count: c._count._all })),
+    extraCopyIds,
   });
 }
 

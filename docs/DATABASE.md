@@ -41,7 +41,7 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 ### Questions
 | Model | Purpose | Key relations and rules |
 |---|---|---|
-| `PracticeQuestion` | Every question in the bank (~6,000 live) | `category`, `difficulty`, `type` (question type), `skillId`/`level` tags, `source` (seeded, admin, AI-generated). **Never hard-delete: set `isActive=false`** (old attempts reference it). Optional `itemGroupId` (shared passage/audio) and `examPartId` (pinned to a timed-exam part). |
+| `PracticeQuestion` | Every question in the bank (~6,000 live) | `category`, `difficulty`, `type` (question type), `skillId`/`level` tags, `source` (seeded, admin, AI-generated). Admin bulk delete (`src/lib/question-bank-admin.ts`) hard-deletes only unused questions; any a candidate has answered or has in a practice test is archived instead (`isActive=false`, `archivedAt` set), because attempts reference it. Optional `itemGroupId` (shared passage/audio) and `examPartId` (pinned to a timed-exam part). |
 | `ItemGroup` | A shared stimulus (reading passage, listening audio, chart) used by several questions | `type`; audio/image files live in R2. |
 
 ### Practice and analysis
@@ -68,7 +68,7 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 ### Exam catalogue ([CATALOGUE.md](CATALOGUE.md))
 | Model | Purpose | Key relations and rules |
 |---|---|---|
-| `CatalogCategory` → `CatalogExam` | Browse categories and their exams | `slug` unique; `isActive` hides; exams have `isPopular` (Featured), `keywords`, `mockMinutes` and an optional `groupName` sub-heading (Assessment providers, Company assessments). A category with exams can't be deleted. |
+| `CatalogCategory` → `CatalogExam` | Browse categories and their exams | `slug` unique; `isActive` hides; exams have `isPopular` (Featured), `keywords`, `mockMinutes` and an optional `groupName` sub-heading (Assessment providers, Company assessments). Admin delete removes a category with its exams; sections and question links cascade, while questions and practice tests only lose the link (SET NULL). |
 | `CatalogSubject` → `CatalogSkill` | Shared subjects and their skills | `legacyCategory` bridges an older bank; skill `slug` unique per subject. |
 | `CatalogExamSubject` | Which subjects an exam has, and each one's full-mock question count and optional `sectionName` (the test's own section, e.g. "Reasoning Ability") | Composite key `(examId, subjectId)`. |
 | `QuestionExam` | Limits a question to named exams | No rows = every exam with the question's subject. |
@@ -97,7 +97,7 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 - **Ids** are `cuid()` strings, except `Skill` (dotted codes) and composite keys.
 - **Enums are text columns** (`role`, `plan`, `category`, `difficulty`, `type`, ...): the project started on SQLite, which has no enums. Valid values are enforced in code (`src/lib/plans-and-roles.ts`, `practice-taxonomy.ts`, `question-types.ts`).
 - **JSON is stored in text columns** named `*Json` (e.g. `aiAnalysisJson`, `planJson`, `categoryScoresJson`, `beforeJson`). Parse and validate on the way in; never assume an old row has a newer shape (old results must still render).
-- **Deletes:** deleting a `User` cascades to everything they own. Questions are soft-deleted with `isActive`.
+- **Deletes:** deleting a `User` cascades to everything they own. Questions that candidates have used are archived (`archivedAt`), never hard-deleted.
 - **Timestamps** are stored in UTC.
 
 ## Migrations

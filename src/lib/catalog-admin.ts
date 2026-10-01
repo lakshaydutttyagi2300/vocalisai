@@ -104,21 +104,27 @@ export async function createItem(kind: Kind, body: unknown) {
   }
 }
 
+/** A partial update keeps only the fields that were sent; zod's .partial() would otherwise fill in defaults (e.g. un-feature an exam). */
+function sent<T extends object>(parsed: T, body: unknown): Partial<T> {
+  const keys = new Set(body && typeof body === "object" ? Object.keys(body) : []);
+  return Object.fromEntries(Object.entries(parsed).filter(([k]) => keys.has(k))) as Partial<T>;
+}
+
 export async function updateItem(kind: Kind, id: string, body: unknown) {
   try {
     switch (kind) {
       case "categories":
-        return await db.catalogCategory.update({ where: { id }, data: categorySchema.partial().parse(body) });
+        return await db.catalogCategory.update({ where: { id }, data: sent(categorySchema.partial().parse(body), body) });
       case "exams": {
-        const { subjects, ...d } = examSchema.partial().parse(body);
+        const { subjects, ...d } = sent(examSchema.partial().parse(body), body);
         const exam = await db.catalogExam.update({ where: { id }, data: d });
         if (subjects) await setExamSubjects(id, subjects);
         return exam;
       }
       case "subjects":
-        return await db.catalogSubject.update({ where: { id }, data: subjectSchema.partial().parse(body) });
+        return await db.catalogSubject.update({ where: { id }, data: sent(subjectSchema.partial().parse(body), body) });
       case "skills":
-        return await db.catalogSkill.update({ where: { id }, data: skillSchema.partial().parse(body) });
+        return await db.catalogSkill.update({ where: { id }, data: sent(skillSchema.partial().parse(body), body) });
     }
   } catch (err) {
     if (err instanceof z.ZodError) throw new CatalogAdminError(err.issues[0]?.message ?? "Check the form.");
@@ -127,26 +133,35 @@ export async function updateItem(kind: Kind, id: string, body: unknown) {
   }
 }
 
-/** Deletes only what nothing depends on; anything in use must be switched off instead. */
-export async function deleteItem(kind: Kind, id: string) {
-  const inUse = "It's in use. Switch it off instead, so history is kept.";
-  switch (kind) {
-    case "categories":
-      if (await db.catalogExam.count({ where: { categoryId: id } })) throw new CatalogAdminError("This category still has exams. Move or delete them first, or switch the category off.", 409);
-      await db.catalogCategory.delete({ where: { id } });
-      return;
-    case "exams":
-      if (await db.practiceTest.count({ where: { examId: id } })) throw new CatalogAdminError(inUse, 409);
-      await db.catalogExam.delete({ where: { id } });
-      return;
-    case "subjects":
-      if ((await db.practiceQuestion.count({ where: { subjectId: id } })) || (await db.practiceTest.count({ where: { subjectId: id } }))) throw new CatalogAdminError(inUse, 409);
-      await db.catalogSubject.delete({ where: { id } });
-      return;
-    case "skills":
-      if ((await db.practiceQuestion.count({ where: { catalogSkillId: id } })) || (await db.practiceTest.count({ where: { catalogSkillId: id } }))) throw new CatalogAdminError(inUse, 409);
-      await db.catalogSkill.delete({ where: { id } });
-      return;
+/**
+ * Deletes a catalogue item for good. A category takes its exams with it.
+ * Nothing else breaks: exam sections and question-to-exam links go with the
+ * item, while questions and candidates' practice tests stay and only lose the
+ * link (the database sets it to empty). Returns how many exams were removed.
+ */
+export async function deleteItem(kind: Kind, id: string): Promise<{ exams: number }> {
+  try {
+    switch (kind) {
+      case "categories": {
+        const [exams] = await db.$transaction([
+          db.catalogExam.deleteMany({ where: { categoryId: id } }),
+          db.catalogCategory.delete({ where: { id } }),
+        ]);
+        return { exams: exams.count };
+      }
+      case "exams":
+        await db.catalogExam.delete({ where: { id } });
+        return { exams: 1 };
+      case "subjects":
+        await db.catalogSubject.delete({ where: { id } }); // its skills and exam sections go with it
+        return { exams: 0 };
+      case "skills":
+        await db.catalogSkill.delete({ where: { id } });
+        return { exams: 0 };
+    }
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") throw new CatalogAdminError("That item no longer exists.", 404);
+    throw err;
   }
 }
 

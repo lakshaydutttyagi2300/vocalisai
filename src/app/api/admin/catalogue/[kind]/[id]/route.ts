@@ -28,16 +28,16 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-// Deletes an unused item; anything in use must be switched off instead.
+// Deletes an item for good (a category with its exams); questions and candidates' results are kept, only unlinked.
 export async function DELETE(_req: Request, { params }: Params) {
   const admin = await requireAdmin();
   if (!admin.ok) return admin.response;
   const target = await kindOf(params);
   if (!target) return NextResponse.json({ error: "Unknown catalogue item." }, { status: 404 });
   try {
-    await deleteItem(target.kind, target.id);
-    await logAdminAction({ adminId: admin.adminId, adminEmail: admin.adminEmail, action: "CATALOGUE_DELETED", targetType: target.kind, targetId: target.id });
-    return NextResponse.json({ deleted: true });
+    const { exams } = await deleteItem(target.kind, target.id);
+    await logAdminAction({ adminId: admin.adminId, adminEmail: admin.adminEmail, action: "CATALOGUE_DELETED", targetType: target.kind, targetId: target.id, after: { exams } });
+    return NextResponse.json({ deleted: true, exams });
   } catch (err) {
     if (err instanceof CatalogAdminError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("catalogue: delete failed", err);

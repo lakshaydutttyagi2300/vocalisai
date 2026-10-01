@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
-import { CatalogAdminError, createItem, createQuestion, deleteItem, importQuestions, questionProblem, questionStats, removeQuestion, updateItem, updateQuestion } from "@/lib/catalog-admin";
+import { createItem, createQuestion, deleteItem, importQuestions, questionProblem, questionStats, removeQuestion, updateItem, updateQuestion } from "@/lib/catalog-admin";
 import { pickFromPool, poolWhere } from "@/lib/practice-bank";
 
 const session = vi.hoisted(() => ({ getServerSession: vi.fn() }));
@@ -117,15 +117,41 @@ describe("catalogue admin", { timeout: 180_000 }, () => {
     expect(tf.errors).toEqual([]);
   });
 
-  it("edits the structure and refuses to delete what's in use", async () => {
-    await updateItem("exams", examId, { isPopular: true, mockMinutes: 45, subjects: [{ subjectId, mockQuestionCount: 12 }] });
+  it("edits the structure; switching an exam off changes nothing else", async () => {
+    await updateItem("exams", examId, { isPopular: true, mockMinutes: 45, sortOrder: 7, subjects: [{ subjectId, mockQuestionCount: 12 }] });
     expect(await db.catalogExamSubject.findFirst({ where: { examId } })).toMatchObject({ mockQuestionCount: 12 });
     await expect(createItem("subjects", { name: "Test GK", slug: subjectSlug })).rejects.toThrow(/already used/);
-    await expect(deleteItem("categories", categoryId)).rejects.toBeInstanceOf(CatalogAdminError);
-    await expect(deleteItem("subjects", subjectId)).rejects.toThrow(/Switch it off/);
-    const spare = await createItem("skills", { subjectId, name: "Spare" });
-    await deleteItem("skills", spare!.id);
-    expect(await db.catalogSkill.findUnique({ where: { id: spare!.id } })).toBeNull();
+    await updateItem("exams", examId, { isActive: false });
+    expect(await db.catalogExam.findUniqueOrThrow({ where: { id: examId } })).toMatchObject({ isActive: false, isPopular: true, sortOrder: 7, mockMinutes: 45 });
+    await updateItem("exams", examId, { isActive: true });
+  });
+
+  it("deletes safely: a category takes its exams; questions and candidates' tests stay, only unlinked", async () => {
+    const cat = (await createItem("categories", { name: `Test Category B ${run}` }))!.id;
+    const exam = (await createItem("exams", { categoryId: cat, name: "Test Exam B", slug: `${examSlug}-b`, subjects: [{ subjectId, mockQuestionCount: 5 }] }))!.id;
+    const sub = (await createItem("subjects", { name: "Test Spare", slug: `${subjectSlug}-spare` }))!.id;
+    const skill = (await createItem("skills", { subjectId: sub, name: "Spare" }))!.id;
+    const q = await db.practiceQuestion.create({
+      data: { category: "VOCABULARY", difficulty: "BEGINNER", type: "MULTIPLE_CHOICE", prompt: `Spare question ${run}`, options: JSON.stringify(["a", "b"]), correctAnswer: "a", timeLimitSeconds: 30, subjectId: sub, catalogSkillId: skill, exams: { create: { examId: exam } } },
+    });
+    const t = await db.practiceTest.create({ data: { userId, examId: exam, subjectId: sub, catalogSkillId: skill, difficulty: "BEGINNER", mode: "PRACTICE", questionIds: [q.id], totalCount: 1 } });
+    try {
+      await deleteItem("skills", skill);
+      expect(await db.practiceQuestion.findUniqueOrThrow({ where: { id: q.id } })).toMatchObject({ catalogSkillId: null, subjectId: sub });
+      expect(await deleteItem("categories", cat)).toEqual({ exams: 1 });
+      expect(await db.catalogExam.findUnique({ where: { id: exam } })).toBeNull();
+      expect(await db.questionExam.count({ where: { questionId: q.id } })).toBe(0);
+      await deleteItem("subjects", sub);
+      expect(await db.practiceQuestion.findUniqueOrThrow({ where: { id: q.id } })).toMatchObject({ subjectId: null });
+      expect(await db.practiceTest.findUniqueOrThrow({ where: { id: t.id } })).toMatchObject({ examId: null, subjectId: null, catalogSkillId: null, questionIds: [q.id] });
+      await expect(deleteItem("exams", exam)).rejects.toThrow(/no longer exists/);
+    } finally {
+      await db.practiceTest.deleteMany({ where: { id: t.id } });
+      await db.practiceQuestion.deleteMany({ where: { id: q.id } });
+      await db.catalogExam.deleteMany({ where: { categoryId: cat } });
+      await db.catalogCategory.deleteMany({ where: { id: cat } });
+      await db.catalogSubject.deleteMany({ where: { id: sub } });
+    }
   });
 
   it("refuses non-admins", async () => {

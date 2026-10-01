@@ -122,6 +122,47 @@ test("an admin creates a category, exam, skill and questions, and a candidate pr
     await expect(cand.getByText(`(e2e ${run})`, { exact: false }).first()).toBeVisible({ timeout: 30_000 });
     await context.close();
 
+    // The exam's On/Off switch saves at once and survives a refresh.
+    const openCategory = () => page.getByRole("button", { name: new RegExp(`^${categoryName}`) }).click();
+    await page.goto("/admin/catalogue");
+    await expect(page.getByRole("heading", { name: "Exam catalogue" })).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("tab", { name: "Categories & exams" }).click();
+    await openCategory();
+    const examSwitch = page.getByRole("switch", { name: `${examName} visible to candidates` });
+    await expect(examSwitch).toHaveAttribute("aria-checked", "true");
+    await examSwitch.click();
+    await expect(page.getByRole("status")).toHaveText(`"${examName}" is now off (hidden from candidates).`, { timeout: 30_000 });
+    expect(await db.catalogExam.findUniqueOrThrow({ where: { id: exam.id } })).toMatchObject({ isActive: false });
+    await page.reload();
+    await openCategory();
+    await expect(examSwitch).toHaveAttribute("aria-checked", "false", { timeout: 30_000 });
+    if (SHOTS) {
+      for (const [label, width] of [["desktop", 1280], ["phone", 390]] as const) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.screenshot({ path: `${SHOTS}/admin-catalogue-switch-${label}.png`, fullPage: true });
+      }
+      await page.setViewportSize({ width: 1280, height: 900 });
+    }
+
+    // Deleting asks first: Cancel keeps it; Delete removes it.
+    await page.getByRole("tab", { name: "Subjects & skills" }).click();
+    await page.getByRole("button", { name: /^Attention to Detail/ }).click();
+    await page.getByRole("button", { name: `Delete E2E Skill ${run}` }).click();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toContainText(`Delete the skill "E2E Skill ${run}"?`);
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toHaveCount(0);
+    await page.getByRole("button", { name: `Delete E2E Skill ${run}` }).click();
+    await dialog.getByRole("button", { name: "Delete" }).click();
+    await expect(page.getByRole("status")).toHaveText(`Skill "E2E Skill ${run}" deleted.`, { timeout: 30_000 });
+    await page.getByRole("tab", { name: "Categories & exams" }).click();
+    await openCategory();
+    await page.getByRole("button", { name: "Delete category" }).click();
+    await expect(dialog).toContainText("Its 1 exam will be deleted too.");
+    await dialog.getByRole("button", { name: "Delete" }).click();
+    await expect(page.getByRole("status")).toHaveText(`Category "${categoryName}" deleted, with its 1 exam.`, { timeout: 30_000 });
+    expect(await db.catalogCategory.findFirst({ where: { name: categoryName } })).toBeNull();
+
     expect(errors).toEqual([]);
   } finally {
     await db.user.deleteMany({ where: { id: { in: [admin.id, candidate.id] } } });
