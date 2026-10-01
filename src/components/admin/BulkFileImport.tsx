@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Upload } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import * as XLSX from "xlsx";
 import {
   TEMPLATE_COLUMNS,
@@ -23,6 +25,8 @@ interface ValidateRowResult {
 }
 
 const SUPPORTED_EXTENSIONS = [".xlsx", ".xls", ".csv", ".json", ".txt"];
+const MAX_ROWS = 5000;
+const REQUIRED: TemplateColumn[] = ["Question", "Category", "Difficulty"];
 
 function detectDelimiter(headerLine: string): string {
   const counts: Record<string, number> = {
@@ -60,12 +64,15 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
   } | null>(null);
 
   const [skipDuplicates, setSkipDuplicates] = useState(true);
+  const [makeLive, setMakeLive] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ inserted: number; duplicateCount: number; errorCount: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ inserted: number; duplicateCount: number; errorCount: number; live: number } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
   function reset() {
     setStage("idle");
+    setMakeLive(false); // each file starts switched off unless chosen again
     setFileName(null);
     setHeaders([]);
     setRawRows([]);
@@ -95,16 +102,30 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
     try {
       if (ext === ".json") {
         const text = await file.text();
-        const data = JSON.parse(text);
-        const arr = Array.isArray(data) ? data : (data as { questions?: unknown[] }).questions;
+        let data: unknown;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          setParseError(`That file isn't valid JSON (${(err as Error).message}). Check for a missing comma, quote or bracket.`);
+          return;
+        }
+        const arr = Array.isArray(data) ? data : (data as { questions?: unknown[] } | null)?.questions;
         if (!Array.isArray(arr) || arr.length === 0) {
           setParseError("That JSON file doesn't contain a non-empty array of questions.");
           return;
         }
         // Already in our internal shape (category/prompt keys present) -
         // skip flat-row mapping entirely, same shape the paste-JSON box uses.
+        if (arr.length > MAX_ROWS) {
+          setParseError(`That file has ${arr.length} questions. Import at most ${MAX_ROWS} at a time - split it into smaller files.`);
+          return;
+        }
+        if (arr.some((q) => !q || typeof q !== "object" || Array.isArray(q))) {
+          setParseError('Every item in the JSON list must be a question object, like {"prompt": "...", "category": "GRAMMAR", ...}.');
+          return;
+        }
         const first = arr[0] as Record<string, unknown>;
-        if (typeof first === "object" && first && "category" in first && "prompt" in first) {
+        if ("category" in first && "prompt" in first) {
           const hdrs = Object.keys(first);
           setHeaders(hdrs);
           setRawRows(arr as Record<string, unknown>[]);
@@ -150,8 +171,20 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
         setParseError("That file appears to be empty.");
         return;
       }
-      const hdrs = (aoa[0] as unknown[]).map((h) => String(h));
+      const hdrs = (aoa[0] as unknown[]).map((h) => String(h).trim());
       const dataRows = aoa.slice(1).filter((r) => r.some((c) => String(c ?? "").trim() !== ""));
+      if (hdrs.every((h) => !h)) {
+        setParseError("The first row must hold column names (Question, Category, Difficulty, Options, Correct Answer...). Download the template to see the layout.");
+        return;
+      }
+      if (dataRows.length === 0) {
+        setParseError("That file has column names but no questions under them.");
+        return;
+      }
+      if (dataRows.length > MAX_ROWS) {
+        setParseError(`That file has ${dataRows.length} questions. Import at most ${MAX_ROWS} at a time - split it into smaller files.`);
+        return;
+      }
       setHeaders(hdrs);
       setRawRows(dataRows.map((r) => Object.fromEntries(hdrs.map((h, i) => [h, r[i] ?? ""]))));
       const auto: Record<string, TemplateColumn | ""> = {};
@@ -159,7 +192,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
       setMapping(auto);
       setStage("parsed");
     } catch {
-      setParseError("Couldn't read that file. Make sure it matches the template format.");
+      setParseError("Couldn't read that file. Save it as .xlsx, .csv or .json and try again, or start from the template.");
     }
   }
 
@@ -186,11 +219,21 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
     return map[header] ?? "";
   }
 
+  const activeMapped = Object.values(mapping).includes("Active");
+
   function buildMappedQuestions(): ImportableQuestion[] {
     return rawRows.map((raw) => {
       const flat: FlatQuestionRow = {};
+      // Several columns mapped to Options (Option A, Option B, ...) are joined in order.
+      const optionCells = Object.entries(mapping)
+        .filter(([, col]) => col === "Options")
+        .map(([header]) => raw[header]);
       for (const [header, col] of Object.entries(mapping)) {
         if (!col) continue;
+        if (col === "Options" && optionCells.length > 1) {
+          flat.Options = optionCells.map((v) => String(v ?? "").trim()).filter(Boolean).join(" | ");
+          continue;
+        }
         const value = raw[header];
         // Options are a pipe-separated list in flat files. Any OTHER
         // structured value (e.g. a GAP_FILL/MULTI_SELECT correct answer
@@ -204,7 +247,9 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
               ? JSON.stringify(value)
               : value;
       }
-      return rowToQuestion(flat);
+      const question = rowToQuestion(flat);
+      // Without an Active column, the "make live" choice decides.
+      return activeMapped ? question : { ...question, isActive: makeLive };
     });
   }
 
@@ -243,6 +288,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
       // project has been done.
       const BATCH = 150;
       let inserted = 0, duplicateCount = 0, errorCount = 0;
+      const liveShare = questions.length ? questions.filter((q) => q.isActive).length / questions.length : 0;
       for (let i = 0; i < questions.length; i += BATCH) {
         const batch = questions.slice(i, i + BATCH);
         const res = await fetch("/api/admin/questions", {
@@ -259,7 +305,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
         duplicateCount += data.duplicateCount;
         errorCount += data.errorCount;
       }
-      setImportResult({ inserted, duplicateCount, errorCount });
+      setImportResult({ inserted, duplicateCount, errorCount, live: Math.round(inserted * liveShare) });
       setStage("done");
       if (inserted > 0) onImported();
     } catch {
@@ -269,9 +315,8 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
     }
   }
 
-  const requiredMapped = ["Question", "Category", "Difficulty", "Question Type", "Time Limit Seconds"].every((c) =>
-    Object.values(mapping).includes(c as TemplateColumn)
-  );
+  const missingColumns = REQUIRED.filter((c) => !Object.values(mapping).includes(c));
+  const requiredMapped = missingColumns.length === 0;
 
   return (
     <div className="card mt-6 p-5">
@@ -300,17 +345,23 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <input
+          ref={fileInput}
           type="file"
+          aria-label="Question file"
           accept=".xlsx,.xls,.csv,.json,.txt"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) handleFile(f);
             e.target.value = "";
           }}
-          className="text-sm"
+          className="sr-only"
         />
+        <button type="button" onClick={() => fileInput.current?.click()} className="btn-primary">
+          <Icon as={Upload} />
+          Choose a file to import
+        </button>
         {fileName && <span className="text-xs text-slate-500">{fileName}</span>}
         {stage !== "idle" && (
           <button onClick={reset} className="text-xs font-medium text-slate-500 hover:underline">
@@ -348,7 +399,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
           </div>
           {!requiredMapped && (
             <p className="mt-2 text-xs text-amber-700">
-              Map at least: Question, Category, Difficulty, Question Type and Time Limit Seconds before validating.
+              Choose which column holds: {missingColumns.join(", ")}. (Question Type defaults to multiple choice when there are options; Time Limit to 60 seconds.)
             </p>
           )}
 
@@ -375,6 +426,12 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
               <input type="checkbox" checked={skipDuplicates} onChange={(e) => setSkipDuplicates(e.target.checked)} />
               Skip near-duplicate questions
             </label>
+            {!activeMapped && (
+              <label className="flex items-center gap-2 text-sm text-ink-900">
+                <input type="checkbox" checked={makeLive} onChange={(e) => setMakeLive(e.target.checked)} />
+                Make imported questions live straight away
+              </label>
+            )}
             <button
               onClick={runValidate}
               disabled={!requiredMapped || validating}
@@ -402,7 +459,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
               <summary className="cursor-pointer font-medium">Show duplicate rows (skipped)</summary>
               <ul className="mt-2 space-y-0.5">
                 {validateResult.results.filter((r) => r.status === "duplicate").slice(0, 30).map((r) => (
-                  <li key={r.index}>Row {r.index + 1}: &quot;{r.prompt.slice(0, 70)}&quot; - too similar to existing content.</li>
+                  <li key={r.index}>Question {r.index + 1}: &quot;{r.prompt.slice(0, 70)}&quot; - too similar to existing content.</li>
                 ))}
               </ul>
             </details>
@@ -412,7 +469,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
               <summary className="cursor-pointer font-medium">Show errors</summary>
               <ul className="mt-2 space-y-0.5">
                 {validateResult.results.filter((r) => r.status === "error").slice(0, 30).map((r) => (
-                  <li key={r.index}>Row {r.index + 1}: {r.error}</li>
+                  <li key={r.index}>Question {r.index + 1} (&quot;{r.prompt.slice(0, 50)}&quot;): {r.error}</li>
                 ))}
               </ul>
             </details>
@@ -420,7 +477,7 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
 
           {stage === "validated" && (
             <button onClick={runImport} disabled={importing || validateResult.wouldInsert === 0} className="btn-primary mt-4 text-sm disabled:opacity-60">
-              {importing ? "Importing..." : `Step 4: Import ${validateResult.wouldInsert} question${validateResult.wouldInsert === 1 ? "" : "s"} (disabled, pending review)`}
+              {importing ? "Importing..." : `Step 4: Import ${validateResult.wouldInsert} question${validateResult.wouldInsert === 1 ? "" : "s"}`}
             </button>
           )}
         </div>
@@ -430,7 +487,8 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
 
       {stage === "done" && importResult && (
         <p className="mt-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">
-          Done. Imported <strong>{importResult.inserted}</strong> question{importResult.inserted === 1 ? "" : "s"} (disabled, pending your review) -{" "}
+          Done. Imported <strong>{importResult.inserted}</strong> question{importResult.inserted === 1 ? "" : "s"}
+          {importResult.live === importResult.inserted ? " (live for candidates)" : importResult.live === 0 ? " (switched off until you review them)" : ` (${importResult.live} live, the rest switched off for review)`} -{" "}
           {importResult.duplicateCount} skipped as duplicates, {importResult.errorCount} error{importResult.errorCount === 1 ? "" : "s"}.
         </p>
       )}

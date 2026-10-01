@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { config } from "dotenv";
 import path from "node:path";
+import { patientDatabaseUrl } from "./tests/patient-db-url";
 
 // Layer .env (real dev secrets: GROQ/GEMINI/R2 keys, so the app boots the
 // same as `npm run dev` would) then .env.test on top of it (DATABASE_URL +
@@ -10,6 +11,7 @@ import path from "node:path";
 // .env.test on its own, so this file is the one place that does.
 config({ path: path.resolve(__dirname, ".env") });
 config({ path: path.resolve(__dirname, ".env.test"), override: true });
+process.env.DATABASE_URL = patientDatabaseUrl(process.env.DATABASE_URL);
 // Browser tests never send real email (sign-up codes, password resets):
 // the app only writes them to the server log (src/lib/email.ts).
 process.env.EMAIL_DELIVERY = "log";

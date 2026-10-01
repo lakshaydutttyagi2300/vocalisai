@@ -5,6 +5,11 @@
 // place that knows how to flatten a question into columns and read it
 // back, keeping the template, the export and the import parser in sync.
 
+import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
+
+/** Used when a file gives no time limit for a question. */
+export const DEFAULT_TIME_LIMIT_SECONDS = 60;
+
 export const TEMPLATE_COLUMNS = [
   "Question",
   "Category",
@@ -46,6 +51,22 @@ const HEADER_ALIASES: Record<string, TemplateColumn> = {
   correctanswer: "Correct Answer",
   answer: "Correct Answer",
   correct: "Correct Answer",
+  answerkey: "Correct Answer",
+  correctoption: "Correct Answer",
+  key: "Correct Answer",
+  // Separate option columns ("Option A", "Option 1", ...) are joined into Options.
+  optiona: "Options",
+  optionb: "Options",
+  optionc: "Options",
+  optiond: "Options",
+  optione: "Options",
+  optionf: "Options",
+  option1: "Options",
+  option2: "Options",
+  option3: "Options",
+  option4: "Options",
+  option5: "Options",
+  option6: "Options",
   passage: "Passage",
   readingpassage: "Passage",
   stimulus: "Passage",
@@ -57,6 +78,8 @@ const HEADER_ALIASES: Record<string, TemplateColumn> = {
   rubric: "Scoring Criteria",
   timelimitseconds: "Time Limit Seconds",
   timelimit: "Time Limit Seconds",
+  time: "Time Limit Seconds",
+  timeseconds: "Time Limit Seconds",
   seconds: "Time Limit Seconds",
   active: "Active",
   isactive: "Active",
@@ -155,6 +178,24 @@ const DIFFICULTY_ALIASES: Record<string, string> = {
   expert: "EXPERT",
 };
 
+// A category by its key (GRAMMAR), page address (numerical-aptitude), label
+// ("Numerical Aptitude") or a common name ("Quantitative Aptitude").
+const CATEGORY_ALIASES: Record<string, string> = {
+  ...Object.fromEntries(PRACTICE_MODES.flatMap((m) => [m.category, m.slug, m.label].map((k) => [normalizeHeader(k), m.category]))),
+  quantitativeaptitude: "NUMERICAL_APTITUDE",
+  quantitative: "NUMERICAL_APTITUDE",
+  quant: "NUMERICAL_APTITUDE",
+  reasoning: "LOGICAL_REASONING",
+  verbalability: "VERBAL_REASONING",
+  sjt: "SITUATIONAL_JUDGEMENT",
+  rc: "READING_COMPREHENSION",
+  interview: "INTERVIEW",
+};
+
+export function normalizeCategory(raw: string): string {
+  return CATEGORY_ALIASES[normalizeHeader(raw)] ?? raw.trim().toUpperCase().replace(/\s+/g, "_");
+}
+
 function normalizeType(raw: string): string {
   const key = normalizeHeader(raw);
   return TYPE_ALIASES[key] ?? raw.trim().toUpperCase().replace(/\s+/g, "_");
@@ -176,7 +217,18 @@ export function rowToQuestion(row: FlatQuestionRow): ImportableQuestion {
     : null;
 
   const timeRaw = row["Time Limit Seconds"];
-  const timeLimitSeconds = typeof timeRaw === "number" ? timeRaw : parseInt(String(timeRaw ?? "").trim(), 10);
+  const timeText = String(timeRaw ?? "").trim();
+  const timeLimitSeconds = typeof timeRaw === "number" ? timeRaw : timeText === "" ? DEFAULT_TIME_LIMIT_SECONDS : parseInt(timeText, 10);
+
+  // A lettered answer ("B", "Option B", "(b)") for lettered options means that option.
+  let correctAnswer = (row["Correct Answer"] ?? "").toString().trim() || null;
+  const letter = correctAnswer?.match(/^(?:option\s*)?\(?([a-f])\)?\.?$/i)?.[1];
+  if (letter && options && correctAnswer && !options.includes(correctAnswer)) {
+    correctAnswer = options[letter.toLowerCase().charCodeAt(0) - 97] ?? correctAnswer;
+  }
+  // No type given: multiple choice when there are options.
+  const typeRaw = (row["Question Type"] ?? "").toString().trim();
+  const type = typeRaw ? normalizeType(typeRaw) : options && options.length > 0 ? "MULTIPLE_CHOICE" : "";
 
   const activeRaw = row["Active"];
   const activeStr = typeof activeRaw === "boolean" ? String(activeRaw) : (activeRaw ?? "").toString().trim().toLowerCase();
@@ -192,13 +244,13 @@ export function rowToQuestion(row: FlatQuestionRow): ImportableQuestion {
   const orderParsed = orderRaw ? parseInt(orderRaw, 10) : NaN;
 
   return {
-    category: (row["Category"] ?? "").toString().trim().toUpperCase().replace(/\s+/g, "_"),
+    category: normalizeCategory((row["Category"] ?? "").toString()),
     difficulty: normalizeDifficulty((row["Difficulty"] ?? "").toString()),
-    type: normalizeType((row["Question Type"] ?? "").toString()),
+    type,
     prompt: (row["Question"] ?? "").toString().trim(),
     passage: (row["Passage"] ?? "").toString().trim() || null,
     options,
-    correctAnswer: (row["Correct Answer"] ?? "").toString().trim() || null,
+    correctAnswer,
     expectedAnswer: (row["Expected Answer"] ?? "").toString().trim() || null,
     explanation: (row["Explanation"] ?? "").toString().trim() || null,
     scoringCriteria: (row["Scoring Criteria"] ?? "").toString().trim() || null,

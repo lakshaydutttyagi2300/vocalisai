@@ -5,8 +5,10 @@
 // exported from somewhere else.
 import { config } from "dotenv";
 import path from "node:path";
+import { patientDatabaseUrl } from "./patient-db-url";
 
 config({ path: path.resolve(__dirname, "../.env.test"), override: true });
+process.env.DATABASE_URL = patientDatabaseUrl(process.env.DATABASE_URL);
 
 if (!process.env.DATABASE_URL) {
   throw new Error(

@@ -368,6 +368,8 @@ export default function AdminQuestionsPage() {
         <p role="alert" className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
+      <BulkFileImport onImported={load} />
+
       <div className="card mt-4 flex flex-wrap items-center gap-3 border-amber-200 bg-amber-50 p-4">
         <span className="text-sm font-medium text-ink-900">Bulk action for the entire question bank:</span>
         <button onClick={() => globalBulkSetActive(true)} disabled={globalBulkBusy} className="text-sm font-medium text-brand-600 hover:underline disabled:opacity-60">
@@ -421,8 +423,6 @@ export default function AdminQuestionsPage() {
         </div>
       </div>
 
-      <BulkFileImport onImported={load} />
-
       <div className="card mt-6 p-5">
         <h2 className="font-display font-bold text-ink-900">Bulk import (paste JSON)</h2>
         <p className="mt-1 text-xs text-slate-500">
@@ -438,7 +438,7 @@ export default function AdminQuestionsPage() {
           className="mt-3 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs focus:border-brand-500 focus:outline-none"
         />
         <button onClick={runImport} disabled={importing || !importText.trim()} className="btn-primary mt-3 text-sm disabled:opacity-60">
-          {importing ? "Importing..." : "Import"}
+          {importing ? "Importing..." : "Import pasted JSON"}
         </button>
 
         {importError && (
