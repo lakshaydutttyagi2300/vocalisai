@@ -1,35 +1,33 @@
-// The starting exam catalogue (structure only - no questions). Loaded by
-// prisma/seed-catalogue.mjs; after that, admins edit everything in
-// /admin/catalogue. Re-running the seed adds missing rows and never
-// overwrites what an admin has changed.
+// The exam catalogue's structure (no questions): a private-sector hiring
+// preparation platform - company and provider assessments, aptitude and
+// reasoning, English and communication, workplace assessments, career
+// entrance tests and professional certifications.
+//
+// Loaded by prisma/seed-catalogue.mjs (fresh databases: creates what's
+// missing) and by prisma/catalogue/apply.mjs (existing databases: brings
+// them in line with this file, retiring what RETIRED lists). After that,
+// admins edit everything in /admin/catalogue.
+//
+// Company and provider names identify the tests candidates prepare for;
+// VocalisAi is not affiliated with them (said on every exam page).
 
-// Shared subjects. `legacy` bridges to an existing question bank
+// Shared subjects. `legacy` bridges an existing question bank
 // (PracticeQuestion.category), so those subjects have questions today.
 export const SUBJECTS = [
   { slug: "quantitative-aptitude", name: "Quantitative Aptitude", legacy: "NUMERICAL_APTITUDE", skills: ["Number System", "Simplification & Approximation", "Percentage", "Ratio & Proportion", "Average", "Profit & Loss", "Simple & Compound Interest", "Time & Work", "Time, Speed & Distance", "Mensuration", "Data Interpretation", "Algebra", "Geometry", "Trigonometry", "Number Series", "Quadratic Equations", "Probability", "Permutation & Combination"] },
-  { slug: "reasoning", name: "Reasoning Ability", legacy: "LOGICAL_REASONING", skills: ["Syllogism", "Seating Arrangement", "Puzzles", "Blood Relations", "Direction Sense", "Coding-Decoding", "Series", "Analogy", "Classification", "Inequality", "Order & Ranking", "Input-Output", "Statement & Conclusion", "Data Sufficiency", "Non-verbal Reasoning"] },
+  { slug: "reasoning", name: "Logical Reasoning", legacy: "LOGICAL_REASONING", skills: ["Syllogism", "Seating Arrangement", "Puzzles", "Blood Relations", "Direction Sense", "Coding-Decoding", "Series", "Analogy", "Classification", "Inequality", "Order & Ranking", "Input-Output", "Statement & Conclusion", "Data Sufficiency", "Non-verbal Reasoning"] },
+  { slug: "analytical-reasoning", name: "Analytical Reasoning", skills: ["Arrangements", "Scheduling", "Grouping & Selection", "Logic Games"] },
+  { slug: "abstract-reasoning", name: "Abstract & Inductive Reasoning", skills: ["Pattern Series", "Odd One Out", "Figure Matrices", "Figure Analogies"] },
+  { slug: "data-interpretation", name: "Data Interpretation", skills: ["Tables", "Bar & Line Charts", "Pie Charts", "Caselets"] },
+  { slug: "critical-thinking", name: "Critical Thinking", skills: ["Assumptions", "Arguments", "Inferences", "Strengthen & Weaken", "Conclusions"] },
   { slug: "verbal-ability", name: "Verbal Ability", legacy: "VERBAL_REASONING", skills: ["Para Jumbles", "Sentence Completion", "Critical Reasoning", "Fact, Inference & Judgement", "Odd Sentence Out"] },
   { slug: "english-grammar", name: "English Grammar", legacy: "GRAMMAR", skills: ["Error Spotting", "Sentence Improvement", "Fill in the Blanks", "Tenses", "Subject-Verb Agreement", "Articles & Prepositions", "Active & Passive Voice", "Direct & Indirect Speech"] },
   { slug: "vocabulary", name: "Vocabulary", legacy: "VOCABULARY", skills: ["Synonyms & Antonyms", "Idioms & Phrases", "One-word Substitution", "Spelling", "Cloze Test"] },
   { slug: "reading-comprehension", name: "Reading Comprehension", legacy: "READING_COMPREHENSION", skills: ["Main Idea", "Inference", "Vocabulary in Context", "Tone & Purpose"] },
-  { slug: "situational-judgement", name: "Situational Judgement", legacy: "SITUATIONAL_JUDGEMENT", skills: ["Workplace Scenarios", "Customer Scenarios", "Ethics & Integrity"] },
-  { slug: "general-awareness", name: "General Awareness", skills: ["Current Affairs", "History", "Geography", "Indian Polity", "Economy", "General Science", "Static GK", "Sports & Awards"] },
-  { slug: "banking-awareness", name: "Banking & Financial Awareness", skills: ["Banking Terms", "RBI & Monetary Policy", "Financial Institutions", "Government Schemes", "Budget & Economy"] },
-  { slug: "computer-knowledge", name: "Computer Knowledge", skills: ["Computer Fundamentals", "MS Office", "Internet & Networking", "Cyber Security", "Database Basics"] },
-  { slug: "general-science", name: "General Science", skills: ["Physics", "Chemistry", "Biology"] },
-  { slug: "general-studies", name: "General Studies", skills: ["Ancient & Medieval History", "Modern History", "Art & Culture", "Geography", "Polity & Governance", "Economy", "Environment & Ecology", "Science & Technology", "Current Affairs"] },
-  { slug: "csat", name: "CSAT (Aptitude)", skills: ["Comprehension", "Logical Reasoning", "Basic Numeracy", "Decision Making"] },
-  { slug: "child-pedagogy", name: "Child Development & Pedagogy", skills: ["Child Development", "Inclusive Education", "Learning & Pedagogy", "Assessment"] },
-  { slug: "teaching-aptitude", name: "Teaching & Research Aptitude", skills: ["Teaching Aptitude", "Research Aptitude", "Communication", "Higher Education System", "ICT"] },
-  { slug: "environmental-studies", name: "Environmental Studies", skills: ["Family & Friends", "Food & Shelter", "Water & Travel", "Things We Make"] },
-  { slug: "mathematics", name: "Mathematics", skills: ["Arithmetic", "Algebra", "Geometry", "Calculus", "Statistics", "Coordinate Geometry"] },
-  { slug: "physics", name: "Physics", skills: ["Mechanics", "Thermodynamics", "Electromagnetism", "Optics", "Modern Physics"] },
-  { slug: "chemistry", name: "Chemistry", skills: ["Physical Chemistry", "Organic Chemistry", "Inorganic Chemistry"] },
-  { slug: "biology", name: "Biology", skills: ["Botany", "Zoology", "Human Physiology", "Genetics", "Ecology"] },
-  { slug: "legal-reasoning", name: "Legal Reasoning", skills: ["Legal Principles", "Constitution", "Contracts & Torts", "Criminal Law"] },
-  { slug: "data-interpretation", name: "Data Interpretation & Logical Reasoning", skills: ["Tables", "Bar & Line Charts", "Pie Charts", "Caselets", "Arrangements", "Games & Tournaments"] },
-  { slug: "programming-logic", name: "Programming Logic", skills: ["Pseudocode", "Data Structures", "Algorithms", "OOP Concepts", "Output Prediction"] },
-  { slug: "technical-mcq", name: "Technical Fundamentals", skills: ["Operating Systems", "DBMS & SQL", "Computer Networks", "Software Engineering"] },
+  { slug: "listening", name: "Listening", legacy: "LISTENING", skills: ["Main Idea", "Details", "Speaker Attitude"] },
+  { slug: "business-communication", name: "Workplace Communication", skills: ["Email & Message Writing", "Tone & Register", "Meetings & Calls"] },
+  { slug: "situational-judgement", name: "Situational Judgement", legacy: "SITUATIONAL_JUDGEMENT", skills: ["Workplace Scenarios", "Customer Scenarios", "Ethics & Integrity", "Decision Making", "Professional Behaviour"] },
+  { slug: "attention-to-detail", name: "Attention to Detail", skills: ["Error Checking", "Data Comparison", "Proofreading", "Following Instructions"] },
   { slug: "accounting", name: "Accounting", skills: ["Accounting Principles", "Journal & Ledger", "Final Accounts", "Depreciation"] },
   { slug: "business-laws", name: "Business Laws", skills: ["Contract Act", "Sale of Goods Act", "Partnership Act", "Companies Act"] },
   { slug: "business-economics", name: "Business Economics", skills: ["Demand & Supply", "Production & Cost", "Markets", "National Income"] },
@@ -38,169 +36,124 @@ export const SUBJECTS = [
   { slug: "banking-operations", name: "Banking Operations", skills: ["Principles & Practices of Banking", "Accounting & Finance for Bankers", "Retail Banking", "Risk Management"] },
 ];
 
+// A section of an exam: its own name for it, and the shared subjects behind it.
+const S = (name, ...subjects) => ({ name, subjects });
 const ENGLISH = ["english-grammar", "vocabulary", "reading-comprehension"];
-const BANK = ["reasoning", "quantitative-aptitude", ...ENGLISH];
 
-// Exams per category: [slug, name, subjects, { popular, keywords, minutes, per }].
-// `per` = questions per subject in the full mock (default 10).
+const PROVIDERS = "Assessment providers";
+const COMPANIES = "Company assessments";
+
+// Categories in display order. Exam fields: slug, name, sections, and
+// optionally group (sub-heading), description, keywords (search), popular
+// (Featured assessments), minutes (full mock), per (mock questions per subject).
 export const CATEGORIES = [
   {
-    slug: "government-competitive", name: "Government & Competitive Exams",
-    description: "Central government recruitment beyond banking, SSC and railways.",
+    slug: "company-hiring-assessments",
+    name: "Company & Hiring Assessments",
+    description: "The aptitude, reasoning and English sections of company recruitment tests and the platforms that run them.",
     exams: [
-      ["lic-aao", "LIC AAO", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness", "banking-awareness"], { keywords: "insurance lic assistant administrative officer" }],
-      ["lic-ado", "LIC ADO", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness", "insurance"], { keywords: "development officer insurance" }],
-      ["epfo-ssa", "EPFO Social Security Assistant", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness", "computer-knowledge"], { keywords: "epfo ssa" }],
-      ["fci-manager", "FCI Manager", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { keywords: "food corporation of india" }],
-      ["niacl-ao", "NIACL AO", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { keywords: "new india assurance insurance" }],
+      { slug: "amcat", name: "AMCAT", group: PROVIDERS, popular: true, keywords: "aspiring minds employability test", sections: [S("Quantitative Ability", "quantitative-aptitude"), S("Logical Ability", "reasoning"), S("English Comprehension", ...ENGLISH)] },
+      { slug: "elitmus", name: "eLitmus (pH Test)", group: PROVIDERS, popular: true, keywords: "elitmus ph test", sections: [S("Quantitative Ability", "quantitative-aptitude"), S("Problem Solving", "reasoning", "data-interpretation"), S("Verbal Ability", "verbal-ability", "reading-comprehension", "english-grammar")] },
+      { slug: "cocubes", name: "CoCubes", group: PROVIDERS, popular: true, keywords: "aon cocubes", sections: [S("Quantitative Aptitude", "quantitative-aptitude"), S("Logical Reasoning", "reasoning"), S("English", ...ENGLISH)] },
+      { slug: "tcs-ion", name: "TCS iON Assessments", group: PROVIDERS, keywords: "tcs ion digital assessment", sections: [S("Numerical Ability", "quantitative-aptitude"), S("Reasoning", "reasoning"), S("Verbal Ability", ...ENGLISH)] },
+      { slug: "shl", name: "SHL Assessments", group: PROVIDERS, keywords: "shl talent measurement numerical verbal inductive deductive", sections: [S("Numerical Reasoning", "quantitative-aptitude", "data-interpretation"), S("Verbal Reasoning", "verbal-ability", "reading-comprehension"), S("Inductive Reasoning", "abstract-reasoning"), S("Deductive Reasoning", "critical-thinking")] },
+      { slug: "mettl", name: "Mercer | Mettl Assessments", group: PROVIDERS, keywords: "mercer mettl", sections: [S("Aptitude", "quantitative-aptitude", "reasoning"), S("English", ...ENGLISH), S("Behavioural", "situational-judgement")] },
+      { slug: "hirepro", name: "HirePro Assessments", group: PROVIDERS, keywords: "hirepro", sections: [S("Quantitative", "quantitative-aptitude"), S("Logical", "reasoning"), S("Verbal", "english-grammar", "vocabulary")] },
+      { slug: "tcs-nqt", name: "TCS NQT", group: COMPANIES, popular: true, keywords: "tcs national qualifier test ninja digital", sections: [S("Numerical Ability", "quantitative-aptitude"), S("Reasoning Ability", "reasoning"), S("Verbal Ability", "verbal-ability", ...ENGLISH)] },
+      { slug: "infosys", name: "Infosys", group: COMPANIES, popular: true, keywords: "infosys infytq system engineer", sections: [S("Mathematical Ability", "quantitative-aptitude"), S("Logical Reasoning", "reasoning", "data-interpretation"), S("Verbal Ability", "verbal-ability", "english-grammar", "reading-comprehension")] },
+      { slug: "accenture", name: "Accenture", group: COMPANIES, popular: true, keywords: "accenture cognitive assessment", sections: [S("English Ability", ...ENGLISH), S("Critical Reasoning & Problem Solving", "reasoning", "critical-thinking", "quantitative-aptitude"), S("Abstract Reasoning", "abstract-reasoning")] },
+      { slug: "cognizant", name: "Cognizant (GenC)", group: COMPANIES, popular: true, keywords: "cognizant genc cts", sections: [S("Quantitative Aptitude", "quantitative-aptitude"), S("Logical Reasoning", "reasoning"), S("English", ...ENGLISH)] },
+      { slug: "wipro", name: "Wipro (NLTH, Elite)", group: COMPANIES, popular: true, keywords: "wipro nlth elite", sections: [S("Aptitude", "quantitative-aptitude", "reasoning"), S("Verbal", ...ENGLISH)] },
+      { slug: "capgemini", name: "Capgemini", group: COMPANIES, popular: true, keywords: "capgemini", sections: [S("English", ...ENGLISH), S("Aptitude", "quantitative-aptitude", "reasoning", "abstract-reasoning"), S("Behavioural", "situational-judgement")] },
+      { slug: "deloitte", name: "Deloitte", group: COMPANIES, keywords: "deloitte usi", sections: [S("Aptitude", "quantitative-aptitude", "reasoning", "data-interpretation"), S("Verbal", ...ENGLISH)] },
+      { slug: "ey", name: "EY", group: COMPANIES, keywords: "ernst young", sections: [S("Numerical Reasoning", "quantitative-aptitude", "data-interpretation"), S("Verbal Reasoning", "verbal-ability", "reading-comprehension"), S("Situational Judgement", "situational-judgement")] },
+      { slug: "kpmg", name: "KPMG", group: COMPANIES, keywords: "kpmg", sections: [S("Numerical Reasoning", "quantitative-aptitude", "data-interpretation"), S("Verbal Reasoning", "verbal-ability", "reading-comprehension"), S("Logical Reasoning", "abstract-reasoning"), S("Situational Judgement", "situational-judgement")] },
+      { slug: "pwc", name: "PwC", group: COMPANIES, keywords: "pricewaterhousecoopers", sections: [S("Numerical Reasoning", "quantitative-aptitude", "data-interpretation"), S("Verbal Reasoning", "verbal-ability", "reading-comprehension"), S("Logical Reasoning", "reasoning", "abstract-reasoning"), S("Behavioural", "situational-judgement")] },
+      { slug: "tech-mahindra", name: "Tech Mahindra", group: COMPANIES, keywords: "techm tech mahindra", sections: [S("Aptitude", "quantitative-aptitude", "reasoning"), S("English", ...ENGLISH)] },
+      { slug: "hcltech", name: "HCLTech", group: COMPANIES, keywords: "hcl technologies", sections: [S("Aptitude", "quantitative-aptitude", "reasoning"), S("English", ...ENGLISH)] },
     ],
   },
   {
-    slug: "banking", name: "Banking Exams",
-    description: "PO, clerk and officer exams of public-sector banks and the RBI.",
+    slug: "aptitude-reasoning",
+    name: "Aptitude & Reasoning",
+    description: "Numbers, logic, patterns and data, as tested in almost every hiring assessment.",
     exams: [
-      ["sbi-po", "SBI PO", [...BANK, "general-awareness", "banking-awareness", "computer-knowledge"], { popular: true, keywords: "state bank probationary officer" }],
-      ["sbi-clerk", "SBI Clerk", [...BANK, "general-awareness", "banking-awareness"], { keywords: "junior associate state bank" }],
-      ["ibps-po", "IBPS PO", [...BANK, "general-awareness", "banking-awareness", "computer-knowledge"], { popular: true, keywords: "probationary officer" }],
-      ["ibps-clerk", "IBPS Clerk", [...BANK, "general-awareness", "banking-awareness", "computer-knowledge"], { popular: true }],
-      ["ibps-rrb-po", "IBPS RRB PO (Officer Scale I)", [...BANK, "general-awareness", "computer-knowledge"], { keywords: "regional rural bank" }],
-      ["ibps-rrb-clerk", "IBPS RRB Clerk (Office Assistant)", [...BANK, "general-awareness", "computer-knowledge"], { keywords: "regional rural bank office assistant" }],
-      ["ibps-so", "IBPS SO", [...BANK, "general-awareness", "computer-knowledge"], { keywords: "specialist officer it officer" }],
-      ["rbi-grade-b", "RBI Grade B", [...BANK, "general-awareness", "business-economics"], { keywords: "reserve bank officer" }],
-      ["rbi-assistant", "RBI Assistant", [...BANK, "general-awareness", "computer-knowledge"], { keywords: "reserve bank" }],
-      ["nabard-grade-a", "NABARD Grade A", [...BANK, "general-awareness", "business-economics"], { keywords: "agriculture rural development" }],
+      { slug: "general-aptitude", name: "General Aptitude", popular: true, keywords: "aptitude quant logical", sections: [S(null, "quantitative-aptitude", "reasoning", "verbal-ability", "data-interpretation")] },
+      { slug: "analytical-critical-thinking", name: "Analytical Reasoning & Critical Thinking", keywords: "analytical critical thinking arguments", sections: [S(null, "analytical-reasoning", "critical-thinking")] },
+      { slug: "abstract-inductive-reasoning", name: "Abstract & Inductive Reasoning", keywords: "abstract inductive non-verbal diagrammatic", sections: [S(null, "abstract-reasoning")] },
+      { slug: "data-interpretation-practice", name: "Data Interpretation", keywords: "di charts tables", sections: [S(null, "data-interpretation")] },
     ],
   },
   {
-    slug: "ssc", name: "SSC Exams",
-    description: "Staff Selection Commission exams for central government posts.",
+    slug: "english-communication",
+    name: "English & Communication",
+    description: "Grammar, vocabulary, comprehension, listening and workplace communication.",
     exams: [
-      ["ssc-cgl", "SSC CGL", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { popular: true, keywords: "combined graduate level", per: 25, minutes: 60 }],
-      ["ssc-chsl", "SSC CHSL", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { popular: true, keywords: "10+2 ldc deo", per: 25, minutes: 60 }],
-      ["ssc-mts", "SSC MTS", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { keywords: "multi tasking staff havaldar" }],
-      ["ssc-cpo", "SSC CPO", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { keywords: "sub inspector delhi police capf" }],
-      ["ssc-gd", "SSC GD Constable", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"], { keywords: "general duty constable" }],
-      ["ssc-stenographer", "SSC Stenographer", ["reasoning", ...ENGLISH, "general-awareness"], { keywords: "steno grade c d" }],
-      ["ssc-selection-post", "SSC Selection Post", ["reasoning", "quantitative-aptitude", ...ENGLISH, "general-awareness"] ],
+      { slug: "english-grammar-usage", name: "English Grammar & Usage", popular: true, sections: [S(null, "english-grammar")] },
+      { slug: "vocabulary-builder", name: "Vocabulary Builder", sections: [S(null, "vocabulary")] },
+      { slug: "reading-skills", name: "Reading Comprehension", sections: [S(null, "reading-comprehension")] },
+      { slug: "listening-skills", name: "Listening", sections: [S(null, "listening")] },
+      { slug: "workplace-communication", name: "Workplace Communication", keywords: "email business english", sections: [S(null, "business-communication", "english-grammar")] },
+      { slug: "english-for-competitive-exams", name: "English for Hiring Assessments", keywords: "verbal english section", sections: [S(null, ...ENGLISH, "verbal-ability")] },
     ],
   },
   {
-    slug: "railway", name: "Railway Exams",
-    description: "Railway Recruitment Board exams.",
+    slug: "workplace-assessments",
+    name: "Workplace Assessments",
+    description: "Judgement, decision making, professional behaviour and attention to detail.",
     exams: [
-      ["rrb-ntpc", "RRB NTPC", ["quantitative-aptitude", "reasoning", "general-awareness", "general-science"], { popular: true, keywords: "non technical popular categories" }],
-      ["rrb-group-d", "RRB Group D", ["quantitative-aptitude", "reasoning", "general-science", "general-awareness"], { keywords: "level 1 track maintainer" }],
-      ["rrb-alp", "RRB ALP", ["quantitative-aptitude", "reasoning", "general-science", "general-awareness"], { keywords: "assistant loco pilot" }],
-      ["rrb-je", "RRB JE", ["quantitative-aptitude", "reasoning", "general-science", "general-awareness"], { keywords: "junior engineer" }],
-      ["rpf-constable", "RPF Constable & SI", ["quantitative-aptitude", "reasoning", "general-awareness"], { keywords: "railway protection force" }],
+      { slug: "situational-judgement-test", name: "Situational Judgement Test", popular: true, keywords: "sjt psychometric", sections: [S(null, "situational-judgement")] },
+      { slug: "workplace-behaviour", name: "Workplace Behaviour & Decision Making", keywords: "behavioural decision making professional behaviour", sections: [S("Scenarios", "situational-judgement")] },
+      { slug: "attention-to-detail-test", name: "Attention to Detail", keywords: "accuracy checking", sections: [S(null, "attention-to-detail")] },
     ],
   },
   {
-    slug: "upsc-civil-services", name: "UPSC & Civil Services",
-    description: "Union Public Service Commission exams.",
+    slug: "career-entrance",
+    name: "Career & Entrance Assessments",
+    description: "Management entrance tests run by universities and private bodies.",
     exams: [
-      ["upsc-cse-prelims", "UPSC CSE Prelims", ["general-studies", "csat"], { popular: true, keywords: "ias ips civil services preliminary", per: 20, minutes: 120 }],
-      ["upsc-capf", "UPSC CAPF (AC)", ["general-studies", "reasoning", "quantitative-aptitude"], { keywords: "assistant commandant" }],
-      ["upsc-epfo", "UPSC EPFO (EO/AO, APFC)", ["general-studies", ...ENGLISH, "quantitative-aptitude"], { keywords: "enforcement officer" }],
+      { slug: "cat", name: "CAT", keywords: "iim mba", per: 22, minutes: 120, sections: [S("Verbal Ability & Reading Comprehension", "verbal-ability", "reading-comprehension"), S("Data Interpretation & Logical Reasoning", "data-interpretation", "analytical-reasoning"), S("Quantitative Ability", "quantitative-aptitude")] },
+      { slug: "xat", name: "XAT", keywords: "xlri mba", sections: [S("Verbal & Logical Ability", "verbal-ability", "reading-comprehension", "critical-thinking"), S("Decision Making", "situational-judgement"), S("Quantitative Ability & Data Interpretation", "quantitative-aptitude", "data-interpretation")] },
+      { slug: "nmat", name: "NMAT", keywords: "nmims gmac", sections: [S("Language Skills", ...ENGLISH), S("Quantitative Skills", "quantitative-aptitude", "data-interpretation"), S("Logical Reasoning", "reasoning")] },
+      { slug: "snap", name: "SNAP", keywords: "symbiosis", sections: [S("General English", ...ENGLISH), S("Quantitative, Data Interpretation & Data Sufficiency", "quantitative-aptitude", "data-interpretation"), S("Analytical & Logical Reasoning", "reasoning", "analytical-reasoning")] },
+      { slug: "mat", name: "MAT", keywords: "aima management aptitude test", sections: [S("Language Comprehension", ...ENGLISH), S("Mathematical Skills", "quantitative-aptitude"), S("Data Analysis & Sufficiency", "data-interpretation"), S("Intelligence & Critical Reasoning", "reasoning", "critical-thinking")] },
+      { slug: "ipmat", name: "IPMAT", keywords: "iim indore integrated", sections: [S("Quantitative Ability", "quantitative-aptitude"), S("Verbal Ability", "verbal-ability", "reading-comprehension")] },
     ],
   },
   {
-    slug: "state-government", name: "State Government Exams",
-    description: "State public service commission and state staff selection exams.",
-    exams: [
-      ["uppsc", "UPPSC PCS", ["general-studies", "csat"], { keywords: "uttar pradesh" }],
-      ["bpsc", "BPSC CCE", ["general-studies"], { keywords: "bihar" }],
-      ["mpsc", "MPSC Rajyaseva", ["general-studies", "csat"], { keywords: "maharashtra" }],
-      ["rpsc-ras", "RPSC RAS", ["general-studies"], { keywords: "rajasthan" }],
-      ["tnpsc-group-4", "TNPSC Group 4", ["general-studies", "quantitative-aptitude", "reasoning"], { keywords: "tamil nadu" }],
-      ["upsssc-pet", "UPSSSC PET", ["general-awareness", "reasoning", "quantitative-aptitude", ...ENGLISH], { keywords: "uttar pradesh preliminary eligibility" }],
-      ["hssc-cet", "HSSC CET", ["general-awareness", "reasoning", "quantitative-aptitude", ...ENGLISH], { keywords: "haryana common eligibility" }],
-    ],
-  },
-  {
-    slug: "police-defence", name: "Police & Defence Exams",
-    description: "Armed forces entry and police recruitment exams.",
-    exams: [
-      ["nda", "NDA", ["mathematics", ...ENGLISH, "general-studies"], { popular: true, keywords: "national defence academy" }],
-      ["cds", "CDS", [...ENGLISH, "general-studies", "mathematics"], { keywords: "combined defence services" }],
-      ["afcat", "AFCAT", [...ENGLISH, "general-awareness", "quantitative-aptitude", "reasoning"], { keywords: "air force" }],
-      ["agniveer", "Agniveer (Army, Navy, Air Force)", ["general-awareness", "general-science", "mathematics", "reasoning"], { keywords: "agnipath" }],
-      ["delhi-police-constable", "Delhi Police Constable", ["reasoning", "general-awareness", "quantitative-aptitude", "computer-knowledge"] ],
-      ["up-police-constable", "UP Police Constable", ["general-awareness", "reasoning", "quantitative-aptitude", ...ENGLISH], { keywords: "uttar pradesh" }],
-    ],
-  },
-  {
-    slug: "teaching", name: "Teaching & Education Exams",
-    description: "Teacher eligibility and recruitment exams.",
-    exams: [
-      ["ctet", "CTET", ["child-pedagogy", "mathematics", "environmental-studies", ...ENGLISH], { popular: true, keywords: "central teacher eligibility test" }],
-      ["state-tet", "State TETs (UPTET, REET, HTET)", ["child-pedagogy", "mathematics", "environmental-studies", ...ENGLISH], { keywords: "uptet reet htet mahatet" }],
-      ["kvs", "KVS PRT, TGT & PGT", ["child-pedagogy", "general-awareness", "reasoning", ...ENGLISH], { keywords: "kendriya vidyalaya" }],
-      ["dsssb", "DSSSB Teachers", ["child-pedagogy", "general-awareness", "reasoning", "quantitative-aptitude", ...ENGLISH], { keywords: "delhi" }],
-      ["ugc-net-paper-1", "UGC NET Paper 1", ["teaching-aptitude", "reading-comprehension", "reasoning", "data-interpretation"], { keywords: "jrf lecturer" }],
-    ],
-  },
-  {
-    slug: "university-entrance", name: "University & Entrance Exams",
-    description: "Undergraduate, postgraduate, MBA, law, engineering and medical entrance.",
-    exams: [
-      ["cuet-ug", "CUET UG", [...ENGLISH, "general-awareness", "quantitative-aptitude", "reasoning"], { popular: true, keywords: "common university entrance test" }],
-      ["cat", "CAT", ["verbal-ability", "reading-comprehension", "data-interpretation", "quantitative-aptitude"], { popular: true, keywords: "iim mba", per: 22, minutes: 120 }],
-      ["xat", "XAT", ["verbal-ability", "reading-comprehension", "data-interpretation", "quantitative-aptitude", "general-awareness"], { keywords: "xlri mba" }],
-      ["clat", "CLAT", ["legal-reasoning", ...ENGLISH, "general-awareness", "reasoning", "quantitative-aptitude"], { keywords: "law nlu" }],
-      ["ipmat", "IPMAT", ["quantitative-aptitude", "verbal-ability", "reading-comprehension"], { keywords: "iim indore integrated" }],
-      ["jee-main", "JEE Main", ["physics", "chemistry", "mathematics"], { keywords: "engineering iit nit" }],
-      ["neet-ug", "NEET UG", ["physics", "chemistry", "biology"], { keywords: "medical mbbs" }],
-      ["gate", "GATE (General Aptitude)", ["verbal-ability", "quantitative-aptitude", "reasoning"], { keywords: "engineering postgraduate" }],
-    ],
-  },
-  {
-    slug: "campus-placement", name: "Campus Placement",
-    description: "Recruitment tests of IT services and product companies.",
-    exams: [
-      ["tcs-nqt", "TCS NQT", ["quantitative-aptitude", "reasoning", "verbal-ability", "english-grammar", "programming-logic"], { popular: true, keywords: "tcs national qualifier test" }],
-      ["infosys", "Infosys", ["quantitative-aptitude", "reasoning", "verbal-ability", "english-grammar", "programming-logic"], { keywords: "infosys specialist programmer system engineer" }],
-      ["wipro", "Wipro (NLTH, Elite)", ["quantitative-aptitude", "reasoning", "verbal-ability", "programming-logic"] ],
-      ["accenture", "Accenture", ["quantitative-aptitude", "reasoning", "verbal-ability", "technical-mcq", "programming-logic"] ],
-      ["cognizant", "Cognizant (GenC)", ["quantitative-aptitude", "reasoning", "verbal-ability", "programming-logic"] ],
-      ["capgemini", "Capgemini", ["quantitative-aptitude", "reasoning", "verbal-ability", "technical-mcq"] ],
-      ["amcat", "AMCAT", ["quantitative-aptitude", "reasoning", "english-grammar", "vocabulary", "reading-comprehension", "technical-mcq"], { keywords: "aspiring minds" }],
-      ["elitmus", "eLitmus (pH Test)", ["quantitative-aptitude", "reasoning", "verbal-ability"] ],
-    ],
-  },
-  {
-    slug: "aptitude-reasoning", name: "Aptitude & Reasoning",
-    description: "Stand-alone practice for numbers, logic and judgement.",
-    exams: [
-      ["general-aptitude", "General Aptitude", ["quantitative-aptitude", "reasoning", "verbal-ability", "data-interpretation"], { popular: true, keywords: "aptitude quant logical" }],
-      ["situational-judgement-test", "Situational Judgement Test", ["situational-judgement"], { keywords: "sjt psychometric" }],
-    ],
-  },
-  {
-    slug: "english-communication", name: "English & Communication",
-    description: "Grammar, vocabulary and comprehension for every exam and job.",
-    exams: [
-      ["english-grammar-usage", "English Grammar & Usage", ["english-grammar"], { popular: true }],
-      ["vocabulary-builder", "Vocabulary Builder", ["vocabulary"] ],
-      ["reading-skills", "Reading Comprehension", ["reading-comprehension"] ],
-      ["english-for-competitive-exams", "English for Competitive Exams", [...ENGLISH, "verbal-ability"], { keywords: "bank ssc english section" }],
-    ],
-  },
-  {
-    slug: "professional-certification", name: "Professional & Certification Exams",
+    slug: "professional-certification",
+    name: "Professional & Certification Exams",
     description: "Finance, accounting, insurance and banking certifications.",
     exams: [
-      ["ca-foundation", "CA Foundation", ["accounting", "business-laws", "quantitative-aptitude", "business-economics"], { keywords: "chartered accountant icai" }],
-      ["cma-foundation", "CMA Foundation", ["accounting", "business-laws", "business-economics"], { keywords: "cost management accountant" }],
-      ["cseet", "CSEET", ["business-laws", "business-economics", "reading-comprehension", "general-awareness"], { keywords: "company secretary" }],
-      ["nism", "NISM Certifications", ["financial-markets"], { keywords: "sebi securities mutual fund" }],
-      ["irdai-agent", "IRDAI Insurance Agent", ["insurance"], { keywords: "insurance agent" }],
-      ["jaiib", "JAIIB", ["banking-operations"], { keywords: "iibf bank employees" }],
-      ["caiib", "CAIIB", ["banking-operations"], { keywords: "iibf" }],
+      { slug: "ca-foundation", name: "CA Foundation", keywords: "chartered accountant icai", sections: [S(null, "accounting", "business-laws", "quantitative-aptitude", "business-economics")] },
+      { slug: "cma-foundation", name: "CMA Foundation", keywords: "cost management accountant", sections: [S(null, "accounting", "business-laws", "business-economics")] },
+      { slug: "cseet", name: "CSEET", keywords: "company secretary", sections: [S(null, "business-laws", "business-economics", "reading-comprehension")] },
+      { slug: "nism", name: "NISM Certifications", keywords: "securities mutual fund", sections: [S(null, "financial-markets")] },
+      { slug: "irdai-agent", name: "Insurance Agent Exam", keywords: "irdai insurance agent", sections: [S(null, "insurance")] },
+      { slug: "jaiib", name: "JAIIB", keywords: "iibf bank employees", sections: [S(null, "banking-operations")] },
+      { slug: "caiib", name: "CAIIB", keywords: "iibf", sections: [S(null, "banking-operations")] },
     ],
   },
 ];
 
+
+// Taken out of the candidate catalogue on 1 Oct 2026 (government recruitment
+// exams and entrance tests run by government bodies). apply.mjs switches
+// them off - never deletes them - so test history keeps its names.
+export const RETIRED = {
+  categories: ["government-competitive", "banking", "ssc", "railway", "upsc-civil-services", "state-government", "police-defence", "teaching", "university-entrance", "campus-placement"],
+  subjects: ["general-awareness", "banking-awareness", "computer-knowledge", "general-science", "general-studies", "csat", "child-pedagogy", "teaching-aptitude", "environmental-studies", "mathematics", "physics", "chemistry", "biology", "legal-reasoning", "programming-logic", "technical-mcq"],
+};
+
 export function slugify(name) {
   return name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Every (exam, subject) link with its section name and order. */
+export function examLinks(exam) {
+  return exam.sections.flatMap((section) => section.subjects.map((subject) => ({ subject, sectionName: section.name ?? null }))).map((l, i) => ({ ...l, sortOrder: i }));
+}
+
+export function mockMinutes(exam) {
+  return exam.minutes ?? Math.ceil(examLinks(exam).length * (exam.per ?? 10) * 0.75);
 }

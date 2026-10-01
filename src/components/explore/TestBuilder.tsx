@@ -31,6 +31,8 @@ export interface BuilderSubject {
   description: string | null;
   mockQuestionCount: number;
   skills: { id: string; name: string }[];
+  /** The exam's own section heading for this subject (null: no heading). */
+  section?: string | null;
 }
 
 export function TestBuilder({
@@ -41,18 +43,22 @@ export function TestBuilder({
   allowedLevels,
   signedIn,
   loginHref,
+  initialSkillId = null,
 }: {
-  examId: string;
+  /** Null for skill-first practice (one practice area, no exam). */
+  examId: string | null;
   mockMinutes: number | null;
   subjects: BuilderSubject[];
   counts: Record<string, number>;
   allowedLevels: Level[];
   signedIn: boolean;
   loginHref: string;
+  initialSkillId?: string | null;
 }) {
   const router = useRouter();
-  const [scope, setScope] = useState<string>(subjects[0]?.id ?? "EXAM"); // a subject id, or "EXAM"
-  const [skillId, setSkillId] = useState<string | null>(null);
+  const preselected = initialSkillId ? subjects.find((s) => s.skills.some((k) => k.id === initialSkillId)) : undefined;
+  const [scope, setScope] = useState<string>(preselected?.id ?? subjects[0]?.id ?? "EXAM"); // a subject id, or "EXAM"
+  const [skillId, setSkillId] = useState<string | null>(preselected ? initialSkillId : null);
   const [level, setLevel] = useState<Level>("BEGINNER");
   const [mode, setMode] = useState<Mode>("PRACTICE");
   const [count, setCount] = useState(10);
@@ -118,12 +124,14 @@ export function TestBuilder({
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="grid min-w-0 gap-8">
         <section>
-          {step(1, "Choose a subject or skill")}
+          {step(1, examId ? "Choose a section, subject or skill" : "Choose a skill")}
           <div role="radiogroup" aria-label="Subject" className="sheet mt-3 divide-y divide-slate-100 overflow-hidden">
-            {subjects.map((s) => {
+            {subjects.map((s, i) => {
               const selected = scope === s.id;
+              const heading = s.section && s.section !== subjects[i - 1]?.section ? s.section : null;
               return (
                 <div key={s.id} className={selected ? "bg-brand-50/60" : undefined}>
+                  {heading && <p className="eyebrow bg-slate-50 px-5 pb-2 pt-3 text-slate-500">{heading}</p>}
                   <button type="button" role="radio" aria-checked={selected} onClick={() => chooseScope(s.id)} className="flex w-full items-center gap-4 px-5 py-4 text-left">
                     <span aria-hidden="true" className={`flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 ${selected ? "border-brand-600 bg-brand-600" : "border-slate-300"}`}>
                       {selected && <span className="h-2 w-2 rounded-full bg-white" />}
@@ -159,6 +167,7 @@ export function TestBuilder({
                 </div>
               );
             })}
+            {examId && (
             <button type="button" role="radio" aria-checked={scope === "EXAM"} onClick={() => chooseScope("EXAM")} className={`flex w-full items-center gap-4 px-5 py-4 text-left ${scope === "EXAM" ? "bg-brand-50/60" : ""}`}>
               <span aria-hidden="true" className={`flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 ${scope === "EXAM" ? "border-brand-600 bg-brand-600" : "border-slate-300"}`}>
                 {scope === "EXAM" && <span className="h-2 w-2 rounded-full bg-white" />}
@@ -168,9 +177,10 @@ export function TestBuilder({
                   <Icon as={Layers} size="xs" className="text-brand-600" />
                   Whole exam
                 </span>
-                <span className="mt-0.5 block text-xs text-slate-500">Full mock tests, weak areas and revision across every subject</span>
+                <span className="mt-0.5 block text-xs text-slate-500">Full mock tests, weak areas and revision across every section</span>
               </span>
             </button>
+            )}
           </div>
         </section>
 

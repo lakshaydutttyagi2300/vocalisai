@@ -968,7 +968,10 @@ model CatalogExam {
   name        String
   description String?
   keywords    String? // extra search words, e.g. "ibps po probationary officer"
-  isPopular   Boolean         @default(false)
+  // Sub-heading inside the category, e.g. "Assessment providers" or
+  // "Company assessments" (null = no sub-heading).
+  groupName   String?
+  isPopular   Boolean         @default(false) // shown under Featured assessments
   sortOrder   Int             @default(0)
   isActive    Boolean         @default(true)
   // Full mock: total time; question counts come from CatalogExamSubject.
@@ -1010,6 +1013,10 @@ model CatalogExamSubject {
   subject           CatalogSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   sortOrder         Int            @default(0)
   mockQuestionCount Int            @default(0) // questions from this subject in the exam's full mock
+  // The exam's own name for the section this subject belongs to, e.g. TCS
+  // NQT's "Numerical Ability" (Quantitative Aptitude questions). Subjects
+  // sharing a section name are shown together; null = the subject's name.
+  sectionName       String?
 
   @@id([examId, subjectId])
   @@index([subjectId])

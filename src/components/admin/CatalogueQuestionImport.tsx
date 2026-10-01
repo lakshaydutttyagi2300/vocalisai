@@ -6,7 +6,7 @@ import { Download, Upload } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
 const COLUMNS = ["subject", "skill", "exams", "difficulty", "type", "question", "passage", "options", "correctAnswer", "explanation", "tags", "status", "timeLimitSeconds"];
-const EXAMPLE = ["reasoning", "syllogism", "ssc-cgl; ibps-po", "BEGINNER", "MULTIPLE_CHOICE", "All pens are books. All books are bags. Are all pens bags?", "", "Yes | No", "Yes", "Every pen is a book and every book is a bag.", "syllogism; basics", "ACTIVE", "60"];
+const EXAMPLE = ["reasoning", "syllogism", "tcs-nqt; amcat", "BEGINNER", "MULTIPLE_CHOICE", "All pens are books. All books are bags. Are all pens bags?", "", "Yes | No", "Yes", "Every pen is a book and every book is a bag.", "syllogism; basics", "ACTIVE", "60"];
 
 interface Result {
   total: number;

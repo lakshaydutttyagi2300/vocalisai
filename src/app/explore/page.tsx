@@ -1,59 +1,99 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Star } from "lucide-react";
-import { catalogTree } from "@/lib/catalog-queries";
+import { ArrowRight, ArrowUpRight, Building2, Layers3 } from "lucide-react";
+import { db } from "@/lib/db";
+import { catalogTree, HIRING_CATEGORY, sectionNames, skillFirstAreas } from "@/lib/catalog-queries";
 import { Icon } from "@/components/ui/Icon";
 import { ExploreSearch, type SearchItem } from "@/components/explore/ExploreSearch";
 import { categoryIcon } from "@/components/explore/categoryIcons";
+import { ExamMonogram } from "@/components/explore/ExamMonogram";
 
 export const metadata: Metadata = {
-  title: "Explore exams - VocalisAi",
-  description: "Practise for banking, SSC, railway, UPSC, state, defence, teaching, entrance and campus placement exams by subject, skill and level.",
+  title: "Explore assessments - VocalisAi",
+  description: "Prepare for company assessments, interviews and workplace skills: AMCAT, eLitmus, CoCubes, TCS NQT, Infosys, Accenture and more, or practise aptitude, reasoning and English skill by skill.",
 };
 
-// Step one of Category -> Exam -> Subject/Skill -> Level -> Mode. Public, so
-// visitors can see what's covered; starting a test needs an account.
-export default async function ExplorePage() {
-  const tree = await catalogTree().catch((err) => {
-    console.error("explore: catalogue failed", err);
-    return [];
+async function searchableSkills() {
+  return db.catalogSubject.findMany({
+    where: { isActive: true, exams: { some: { exam: { isActive: true, category: { isActive: true } } } } },
+    select: { slug: true, name: true, skills: { where: { isActive: true }, select: { slug: true, name: true } } },
   });
-  const items: SearchItem[] = tree.flatMap((c) =>
-    c.exams.map((e) => {
-      const subjects = e.subjects.map((s) => s.subject.name);
-      return {
-        href: `/explore/${c.slug}/${e.slug}`,
-        name: e.name,
-        category: c.name,
-        subjects,
-        text: [e.name, c.name, e.description ?? "", e.keywords ?? "", ...subjects].join(" ").toLowerCase(),
-      };
-    })
-  );
-  const popular = tree.flatMap((c) => c.exams.filter((e) => e.isPopular).map((e) => ({ ...e, categorySlug: c.slug })));
+}
+
+// Explore: company/assessment-first and skill-first routes into the same
+// question bank. Public, so visitors see what's covered; starting needs an account.
+export default async function ExplorePage() {
+  const [tree, areas, subjects] = await Promise.all([catalogTree(), skillFirstAreas(), searchableSkills()]).catch((err) => {
+    console.error("explore: catalogue failed", err);
+    return [[], [], []] as [Awaited<ReturnType<typeof catalogTree>>, Awaited<ReturnType<typeof skillFirstAreas>>, Awaited<ReturnType<typeof searchableSkills>>];
+  });
+
+  const items: SearchItem[] = [
+    ...tree.flatMap((c) =>
+      c.exams.map((e) => {
+        const sections = sectionNames(e.subjects);
+        return {
+          href: `/explore/${c.slug}/${e.slug}`,
+          name: e.name,
+          kind: e.groupName === "Assessment providers" ? "Assessment provider" : e.groupName === "Company assessments" ? "Company assessment" : c.name,
+          detail: sections.slice(0, 3).join(", "),
+          text: [e.name, c.name, e.groupName ?? "", e.description ?? "", e.keywords ?? "", ...sections, ...e.subjects.map((s) => s.subject.name)].join(" ").toLowerCase(),
+        };
+      })
+    ),
+    ...subjects.map((s) => ({ href: `/explore/skills/${s.slug}`, name: s.name, kind: "Practice area", text: `${s.name} ${s.skills.map((k) => k.name).join(" ")}`.toLowerCase() })),
+    ...subjects.flatMap((s) => s.skills.map((k) => ({ href: `/explore/skills/${s.slug}?skill=${k.slug}`, name: k.name, kind: `Skill · ${s.name}`, text: `${k.name} ${s.name}`.toLowerCase() }))),
+  ];
+  const featured = tree.flatMap((c) => c.exams.filter((e) => e.isPopular).map((e) => ({ ...e, categorySlug: c.slug })));
+  const hiring = tree.find((c) => c.slug === HIRING_CATEGORY);
+  const hiringGroups = hiring ? [...new Set(hiring.exams.map((e) => e.groupName ?? ""))].map((name) => ({ name, exams: hiring.exams.filter((e) => (e.groupName ?? "") === name) })) : [];
+  const otherCategories = tree.filter((c) => c.slug !== HIRING_CATEGORY);
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
       <p className="eyebrow">Explore</p>
-      <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Find your exam</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        Choose a category and your exam, then practise by subject or skill at the level that suits you, from Beginner to Expert.
+      <h1 className="headline mt-3 max-w-3xl text-3xl text-ink-950 sm:text-5xl">Prepare for company assessments, interviews and workplace skills</h1>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
+        Start from the test you&apos;re facing, or from the skill you want to improve. Both lead to the same questions, at Beginner to Expert level.
       </p>
 
       <div className="mt-8">
         <ExploreSearch items={items} />
       </div>
 
-      {popular.length > 0 && (
-        <section aria-labelledby="popular-heading" className="mt-10">
-          <h2 id="popular-heading" className="eyebrow text-slate-500">
-            Popular exams
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <Link href={`/explore/${HIRING_CATEGORY}`} className="panel-ink group flex items-start gap-4 overflow-hidden rounded-[1.25rem] p-6 text-white">
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-white/10 text-amber-300">
+            <Icon as={Building2} size="md" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-lg font-bold">By company or assessment</span>
+            <span className="mt-1 block text-sm text-slate-300">AMCAT, eLitmus, TCS NQT, Infosys, Accenture and more, section by section.</span>
+          </span>
+          <Icon as={ArrowRight} className="mt-1 text-amber-300 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+        <Link href="/explore/skills" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+            <Icon as={Layers3} size="md" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-lg font-bold text-ink-950">By skill</span>
+            <span className="mt-1 block text-sm text-slate-600">Quantitative aptitude, reasoning, English, situational judgement - no company needed.</span>
+          </span>
+          <Icon as={ArrowRight} className="mt-1 text-brand-600 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
+      {featured.length > 0 && (
+        <section aria-labelledby="featured-heading" className="mt-10">
+          <h2 id="featured-heading" className="eyebrow text-slate-500">
+            Featured assessments
           </h2>
           <ul className="rail mt-3 [grid-auto-columns:max-content]">
-            {popular.map((e) => (
+            {featured.map((e) => (
               <li key={e.id}>
-                <Link href={`/explore/${e.categorySlug}/${e.slug}`} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink-950 hover:border-brand-300 hover:text-brand-700">
-                  <Icon as={Star} size="xs" className="text-amber-500" />
+                <Link href={`/explore/${e.categorySlug}/${e.slug}`} className="inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-4 text-sm font-semibold text-ink-950 hover:border-brand-300 hover:text-brand-700">
+                  <ExamMonogram name={e.name} size="sm" />
                   {e.name}
                 </Link>
               </li>
@@ -62,12 +102,62 @@ export default async function ExplorePage() {
         </section>
       )}
 
-      <section aria-labelledby="categories-heading" className="mt-10">
-        <h2 id="categories-heading" className="eyebrow text-slate-500">
-          All categories
+      {hiring && (
+        <section aria-labelledby="hiring-heading" className="mt-12">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="hiring-heading" className="headline text-2xl text-ink-950">
+              {hiring.name}
+            </h2>
+            <Link href={`/explore/${hiring.slug}`} className="text-sm font-semibold text-brand-700 hover:underline">
+              See all &rarr;
+            </Link>
+          </div>
+          {hiringGroups.map((g) => (
+            <div key={g.name || "all"} className="mt-5">
+              {g.name && <h3 className="eyebrow text-slate-500">{g.name}</h3>}
+              <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {g.exams.map((e) => (
+                  <li key={e.id}>
+                    <Link href={`/explore/${hiring.slug}/${e.slug}`} className="sheet group flex h-full items-center gap-3 p-3 transition-colors hover:border-brand-200">
+                      <ExamMonogram name={e.name} size="sm" />
+                      <span className="min-w-0 truncate text-sm font-semibold text-ink-950 group-hover:text-brand-700">{e.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {areas.length > 0 && (
+        <section aria-labelledby="skills-heading" className="mt-12">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="skills-heading" className="headline text-2xl text-ink-950">
+              Practice by skill
+            </h2>
+            <Link href="/explore/skills" className="text-sm font-semibold text-brand-700 hover:underline">
+              All skills &rarr;
+            </Link>
+          </div>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {areas.flatMap((g) => g.subjects).map((s) => (
+              <li key={s.slug}>
+                <Link href={`/explore/skills/${s.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink-950 hover:border-brand-300 hover:text-brand-700">
+                  {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section aria-labelledby="categories-heading" className="mt-12">
+        <h2 id="categories-heading" className="headline text-2xl text-ink-950">
+          More categories
         </h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {tree.map((c) => (
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {otherCategories.map((c) => (
             <li key={c.id}>
               <Link href={`/explore/${c.slug}`} className="sheet group flex h-full items-start gap-4 p-5 transition-colors hover:border-brand-200">
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -75,10 +165,7 @@ export default async function ExplorePage() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-ink-950 group-hover:text-brand-700">{c.name}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">
-                    {c.exams.length} exam{c.exams.length === 1 ? "" : "s"}
-                    {c.exams.length > 0 && ` · ${c.exams.slice(0, 3).map((e) => e.name).join(", ")}${c.exams.length > 3 ? "…" : ""}`}
-                  </span>
+                  {c.description && <span className="mt-1 block text-xs leading-relaxed text-slate-500">{c.description}</span>}
                 </span>
                 <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 transition-colors group-hover:text-brand-600" />
               </Link>

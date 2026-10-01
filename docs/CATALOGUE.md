@@ -1,18 +1,33 @@
 # Exam catalogue
 
-The India-focused exam preparation layer: candidates choose **Category → Exam → Subject / Skill → Level → Mode**, practise, and track their performance. Everything is managed by admins in the database; no code change is needed to add an exam, subject, skill or question.
+VocalisAi's preparation layer for **private-sector hiring**: company and provider assessments, aptitude and reasoning, English and communication, workplace assessments, management entrance tests and professional certifications. Candidates reach the same question bank two ways:
+
+- **Assessment-first:** Category → Assessment → Section → Subject / Skill → Level → Mode (`/explore/[category]/[exam]`).
+- **Skill-first:** Practice area → Skill → Level → Mode, no company needed (`/explore/skills/[subject]`).
+
+Everything is managed by admins in the database; no code change is needed to add a company, provider, assessment, section, subject, skill or question.
 
 ## Structure
 
 | Layer | Model | Notes |
 |---|---|---|
-| Category | `CatalogCategory` | 13 seeded (Banking, SSC, Railway, UPSC, State, Police & Defence, Teaching, University & Entrance, Campus Placement, Aptitude & Reasoning, English & Communication, Professional & Certification, Government & Competitive). |
-| Exam | `CatalogExam` | Belongs to one category. `isPopular` shows it under Popular exams; `keywords` feed search; `mockMinutes` times the full mock. |
-| Subject | `CatalogSubject` | **Shared** between exams (`CatalogExamSubject`, which also holds each subject's full-mock question count). Optional `legacyCategory` bridges an older question bank (see below). |
+| Category | `CatalogCategory` | Company & Hiring Assessments (shown first), Aptitude & Reasoning, English & Communication, Workplace Assessments, Career & Entrance Assessments, Professional & Certification Exams. |
+| Assessment | `CatalogExam` | Belongs to one category. `groupName` is its sub-heading ("Assessment providers" or "Company assessments"); `isPopular` shows it under **Featured assessments**; `keywords` feed search; `mockMinutes` times the full mock. |
+| Section | `CatalogExamSubject.sectionName` | The assessment's own name for a section (TCS NQT's "Numerical Ability"). Several subjects can share a section (AMCAT's "English Comprehension" = Grammar + Vocabulary + Reading Comprehension). Also holds each subject's full-mock question count. |
+| Subject | `CatalogSubject` | **Shared** between assessments, so one Logical Reasoning bank serves AMCAT, TCS NQT, Infosys and the rest. Optional `legacyCategory` bridges an older question bank (see below). |
 | Skill | `CatalogSkill` | Belongs to one subject; `slug` unique within it. |
 | Level | `PracticeQuestion.difficulty` | Beginner, Intermediate, Advanced, Expert. Every question has exactly one; levels never share or borrow questions. Free plans: Beginner and Intermediate (`PLAN_DIFFICULTY_ACCESS`). |
 
-The starting structure (13 categories, 77 exams, 30 subjects, 166 skills, **no questions**) is `prisma/catalogue/content.mjs`, loaded by `npm run seed:catalogue` (add `-- --production` for the live database). The seed only creates what is missing and never overwrites an admin's edits.
+**Practice by skill** lists the active subjects used by the Aptitude & Reasoning, English & Communication and Workplace Assessments categories (`SKILL_FIRST_CATEGORIES` in `src/lib/catalog-queries.ts`), plus links to the spoken-English practice modes (recorded answers with AI feedback). Coding and programming assessments are deliberately not part of the catalogue.
+
+**The structure lives in `prisma/catalogue/content.mjs`** (no questions):
+
+- `npm run seed:catalogue` - fresh databases: adds what's missing, never changes existing rows (admin edits survive).
+- `node prisma/catalogue/apply.mjs` - brings an existing database in line with the file (`--print` shows the SQL; `--production` for the live database, after a Neon backup branch). It updates the listed rows, replaces the listed assessments' sections and **switches off** everything in `RETIRED`; it never deletes, so candidates' test history keeps its names.
+
+**Government exams were retired on 1 Oct 2026** (Banking, SSC, Railway, UPSC, State, Police & Defence, Teaching, and government-run entrance tests). Their categories and exams are switched off, not deleted; their old addresses redirect to Explore, and assessments that moved (TCS NQT and the other company tests, out of the old Campus Placement; CAT into Career & Entrance) redirect to their new address.
+
+Company and provider names identify the tests candidates prepare for; every assessment page says VocalisAi isn't affiliated with them, and tiles use initials, never logos.
 
 ## Questions
 
@@ -42,7 +57,7 @@ Admin → Content → **Catalogue questions** → Import questions. Download the
 |---|---|---|---|
 | `subject` | yes | `reasoning` | The subject's short name (shown on the Exam catalogue page). |
 | `skill` | no | `syllogism` | The skill's short name within that subject. |
-| `exams` | no | `ssc-cgl; ibps-po` | Limit to these exams. Empty = every exam with the subject. |
+| `exams` | no | `tcs-nqt; amcat` | Limit to these assessments. Empty = every assessment with the subject. |
 | `difficulty` | yes | `BEGINNER` | BEGINNER, INTERMEDIATE, ADVANCED or EXPERT. |
 | `type` | no | `MULTIPLE_CHOICE` | Default MULTIPLE_CHOICE. Also READING_COMPREHENSION, TRUE_FALSE_NOT_GIVEN, YES_NO_NOT_GIVEN, MULTI_SELECT, GAP_FILL, ORDERING, NUMERIC_ENTRY, MATCHING. |
 | `question` | yes | `Which river…?` | |

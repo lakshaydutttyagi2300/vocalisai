@@ -9,6 +9,7 @@ import { PRACTICE_MODES } from "@/lib/practice-taxonomy";
 interface ExamLink {
   subjectId: string;
   mockQuestionCount: number;
+  sectionName: string | null;
 }
 interface Exam {
   id: string;
@@ -17,6 +18,7 @@ interface Exam {
   description: string | null;
   keywords: string | null;
   isPopular: boolean;
+  groupName: string | null;
   isActive: boolean;
   sortOrder: number;
   mockMinutes: number | null;
@@ -346,6 +348,7 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
     description: exam?.description ?? "",
     keywords: exam?.keywords ?? "",
     isPopular: exam?.isPopular ?? false,
+    groupName: exam?.groupName ?? "",
     isActive: exam?.isActive ?? true,
     sortOrder: exam?.sortOrder ?? 0,
     mockMinutes: exam?.mockMinutes ?? 60,
@@ -359,7 +362,7 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
       className="sheet grid gap-4 p-5"
       onSubmit={(e) => {
         e.preventDefault();
-        onSave({ ...form, slug: form.slug || undefined, description: form.description || null, keywords: form.keywords || null, mockMinutes: form.mockMinutes || null, subjects: links }, exam?.id);
+        onSave({ ...form, slug: form.slug || undefined, description: form.description || null, keywords: form.keywords || null, groupName: form.groupName.trim() || null, mockMinutes: form.mockMinutes || null, subjects: links }, exam?.id);
       }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -384,7 +387,15 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
             ))}
           </select>
         </Field>
-        <Field label="Search words" hint="Other names candidates might type, e.g. probationary officer">
+        <Field label="Group (sub-heading)" hint="e.g. Assessment providers or Company assessments. Empty: no sub-heading.">
+          <input className={input} list="exam-groups" value={form.groupName} onChange={(e) => setForm({ ...form, groupName: e.target.value })} maxLength={60} />
+          <datalist id="exam-groups">
+            {[...new Set(categories.flatMap((c) => c.exams.map((x) => x.groupName)).filter(Boolean))].map((g) => (
+              <option key={g} value={g!} />
+            ))}
+          </datalist>
+        </Field>
+        <Field label="Search words" hint="Other names candidates might type, e.g. national qualifier test">
           <input className={input} value={form.keywords} onChange={(e) => setForm({ ...form, keywords: e.target.value })} maxLength={300} />
         </Field>
       </div>
@@ -399,7 +410,7 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
           <input type="number" className={`${input} w-28`} min={1} max={600} value={form.mockMinutes ?? ""} onChange={(e) => setForm({ ...form, mockMinutes: Number(e.target.value) })} />
         </Field>
         <ActiveToggle value={form.isActive} onChange={(isActive) => setForm({ ...form, isActive })} />
-        <ActiveToggle value={form.isPopular} onChange={(isPopular) => setForm({ ...form, isPopular })} label="Show in Popular exams" />
+        <ActiveToggle value={form.isPopular} onChange={(isPopular) => setForm({ ...form, isPopular })} label="Show in Featured assessments" />
       </div>
 
       <fieldset className="rounded-xl border border-slate-200">
@@ -413,12 +424,21 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
                   <input
                     type="checkbox"
                     checked={Boolean(link)}
-                    onChange={(e) => setLinks(e.target.checked ? [...links, { subjectId: s.id, mockQuestionCount: 10 }] : links.filter((l) => l.subjectId !== s.id))}
+                    onChange={(e) => setLinks(e.target.checked ? [...links, { subjectId: s.id, mockQuestionCount: 10, sectionName: null }] : links.filter((l) => l.subjectId !== s.id))}
                     className="h-4 w-4 rounded border-slate-300"
                   />
                   <span className={s.isActive ? "text-ink-950" : "text-slate-400"}>{s.name}</span>
                 </label>
                 {link && (
+                  <span className="flex gap-2">
+                  <input
+                    aria-label={`${s.name} section name`}
+                    placeholder="Section name (optional)"
+                    className={`${input} w-48 py-1`}
+                    maxLength={80}
+                    value={link.sectionName ?? ""}
+                    onChange={(e) => setLinks(links.map((l) => (l.subjectId === s.id ? { ...l, sectionName: e.target.value || null } : l)))}
+                  />
                   <input
                     type="number"
                     aria-label={`${s.name} questions in the full mock`}
@@ -428,6 +448,7 @@ function ExamEditor({ exam, categoryId, categories, subjects, onBack, onSave, on
                     value={link.mockQuestionCount}
                     onChange={(e) => setLinks(links.map((l) => (l.subjectId === s.id ? { ...l, mockQuestionCount: Number(e.target.value) } : l)))}
                   />
+                  </span>
                 )}
               </li>
             );

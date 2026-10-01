@@ -68,9 +68,9 @@ PostgreSQL on **Neon**, accessed only through **Prisma 6**. The schema is `prism
 ### Exam catalogue ([CATALOGUE.md](CATALOGUE.md))
 | Model | Purpose | Key relations and rules |
 |---|---|---|
-| `CatalogCategory` → `CatalogExam` | Browse categories and their exams | `slug` unique; `isActive` hides; exams have `isPopular`, `keywords`, `mockMinutes`. A category with exams can't be deleted. |
+| `CatalogCategory` → `CatalogExam` | Browse categories and their exams | `slug` unique; `isActive` hides; exams have `isPopular` (Featured), `keywords`, `mockMinutes` and an optional `groupName` sub-heading (Assessment providers, Company assessments). A category with exams can't be deleted. |
 | `CatalogSubject` → `CatalogSkill` | Shared subjects and their skills | `legacyCategory` bridges an older bank; skill `slug` unique per subject. |
-| `CatalogExamSubject` | Which subjects an exam has, and each one's full-mock question count | Composite key `(examId, subjectId)`. |
+| `CatalogExamSubject` | Which subjects an exam has, and each one's full-mock question count and optional `sectionName` (the test's own section, e.g. "Reasoning Ability") | Composite key `(examId, subjectId)`. |
 | `QuestionExam` | Limits a question to named exams | No rows = every exam with the question's subject. |
 | `QuestionSeen` | Anti-repetition memory per candidate and question | Composite key `(userId, questionId)`; seen/answered/right counts, last seen, last result. |
 | `QuestionBookmark` | A candidate's saved question | Composite key `(userId, questionId)`. |

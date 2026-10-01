@@ -40,11 +40,15 @@ export const examSchema = z.object({
   slug: slug.optional(),
   description: text,
   keywords: z.string().trim().max(300).nullish(),
+  groupName: z.string().trim().max(60).nullish(),
   isPopular: z.boolean().default(false),
   sortOrder: z.number().int().min(0).max(9999).default(0),
   isActive: z.boolean().default(true),
   mockMinutes: z.number().int().min(1).max(600).nullish(),
-  subjects: z.array(z.object({ subjectId: z.string().min(1).max(40), mockQuestionCount: z.number().int().min(0).max(300).default(10) })).max(40).optional(),
+  subjects: z
+    .array(z.object({ subjectId: z.string().min(1).max(40), mockQuestionCount: z.number().int().min(0).max(300).default(10), sectionName: z.string().trim().max(80).nullish() }))
+    .max(40)
+    .optional(),
 });
 export const subjectSchema = z.object({
   name,
@@ -65,10 +69,10 @@ function uniqueError(err: unknown): never {
   throw err;
 }
 
-async function setExamSubjects(examId: string, subjects: { subjectId: string; mockQuestionCount: number }[]) {
+async function setExamSubjects(examId: string, subjects: { subjectId: string; mockQuestionCount: number; sectionName?: string | null }[]) {
   await db.$transaction([
     db.catalogExamSubject.deleteMany({ where: { examId } }),
-    db.catalogExamSubject.createMany({ data: subjects.map((s, i) => ({ examId, subjectId: s.subjectId, mockQuestionCount: s.mockQuestionCount, sortOrder: i })) }),
+    db.catalogExamSubject.createMany({ data: subjects.map((s, i) => ({ examId, subjectId: s.subjectId, mockQuestionCount: s.mockQuestionCount, sectionName: s.sectionName || null, sortOrder: i })) }),
   ]);
 }
 

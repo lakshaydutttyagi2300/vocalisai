@@ -11,7 +11,7 @@ const SHOTS = process.env.CATALOGUE_SHOTS;
 const run = Date.now();
 const categoryName = `E2E Category ${run}`;
 const examName = `E2E Exam ${run}`;
-const subjectSlug = "general-awareness";
+const subjectSlug = "attention-to-detail";
 
 test.afterAll(async () => {
   const subject = await db.catalogSubject.findUnique({ where: { slug: subjectSlug } });
@@ -38,24 +38,24 @@ test("an admin creates a category, exam, skill and questions, and a candidate pr
     await loginAs(page, admin.email, password);
     await page.goto("/admin/catalogue");
     await expect(page.getByRole("heading", { name: "Exam catalogue" })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole("button", { name: /Banking Exams/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Company & Hiring Assessments/ })).toBeVisible();
 
-    // Category, then an exam in it with General Awareness (15 mock questions).
+    // Category, then an exam in it with Attention to Detail (15 mock questions).
     await page.getByRole("button", { name: "Add" }).first().click();
     await page.getByLabel("Name", { exact: true }).fill(categoryName);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("status")).toHaveText("Category saved.", { timeout: 30_000 });
     await page.getByRole("button", { name: "Add exam" }).click();
     await page.getByLabel("Name", { exact: true }).fill(examName);
-    await page.getByRole("checkbox", { name: "General Awareness" }).check();
-    await page.getByLabel("General Awareness questions in the full mock").fill("15");
+    await page.getByRole("checkbox", { name: "Attention to Detail" }).check();
+    await page.getByLabel("Attention to Detail questions in the full mock").fill("15");
     await page.getByRole("button", { name: "Save exam" }).click();
     await expect(page.getByRole("status")).toHaveText("Exam saved.", { timeout: 30_000 });
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-catalogue-exam.png`, fullPage: true });
 
-    // A new skill on the shared General Awareness subject.
+    // A new skill on the shared Attention to Detail subject.
     await page.getByRole("tab", { name: "Subjects & skills" }).click();
-    await page.getByRole("button", { name: /^General Awareness/ }).click();
+    await page.getByRole("button", { name: /^Attention to Detail/ }).click();
     await page.getByLabel("New skill name").fill(`E2E Skill ${run}`);
     await page.getByRole("button", { name: "Add skill" }).click();
     await expect(page.getByText(`E2E Skill ${run}`)).toBeVisible({ timeout: 30_000 });
@@ -64,7 +64,7 @@ test("an admin creates a category, exam, skill and questions, and a candidate pr
     await page.goto("/admin/catalogue/questions");
     await page.getByRole("button", { name: "New question" }).click();
     const form = page.getByRole("form", { name: "New question" });
-    await form.getByLabel("Subject").selectOption({ label: "General Awareness" });
+    await form.getByLabel("Subject").selectOption({ label: "Attention to Detail" });
     await form.getByLabel("Skill").selectOption({ label: `E2E Skill ${run}` });
     await form.getByLabel("Question", { exact: true }).fill(`Which river is the longest in India? (e2e ${run})`);
     for (const [i, option] of ["Ganga", "Godavari", "Yamuna", "Narmada"].entries()) await form.getByLabel(`Option ${i + 1}`).fill(option);
@@ -107,7 +107,7 @@ test("an admin creates a category, exam, skill and questions, and a candidate pr
     await expect(page.getByRole("row", { name: /Which river/ })).toContainText("Active", { timeout: 30_000 });
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-catalogue-questions.png`, fullPage: true });
 
-    // The candidate finds the new exam and practises its General Awareness questions.
+    // The candidate finds the new exam and practises its Attention to Detail questions.
     const context = await browser.newContext();
     const cand = await context.newPage();
     await cand.goto("/");
@@ -115,7 +115,7 @@ test("an admin creates a category, exam, skill and questions, and a candidate pr
     const category = await db.catalogCategory.findFirstOrThrow({ where: { name: categoryName } });
     const exam = await db.catalogExam.findFirstOrThrow({ where: { name: examName } });
     await cand.goto(`/explore/${category.slug}/${exam.slug}`);
-    await cand.getByRole("radiogroup", { name: "Subject" }).getByRole("radio", { name: /General Awareness/ }).click();
+    await cand.getByRole("radiogroup", { name: "Subject" }).getByRole("radio", { name: /Attention to Detail/ }).click();
     await cand.getByRole("radiogroup", { name: "Level" }).getByRole("radio", { name: /Beginner/ }).click();
     await expect(cand.getByRole("radiogroup", { name: "Level" }).getByRole("radio", { name: /Beginner/ })).toContainText("3 questions");
     await cand.getByRole("button", { name: "Start" }).click();
