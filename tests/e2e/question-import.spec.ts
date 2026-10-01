@@ -85,6 +85,12 @@ test("an admin imports CSV, XLSX and JSON question files into the question bank"
     await expect(page.getByText(/isn't valid JSON/)).toBeVisible();
     await upload(page, "empty.csv", "text/csv", Buffer.from("Question,Category,Difficulty\n"));
     await expect(page.getByText("That file has column names but no questions under them.")).toBeVisible();
+    // An exam-catalogue file (skill + exams columns) points to the catalogue import, and >5 rows can all be shown.
+    const catalogueRows = Array.from({ length: 7 }, (_, i) => `vocabulary,spelling,amcat,BEGINNER,MULTIPLE_CHOICE,Spell ${i} ${tag},a | b,a`);
+    await upload(page, "catalogue.csv", "text/csv", Buffer.from(["subject,skill,exams,difficulty,type,question,options,correctAnswer", ...catalogueRows].join("\n")));
+    await expect(page.getByRole("link", { name: "Exam catalogue → Manage questions" })).toBeVisible();
+    await page.getByRole("button", { name: "Show all 7 rows" }).click();
+    await expect(page.getByRole("cell", { name: `Spell 6 ${tag}` })).toBeVisible();
     await upload(page, "notes.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", Buffer.from("x"));
     await expect(page.getByText(/Word documents aren't supported/)).toBeVisible();
     await upload(page, "wrong.csv", "text/csv", Buffer.from(`Question,Category,Difficulty,Options,Answer\nAn unknown area ${tag},Astrology,Easy,a | b,a`));

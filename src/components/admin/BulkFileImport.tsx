@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { Upload } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import * as XLSX from "xlsx";
@@ -382,6 +383,13 @@ export function BulkFileImport({ onImported }: { onImported: () => void }) {
           <p className="mt-1 text-xs text-slate-500">
             Columns were auto-detected where possible. Fix any that are wrong before validating.
           </p>
+          {["skill", "exams"].every((c) => headers.some((h) => h.trim().toLowerCase() === c)) && (
+            <p role="alert" className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              This looks like an exam-catalogue file (it has skill and exams columns). Import it on{" "}
+              <Link href="/admin/catalogue/questions" className="font-semibold underline">Exam catalogue → Manage questions</Link> instead, so each
+              question is linked to its exams and skill. This page ignores those columns.
+            </p>
+          )}
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {headers.map((h) => (
               <label key={h} className="flex flex-col text-xs text-slate-600">
