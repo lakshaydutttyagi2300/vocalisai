@@ -10,7 +10,7 @@
 
 ## Rules
 
-1. Production is deployed **only** when the owner says **"ship to production"**.
+1. Finished work is released without asking the owner (their instruction, 1 Oct 2026), but **only** after the full gate below passes, and always through this runbook.
 2. Database changes are additive migrations, applied to production **before** the code that needs them (the Vercel build does not migrate).
 3. Take a Neon backup branch before any production database change.
 4. After every deploy, check `/api/health` and `vercel logs`. Checks made while logged out are not enough.

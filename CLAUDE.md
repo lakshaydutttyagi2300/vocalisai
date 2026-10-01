@@ -11,7 +11,7 @@ Next.js 16 + React 19 + TypeScript 7 + Prisma 6 (Neon Postgres) + NextAuth, depl
 
 ## Git and releases
 - Work on `feat/skills-platform`. Commit in logical steps; you may push this branch. Never force-push; never rewrite history.
-- **Pushing `main` deploys to production.** Only when the owner says **"ship to production"**, and only via `docs/DEPLOYMENT.md` (backup branch, migrations first, seeds, then push, then `/api/health` and `vercel logs`).
+- **Pushing `main` deploys to production.** The owner wants finished work released without being asked (1 Oct 2026): once the full release gate passes, ship it via `docs/DEPLOYMENT.md` (backup branch, migrations first, seeds, then push, then `/api/health` and `vercel logs`), and report what was released. Never skip the gate or the backup.
 - The repo is **public**: never commit secrets, and don't describe unfixed security weaknesses in committed files.
 
 ## Database
