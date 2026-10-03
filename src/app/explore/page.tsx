@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ExploreSearch, type SearchItem } from "@/components/explore/ExploreSearch";
 import { categoryIcon } from "@/components/explore/categoryIcons";
 import { ExamMonogram } from "@/components/explore/ExamMonogram";
+import { CineVideo } from "@/components/cine/CineVideo";
 
 export const metadata: Metadata = {
   title: "Explore assessments - VocalisAi",
@@ -50,16 +51,28 @@ export default async function ExplorePage() {
   const otherCategories = tree.filter((c) => c.slug !== HIRING_CATEGORY);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <p className="eyebrow">Explore</p>
-      <h1 className="headline mt-3 max-w-3xl text-3xl text-ink-950 sm:text-5xl">Prepare for company assessments, interviews and workplace skills</h1>
-      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        Start from the test you&apos;re facing, or from the skill you want to improve. Both lead to the same questions, at Beginner to Expert level.
-      </p>
-
-      <div className="mt-8">
-        <ExploreSearch items={items} />
-      </div>
+    <div>
+      {/* A cinematic band with the title and search; browsing below stays light. */}
+      <section className="px-2 pt-2 sm:px-3 sm:pt-3">
+        <div className="relative rounded-[1.75rem] bg-night-850 ring-1 ring-white/[0.06]">
+          <div className="absolute inset-0 overflow-hidden rounded-[1.75rem]">
+            <CineVideo name="office" alt="A young professional working at a laptop in a bright office" priority />
+            <div aria-hidden="true" className="scrim-left absolute inset-0" />
+            <div aria-hidden="true" className="absolute inset-0 bg-night-950/35" />
+          </div>
+          <div className="relative mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
+            <p className="cine-eyebrow">Explore</p>
+            <h1 className="cine-display mt-5 max-w-3xl text-4xl text-mist-50 sm:text-6xl">Prepare for company assessments, interviews and workplace skills</h1>
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-mist-300 sm:text-base">
+              Start from the test you&apos;re facing, or from the skill you want to improve. Both lead to the same questions, at Beginner to Expert level.
+            </p>
+            <div className="mt-8">
+              <ExploreSearch items={items} />
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="mx-auto max-w-6xl px-5 pb-16 pt-2 sm:px-6">
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         <Link href={`/explore/${HIRING_CATEGORY}`} className="panel-ink group flex items-start gap-4 overflow-hidden rounded-[1.25rem] p-6 text-white">
@@ -173,6 +186,7 @@ export default async function ExplorePage() {
           ))}
         </ul>
       </section>
+      </div>
     </div>
   );
 }

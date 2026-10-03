@@ -4,7 +4,7 @@ export const BAND_STYLE: Record<Band, { pill: string; bar: string }> = {
   UNRATED: { pill: "bg-slate-100 text-slate-600", bar: "bg-slate-300" },
   WEAK: { pill: "bg-red-50 text-red-700", bar: "bg-red-500" },
   DEVELOPING: { pill: "bg-amber-50 text-amber-800", bar: "bg-amber-500" },
-  PROFICIENT: { pill: "bg-sky-50 text-sky-800", bar: "bg-sky-500" },
+  PROFICIENT: { pill: "bg-brand-100 text-ink-800", bar: "bg-champagne-400" },
   MASTERED: { pill: "bg-emerald-50 text-emerald-700", bar: "bg-emerald-500" },
 };
 

@@ -10,70 +10,80 @@
    token swap only; no component logic changes.
    ============================================================ */
 @theme {
-  /* Brand = deep, secure "assessment-platform" blue, replacing the old
-     teal scale. Chosen for the same reason exam/testing platforms lean
-     navy-blue: it reads as institutional, secure and trustworthy rather
-     than playful - deliberately closer to a proctoring/certification
-     vendor's palette than a consumer AI app's. */
-  /* Oct 2026 light redesign: a brighter professional blue leaning toward
-     indigo - energetic and trustworthy on white, instead of the old deep
-     navy. brand-600 is the action colour (~6:1 on white); 700+ for text. */
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dde8ff;
-  --color-brand-200: #c0d4ff;
-  --color-brand-300: #93b4fd;
-  --color-brand-400: #5f8df8;
-  --color-brand-500: #3a6cf0;
-  --color-brand-600: #2453d8;
-  --color-brand-700: #1d42ae;
-  --color-brand-800: #1c3a8a;
-  --color-brand-900: #172d69;
+  /* ------------------------------------------------------------------
+     VocalisAi "cinematic" palette (Oct 2026, docs/UI_DESIGN_SYSTEM.md).
+     Near-black and warm off-white with ONE accent, champagne, used
+     sparingly. The utility names (brand-*, ink-*, slate-*) are kept so
+     every existing page re-skins from these values alone.
+     ------------------------------------------------------------------ */
 
-  /* Accent = warm gold ("readiness / achievement"), used sparingly for
-     AI-related highlights and premium accents against the navy brand. */
+  /* Brand: warm cream tints (50-200), champagne (300-500) for focus rings,
+     bars and borders, and near-black (600-900) for primary actions,
+     selected states and links on light surfaces. No blue. */
+  --color-brand-50: #f6f2ea;
+  --color-brand-100: #ede4d3;
+  --color-brand-200: #e0d0b2;
+  --color-brand-300: #cdb48a;
+  --color-brand-400: #b39766;
+  --color-brand-500: #8e7449;
+  --color-brand-600: #18191c;
+  --color-brand-700: #111214;
+  --color-brand-800: #0b0b0d;
+  --color-brand-900: #08090b;
+
+  /* Champagne: the accent itself (300) and its neighbours. */
+  --color-champagne-100: #f4ecdd;
+  --color-champagne-200: #e9dbc1;
+  --color-champagne-300: #d8c3a0;
+  --color-champagne-400: #c4a97c;
+  --color-champagne-500: #a88b5d;
+
+  /* Night: the cinematic dark surfaces. */
+  --color-night-950: #08090b;
+  --color-night-900: #0b0b0d;
+  --color-night-850: #111214;
+  --color-night-800: #151619;
+  --color-night-700: #1d1e22;
+  --color-night-600: #2a2b30;
+
+  /* Mist: text on night. */
+  --color-mist-50: #f5f5f2;
+  --color-mist-300: #d4d4d8;
+  --color-mist-400: #a1a1aa;
+  --color-mist-500: #7c7c86;
+
+  /* Gold kept for "needs work" bars and small highlights. */
   --color-amber-50: #f9f1e3;
   --color-amber-100: #f6e8d2;
-  --color-amber-500: #d99b3e;
-  --color-amber-600: #c98a2e;
-  /* Darkened from the design system's original #a06f22 - that value only
-     hit ~4.4:1 contrast on white (fails WCAG AA's 4.5:1 for normal text),
-     since this shade is used as small semibold text on white cards
-     throughout (results/coach/admin pages), not just as a fill. #8f5f1c
-     clears ~5:1. */
-  --color-amber-700: #8f5f1c;
-
-  /* Ink = deep navy-black, replacing the old warm near-black scale, so
-     dark surfaces (hero overlay, footer, focus mode) read as the same
-     "secure platform" navy as the brand scale rather than a neutral
-     charcoal. */
-  --color-ink-950: #060c18;
-  --color-ink-900: #0b1526;
-  --color-ink-800: #16233a;
-  --color-ink-700: #2a3a55;
-
-  /* Slate override = cool neutral gray (back toward Tailwind's native
-     blue-gray, tuned slightly cooler), pairing with the navy brand scale
-     for secondary text, borders and muted surfaces. */
-  --color-slate-50: #f5f7fa;
-  --color-slate-100: #e9edf3;
-  --color-slate-200: #dbe1ea;
-  --color-slate-300: #c1cad8;
-  --color-slate-400: #93a1b8;
-  --color-slate-500: #6b7a94;
-  --color-slate-600: #526078;
-  --color-slate-700: #3c4a61;
-
-  --shadow-premium: 0 24px 48px -20px rgb(29 66 174 / 0.22);
-  --shadow-card-lg: 0 20px 40px -20px rgb(29 66 174 / 0.25);
-  /* Soft resting card shadow and its hover lift. */
-  --shadow-soft: 0 1px 2px rgb(23 45 105 / 0.05), 0 8px 24px -12px rgb(23 45 105 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(23 45 105 / 0.05), 0 18px 36px -16px rgb(29 66 174 / 0.24);
-  /* One floating elevation, for product previews only (see docs/UI_DESIGN_SYSTEM.md). */
-  --shadow-float: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 30px 60px -30px rgb(6 12 24 / 0.45), 0 12px 24px -12px rgb(6 12 24 / 0.18);
-
-  /* Gold for signals on dark surfaces (the 500/600 shades are for fills). */
   --color-amber-300: #f0c77f;
   --color-amber-400: #e6ae57;
+  --color-amber-500: #d99b3e;
+  --color-amber-600: #c98a2e;
+  /* #8f5f1c clears ~5:1 on white for small semibold text. */
+  --color-amber-700: #8f5f1c;
+
+  /* Ink: neutral near-black for headings and body text (no navy). */
+  --color-ink-950: #0b0b0d;
+  --color-ink-900: #151619;
+  --color-ink-800: #212226;
+  --color-ink-700: #33343a;
+
+  /* Slate: warm-neutral greys (zinc-like) that sit with champagne. */
+  --color-slate-50: #f7f6f3;
+  --color-slate-100: #efeee9;
+  --color-slate-200: #e3e1db;
+  --color-slate-300: #cfccc4;
+  --color-slate-400: #a1a1aa;
+  --color-slate-500: #71717a;
+  --color-slate-600: #52525b;
+  --color-slate-700: #3f3f46;
+
+  --shadow-premium: 0 30px 60px -30px rgb(8 9 11 / 0.45);
+  --shadow-card-lg: 0 20px 40px -20px rgb(8 9 11 / 0.3);
+  --shadow-soft: 0 1px 2px rgb(8 9 11 / 0.04), 0 8px 24px -14px rgb(8 9 11 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(8 9 11 / 0.05), 0 22px 40px -18px rgb(8 9 11 / 0.28);
+  /* One floating elevation, for product previews only. */
+  --shadow-float: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 40px 80px -40px rgb(0 0 0 / 0.7), 0 16px 32px -16px rgb(0 0 0 / 0.45);
 }
 /* --font-sans, --font-display and --font-mono are injected by next/font
    (see layout.tsx) directly onto <html> - not redeclared here, so there
@@ -84,13 +94,14 @@ html {
 }
 
 body {
-  background-color: #f7f9fc;
+  background-color: #f5f4f0;
   color: var(--color-ink-900);
   font-family: var(--font-sans);
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 /* Shared surfaces - kept as plain classes rather than a component library,
@@ -212,20 +223,20 @@ h1, h2, h3, h4 {
   }
 
   .btn-primary {
-    background: linear-gradient(180deg, var(--color-brand-500) 0%, var(--color-brand-600) 100%);
+    background: var(--color-brand-600);
     border-color: var(--color-brand-600);
-    color: white;
+    color: #f5f5f2;
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.16),
-      0 1px 2px rgb(11 30 70 / 0.2),
-      0 6px 14px -6px rgb(30 68 131 / 0.5);
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 1px 2px rgb(8 9 11 / 0.2),
+      0 8px 18px -10px rgb(8 9 11 / 0.55);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, var(--color-brand-600) 0%, var(--color-brand-700) 100%);
+    background: #000;
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.14),
-      0 2px 4px rgb(11 30 70 / 0.2),
-      0 10px 22px -8px rgb(30 68 131 / 0.55);
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 2px 4px rgb(8 9 11 / 0.2),
+      0 12px 24px -10px rgb(8 9 11 / 0.6);
   }
 
   .btn-secondary {
@@ -386,7 +397,7 @@ h1, h2, h3, h4 {
     color: var(--color-brand-600);
   }
   .eyebrow-on-ink {
-    color: rgb(255 255 255 / 0.78);
+    color: var(--color-champagne-300);
   }
   .display {
     font-family: var(--font-display);
@@ -423,14 +434,15 @@ h1, h2, h3, h4 {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lift);
   }
-  /* The one accent surface per page (next step, plan, call to action): a
-     vivid blue-to-indigo panel with white text. Name kept from the old
-     dark navy version so every page picks up the new look. */
+  /* The one dark accent surface on a light page (next step, current plan,
+     call to action): near-black with a faint champagne glow. Inside it the
+     main button turns light and grey text soft white (rules at the end). */
   .panel-ink {
     position: relative;
-    background: linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-600) 45%, #4338ca 100%);
-    color: white;
+    background: var(--color-night-850);
+    color: var(--color-mist-50);
     isolation: isolate;
+    border: 1px solid rgb(255 255 255 / 0.06);
     box-shadow: var(--shadow-premium);
   }
   .panel-ink::before {
@@ -438,44 +450,124 @@ h1, h2, h3, h4 {
     position: absolute;
     inset: 0;
     z-index: -1;
+    border-radius: inherit;
     background:
-      radial-gradient(40rem 22rem at 90% -20%, rgb(255 255 255 / 0.22), transparent 60%),
-      radial-gradient(30rem 18rem at -10% 120%, rgb(129 140 248 / 0.35), transparent 60%);
+      radial-gradient(42rem 22rem at 92% -20%, rgb(216 195 160 / 0.16), transparent 60%),
+      radial-gradient(28rem 16rem at -10% 120%, rgb(216 195 160 / 0.07), transparent 60%);
     pointer-events: none;
   }
-  /* Light hero backdrop: white into soft blue, with two blurred colour glows. */
-  .hero-light {
+
+  /* ------------------------------------------------------------------
+     Cinematic marketing layer: the public pages (home, product, use
+     cases, pricing, about, contact) sit inside .cine.
+     ------------------------------------------------------------------ */
+  .cine {
+    background-color: var(--color-night-900);
+    color: var(--color-mist-50);
+  }
+  .cine-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-champagne-300);
+  }
+  .cine-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+  .cine-headline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+  .cine-lede {
+    font-size: 1.125rem;
+    line-height: 1.65;
+    color: var(--color-mist-400);
+    text-wrap: pretty;
+  }
+  /* One word per big headline may switch to the serif italic. */
+  .serif-accent {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .cine-surface {
+    background: var(--color-night-850);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 1.5rem;
+  }
+  /* A clipped media frame with a faint edge. */
+  .cine-media {
     position: relative;
+    overflow: hidden;
     isolation: isolate;
-    background: linear-gradient(180deg, #ffffff 0%, #f3f7ff 60%, #f7f9fc 100%);
+    border-radius: 1.5rem;
+    background: var(--color-night-800);
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
   }
-  .hero-light::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(38rem 26rem at 88% 8%, rgb(58 108 240 / 0.16), transparent 65%),
-      radial-gradient(30rem 22rem at 6% 90%, rgb(99 102 241 / 0.12), transparent 65%);
-    pointer-events: none;
+  .scrim-bottom {
+    background: linear-gradient(to top, rgb(8 9 11 / 0.88) 0%, rgb(8 9 11 / 0.45) 40%, transparent 72%);
   }
-  /* Hero slider: slides cross-fade; the active one drifts very slowly. */
-  .hero-slide {
+  .scrim-left {
+    background: linear-gradient(90deg, rgb(8 9 11 / 0.86) 0%, rgb(8 9 11 / 0.5) 42%, transparent 78%);
+  }
+  /* Media that slowly settles while on screen. */
+  .cine-zoom {
+    animation: cine-zoom 16s ease-out both;
+  }
+  /* Hero slides cross-fade; the active one eases in with a slow zoom and drift. */
+  .cine-slide {
     opacity: 0;
-    transition: opacity 900ms ease;
+    transition: opacity 1100ms cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .hero-slide[data-active="true"] {
+  .cine-slide[data-active="true"] {
     opacity: 1;
   }
-  .hero-slide[data-active="true"] .hero-media {
-    animation: hero-drift 9s ease-out both;
+  .cine-slide[data-active="true"] .cine-slide-media {
+    animation: cine-kenburns 8s ease-out both;
   }
-  .hero-progress {
-    transform-origin: left;
-    animation: hero-progress var(--hero-duration, 6s) linear both;
+  .cine-copy > * {
+    animation: cine-rise 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
-  .hero-progress[data-paused="true"] {
-    animation-play-state: paused;
+  .cine-copy > *:nth-child(2) {
+    animation-delay: 110ms;
+  }
+  .cine-copy > *:nth-child(3) {
+    animation-delay: 220ms;
+  }
+  /* A slow, faint champagne glow behind pricing and other quiet pages. */
+  .aurora {
+    background:
+      radial-gradient(40rem 26rem at 20% 10%, rgb(216 195 160 / 0.1), transparent 65%),
+      radial-gradient(36rem 24rem at 80% 30%, rgb(216 195 160 / 0.07), transparent 65%);
+    background-size: 140% 140%;
+    animation: aurora-shift 24s ease-in-out infinite alternate;
+  }
+  /* FadeIn: content below the fold fades and rises in. */
+  .fade-in {
+    transition:
+      opacity 900ms ease,
+      transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .fade-in[data-state="pending"] {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  /* Scroll-driven parallax where the browser supports it; no JavaScript. */
+  @supports (animation-timeline: view()) {
+    .parallax-y {
+      animation: parallax-y linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
   }
   /* Horizontal, touch-friendly rail (scroll-snap; no JS needed). */
   .rail {
@@ -498,17 +590,38 @@ h1, h2, h3, h4 {
   }
 }
 
-/* On the blue accent panel: the main button turns white, and grey text
-   becomes soft white so it stays readable. Unlayered on purpose, so these
-   win over the plain utility classes the pages already use. */
-.panel-ink .btn-primary {
-  background: white;
-  color: var(--color-brand-700);
-  box-shadow: 0 10px 24px -12px rgb(6 12 24 / 0.45);
+/* On dark surfaces (.panel-ink and the .cine pages) the main button turns
+   light, secondary buttons go translucent, and grey text becomes soft white
+   so it stays readable. Unlayered on purpose, so these win over the plain
+   utility classes the pages already use. */
+.panel-ink .btn-primary,
+.cine .btn-primary {
+  background: var(--color-mist-50);
+  border-color: var(--color-mist-50);
+  color: var(--color-night-900);
+  box-shadow: 0 12px 28px -14px rgb(0 0 0 / 0.6);
 }
-.panel-ink .btn-primary:hover:not(:disabled) {
-  background: var(--color-brand-50);
-  color: var(--color-brand-800);
+.panel-ink .btn-primary:hover:not(:disabled),
+.cine .btn-primary:hover:not(:disabled) {
+  background: var(--color-champagne-200);
+  border-color: var(--color-champagne-200);
+  color: var(--color-night-950);
+}
+.cine .btn-primary,
+.cine .btn-secondary,
+.cine .btn-dark {
+  border-radius: 999px;
+}
+.cine .btn-secondary {
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.18);
+  color: var(--color-mist-50);
+  box-shadow: none;
+}
+.cine .btn-secondary:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(255 255 255 / 0.28);
+  color: white;
 }
 .panel-ink .text-slate-200 {
   color: rgb(255 255 255 / 0.92);
@@ -534,7 +647,7 @@ h1, h2, h3, h4 {
   }
 }
 
-@keyframes hero-drift {
+@keyframes cine-zoom {
   from {
     transform: scale(1.06);
   }
@@ -543,12 +656,51 @@ h1, h2, h3, h4 {
   }
 }
 
-@keyframes hero-progress {
+@keyframes cine-kenburns {
   from {
-    transform: scaleX(0);
+    transform: scale(1.09) translateX(1.2%);
   }
   to {
-    transform: scaleX(1);
+    transform: scale(1.01) translateX(0);
+  }
+}
+
+@keyframes cine-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes parallax-y {
+  from {
+    transform: translateY(5%) scale(1.08);
+  }
+  to {
+    transform: translateY(-5%) scale(1.08);
+  }
+}
+
+@keyframes aurora-shift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 60%;
+  }
+}
+
+@keyframes wave-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 

@@ -21,7 +21,7 @@ const VIEWPORTS = [
   { name: "phone", width: 390, height: 844 },
 ];
 
-const PUBLIC = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/terms", "/refund-policy"];
+const PUBLIC = ["/", "/product/speaking", "/product/interviews", "/product/personalised", "/use-cases", "/pricing", "/about", "/contact", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/terms", "/refund-policy"];
 
 function watch(page: Page) {
   const found: string[] = [];

@@ -1,38 +1,36 @@
 import type { ReactNode } from "react";
 import { CircleCheck } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { CineVideo } from "@/components/cine/CineVideo";
 
 const BRAND_POINTS = [
-  "Realistic, proctored mock speaking assessments",
-  "Real transcription and AI speech analysis - never a guess",
-  "Practice pronunciation, fluency, grammar and vocabulary",
+  "Feedback on pronunciation, fluency, grammar and pace",
+  "AI interviews that reply to what you actually say",
+  "Timed mock tests for company assessments and exams",
 ];
 
+// Sign-in and sign-up: a cinematic clip with the promise on the left (large
+// screens), the form on the right.
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-[calc(100vh-65px)] lg:grid-cols-2">
-      <div className="hidden flex-col justify-between panel-ink p-12 text-white lg:flex">
-        <div className="font-display text-lg font-bold">
-          Vocalis<span className="text-white/75">Ai</span>
-        </div>
-        <div>
-          {/* eslint-disable-next-line @next/next/no-img-element -- a ~25 KB WebP poster from /public/media/hero (docs/MEDIA_SOURCES.md) */}
-          <img src="/media/hero/celebrate.webp" alt="Colleagues high-fiving in an office" width={960} height={540} loading="lazy" className="mb-10 aspect-video w-full rounded-2xl object-cover shadow-xl ring-1 ring-white/20" />
-          <h2 className="font-display text-2xl font-semibold leading-snug">
-            Practice smarter. Speak clearer. Walk into your next assessment ready.
+      <div className="relative hidden overflow-hidden bg-night-900 lg:block">
+        <CineVideo name="mic-hero" alt="A woman speaking into a studio microphone" priority />
+        <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
+        <div className="absolute inset-x-0 bottom-0 p-12 text-mist-50">
+          <h2 className="cine-headline max-w-md text-4xl">
+            Give every answer a <span className="serif-accent">confident</span> voice.
           </h2>
-          <ul className="mt-8 space-y-4">
+          <ul className="mt-8 space-y-3">
             {BRAND_POINTS.map((point) => (
-              <li key={point} className="flex items-start gap-3 text-sm text-slate-300">
-                <Icon as={CircleCheck} className="mt-0.5 text-white" />
+              <li key={point} className="flex items-start gap-3 text-sm text-mist-300">
+                <Icon as={CircleCheck} className="mt-0.5 text-champagne-300" />
                 {point}
               </li>
             ))}
           </ul>
+          <p className="mt-10 text-xs text-mist-500">Assessment activity may be recorded for practice and proctoring purposes.</p>
         </div>
-        <p className="text-xs text-slate-500">
-          Assessment activity may be recorded for practice/proctoring purposes.
-        </p>
       </div>
 
       <div className="flex items-center justify-center px-6 py-16">

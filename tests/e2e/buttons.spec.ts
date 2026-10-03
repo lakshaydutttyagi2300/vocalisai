@@ -158,9 +158,11 @@ test("key candidate actions use the premium button system, with every state, on 
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/mock-tests");
     const btn = page.getByRole("button", { name: "Begin system check" });
-    const before = await btn.evaluate((el) => getComputedStyle(el).backgroundImage);
+    // Buttons are solid colours (no gradient), so hover is measured on colour and image together.
+    const look = () => btn.evaluate((el) => `${getComputedStyle(el).backgroundColor} ${getComputedStyle(el).backgroundImage}`);
+    const before = await look();
     await btn.hover();
-    await expect.poll(() => btn.evaluate((el) => getComputedStyle(el).backgroundImage)).not.toBe(before); // hover
+    await expect.poll(look).not.toBe(before); // hover
     await page.keyboard.press("Tab"); // move focus into the page, then onto the button
     await btn.focus();
     const outline = await btn.evaluate((el) => (el.matches(":focus-visible") ? getComputedStyle(el).outlineStyle : "no-focus-visible"));

@@ -1,58 +1,70 @@
 # UI design system
 
-The rules behind the candidate-facing pages. Since the October 2026 redesign the
-theme is light: white and soft grey surfaces, a bright professional blue leaning
-indigo, rounded cards with soft shadows (the owner asked to move away from the
-dark look). Tokens and classes live in
-`src/app/globals.css`; fonts in `src/app/layout.tsx`; icons via
-`src/components/ui/Icon.tsx`. Use these before inventing new styles.
+The rules behind the candidate-facing pages. October 2026 direction (owner's
+brief): a premium, cinematic product site with Apple-like restraint. Near-black
+for the public pages, a calm warm-white workspace inside the app, and **one
+accent, champagne, used sparingly**. No bright blue, neon, rainbow gradients or
+heavy glass. Tokens and classes live in `src/app/globals.css`; fonts in
+`src/app/layout.tsx`; icons via `src/components/ui/Icon.tsx`; cinematic
+building blocks in `src/components/cine/`. Use these before inventing new styles.
+
+## Two surfaces
+
+| Where | Look |
+| --- | --- |
+| Public pages: `/`, `/product/*`, `/use-cases`, `/pricing`, `/about`, `/contact`, the sign-in panel, the Explore header band | Wrapped in `.cine`: night background (#0B0B0D), mist text (#F5F5F2 / #A1A1AA), hairlines `white/8%`, clips in rounded frames |
+| App pages (dashboard, practice, tests, results, billing, skills) | Warm off-white (#F5F4F0), white sheets, near-black primary buttons, one `.panel-ink` dark accent panel per page |
+
+The site header is dark on every page.
 
 ## Colour
 
 | Token | Use |
 | --- | --- |
-| `brand-50 … brand-900` (bright blue) | Primary actions, links, focus rings, selected states, data bars |
-| `ink-700 … ink-950` | Headings and body text — not backgrounds on candidate pages |
-| `indigo-*` (Tailwind) | Only as the far end of the brand gradient (`panel-ink`, the hero headline) |
-| `amber-300 … amber-700` (gold) | "Needs work" bars and small highlights. Never for body text on white |
-| `slate-*` | Body text (600), secondary text (500), hairlines (100–200) |
-| `red-*`, `green-*` | Only for right/wrong and scores under 60 — never decoration |
+| `night-950 … night-600` | Cinematic backgrounds and surfaces |
+| `mist-50 … mist-500` | Text on night |
+| `champagne-100 … champagne-500` | The accent: eyebrows, progress, one highlight per view. Never large fills |
+| `brand-50 … brand-200` | Warm cream tints (app highlights) |
+| `brand-300 … brand-500` | Champagne-bronze for borders, focus rings and bars |
+| `brand-600 … brand-900` | Near-black for primary actions, selected states and links on light pages |
+| `ink-*`, `slate-*` | Neutral text and warm-neutral greys (no blue cast) |
+| `amber-*`, `red-*`, `green-*` | Only for "needs work", right/wrong and scores — never decoration |
 
 ## Type
 
 | Role | Class / font | Where |
 | --- | --- | --- |
-| Display | `.display` (Sora 700–800, tight tracking) | One per page: hero or next-step panel |
-| Headline | `.headline` (Sora 600–700) | Page `h1`s, section titles |
-| Eyebrow | `.eyebrow` / `.eyebrow-on-ink` (IBM Plex Mono, uppercase, 0.14em) | A short label above a heading |
-| Lede | `.lede` | The one sentence under a hero heading |
-| Body | Public Sans 400–600 | Everything else, 14–16 px |
-| Numbers | `.num` (Plex Mono, tabular) | Scores, wpm, counts, timers |
+| Display | `.cine-display` (Inter Tight 600, -0.045em) | Hero and big section statements |
+| Headline | `.cine-headline` / `.headline` | Section titles, page `h1`s in the app |
+| Accent | `.serif-accent` (Instrument Serif italic) | **One word** in a big headline, never more |
+| Eyebrow | `.cine-eyebrow` (champagne, 0.2em caps) / `.eyebrow` in the app | A short label above a heading |
+| Body | Inter 400–500 | Everything else |
+| Numbers | `.num` (Plex Mono, tabular) | Scores, timers, counts |
 
-## Surfaces
+## Visual storytelling (public pages)
 
-- **`.sheet`** — white, hairline border, 1.25 rem radius, soft shadow. The default container for a group of content. Prefer one sheet with internal dividers over many small cards. Add `.lift` to a sheet that is a link (rises slightly on hover).
-- **`.panel-ink`** — the blue-to-indigo accent panel (name kept from its old dark version). At most one per page, for the thing that matters most (dashboard next step, current plan, closing call to action). Inside it `.btn-primary` turns white and `text-slate-*` turns soft white automatically.
-- **`.hero-light`** — the landing hero backdrop: white into pale blue with two soft colour glows.
-- **`.card`** — the older card; still used inside practice and exam screens. Don't add new ones to marketing or dashboard pages.
-- **`.rail`** — a horizontal scroll-snap row (sliders, exam library). Must stay keyboard-focusable with arrow-key support where it's a carousel (`LessonsSlider`).
+- Every section pairs words with a clip, a picture or a live demo: `MediaSplit`, `ClipFrame`, `PageHero`, `FinalCta` (`src/components/cine/sections.tsx`). Never several text-only sections in a row.
+- Each clip must say something about VocalisAi (speaking, interviews, customer calls, tests, learning). No handshakes, robots, circuits or "AI brain" art.
+- No clip repeats within a page's sections.
+- Product demos are the HTML ones in `demos.tsx`, labelled "Example".
 
 ## Buttons
 
-`.btn-primary` (one per view), `.btn-secondary`, `.btn-dark` (on `panel-ink`), `.btn-ghost`, `.btn-danger`; sizes `.btn-sm`, `.btn-lg`. Links that navigate inside a section are plain text links (`text-brand-700 font-semibold`), not buttons.
+`.btn-primary` (one per view), `.btn-secondary`, `.btn-dark`, `.btn-ghost`, `.btn-danger`; sizes `.btn-sm`, `.btn-lg`. On light pages the primary button is near-black; inside `.cine` and `.panel-ink` it turns into a light pill (champagne on hover) and secondary buttons go translucent automatically.
 
 ## Layout
 
-- Page container: `mx-auto max-w-6xl px-5 sm:px-6`.
-- Order content by the question the user has: next action → status → what to improve → history (dashboard); headline → product → action → proof (landing).
-- Every page is designed at 390 px as well as desktop: stack columns, full-width primary buttons, no horizontal page scroll (only rails scroll).
-- Exam and practice screens stay plain and focused: no accent panels, animation or marketing elements while a candidate is answering. The proctored mock-exam room keeps its dark focus surface (`.focus-surface`).
+- Public pages: `Container` (max-w-7xl), generous vertical space (`py-28 sm:py-40`), full-bleed media inset by 8–12 px with 28 px corners.
+- App pages: `mx-auto max-w-6xl px-5 sm:px-6`.
+- Every page works at 390 px: stack columns, full-width buttons, no horizontal page scroll (only rails scroll).
+- Exam and practice screens stay plain and focused while a candidate is answering. The proctored mock-exam room keeps its dark focus surface (`.focus-surface`).
 
 ## Motion and media
 
-- Motion is short (≤ 400 ms), purposeful, and disabled under `prefers-reduced-motion` (global rule in `globals.css`).
-- The landing hero (`HeroSlider`) is the one place clips play by themselves: silent 5-second loops (~250 KB), loaded only after the page has loaded and only for the slide on screen, never with reduced motion or Save-Data, paused off-screen, in background tabs and by its Pause button. Everywhere else videos play only on click (poster + play button).
-- Stock footage of people is allowed only in the hero slider and the sign-in panel, from Pexels (docs/MEDIA_SOURCES.md), captioned with what VocalisAi does, never as users, testimonials or results. No invented testimonials, logos, user counts or success rates. Examples of results are labelled "Example".
+- Calm and intentional: cross-fades, slow zoom (`.cine-zoom`, Ken Burns in the hero), fade-and-rise on scroll (`FadeIn`), scroll-driven parallax where supported (`.parallax-y`), hover previews on clip panels. No bouncing, floating or neon glow.
+- Everything respects `prefers-reduced-motion` (global rule) and the media hooks in `src/components/cine/media.ts`: with reduced motion or Save-Data, clips never load and the hero never rotates.
+- `CineVideo`: poster first, clip only near the screen, playing only while visible; 640 px clips on phones. `CineHero`: first clip after page load, next clip preloaded half-way, slides hand over before the loop point (no frozen or black frames), Pause button, pauses off-screen and in background tabs. Clip details: `docs/MEDIA_SOURCES.md`.
+- No invented testimonials, logos, user counts or success rates. Figures come from the live database; examples are labelled "Example".
 
 ## Candidate-safe content
 
