@@ -5,6 +5,8 @@ import Script from "next/script";
 import { useSession } from "next-auth/react";
 import { Check, Lock } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 interface UsageSummary {
   plan: string;
@@ -96,19 +98,18 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
     <>
       <Script src="https://cdn.paddle.com/paddle/v2/paddle.js" strategy="afterInteractive" onLoad={handlePaddleLoaded} />
 
-      <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-        <p className="eyebrow">Account</p>
-        <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Plan &amp; billing</h1>
-        <p className="mt-3 text-sm text-slate-600 sm:text-base">Manage your plan and see what you&apos;ve used this period.</p>
+      <div className="pb-20">
+        <MediaHero {...HEROES.billing} title="Plan & billing" subtitle="Manage your plan and see what you've used this period." />
+      <div className="page-container mt-10">
 
         {error && (
-          <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p role="alert" className="mb-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         )}
 
         {usage && (
-          <section aria-labelledby="current-plan" className="panel-ink mt-8 overflow-hidden rounded-[1.5rem] p-7 text-white sm:p-9">
+          <section aria-labelledby="current-plan" className="panel-ink overflow-hidden rounded-xl p-7 sm:p-9">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="eyebrow eyebrow-on-ink">Current plan</p>
@@ -130,13 +131,13 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
                 return (
                   <li key={f.feature}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="text-slate-200">{f.pluralLabel.charAt(0).toUpperCase() + f.pluralLabel.slice(1)}</span>
+                      <span className="text-fg-muted">{f.pluralLabel.charAt(0).toUpperCase() + f.pluralLabel.slice(1)}</span>
                       <span className="num text-slate-400">
                         {f.limit === 0 ? "Not included" : `${f.used} / ${f.limit}`}
                       </span>
                     </div>
-                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-                      {f.limit > 0 && <div className={`h-full rounded-full ${share >= 0.8 ? "bg-amber-400" : "bg-brand-300"}`} style={{ width: `${share * 100}%` }} />}
+                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-muted">
+                      {f.limit > 0 && <div className={`h-full rounded-full ${share >= 0.8 ? "bg-warning" : "bg-accent"}`} style={{ width: `${share * 100}%` }} />}
                     </div>
                   </li>
                 );
@@ -157,19 +158,19 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
                 <div
                   key={p.plan}
                   className={`flex flex-col p-7 [&:not(:first-child)]:border-t lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-t-0 ${
-                    featured ? "panel-ink border-brand-700 text-white" : "border-slate-200"
+                    featured ? "panel-ink" : "border-slate-200"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className={`font-display text-lg font-bold ${featured ? "text-white" : "text-ink-950"}`}>{p.name}</h3>
+                    <h3 className={`font-display text-lg font-bold text-fg`}>{p.name}</h3>
                     {current ? (
                       <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[0.7rem] font-bold text-green-800">Your plan</span>
                     ) : (
                       featured && <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[0.7rem] font-bold text-ink-950">Recommended</span>
                     )}
                   </div>
-                  <p className={`mt-2 text-sm ${featured ? "text-slate-300" : "text-slate-600"}`}>{p.blurb}</p>
-                  <ul className={`mt-6 flex-1 space-y-3 border-t pt-6 text-sm ${featured ? "border-white/10 text-slate-200" : "border-slate-100 text-ink-800"}`}>
+                  <p className={`mt-2 text-sm ${featured ? "text-fg-muted" : "text-slate-600"}`}>{p.blurb}</p>
+                  <ul className={`mt-6 flex-1 space-y-3 border-t pt-6 text-sm ${featured ? "border-line text-fg-muted" : "border-slate-100 text-ink-800"}`}>
                     {(planFeatures[p.plan] ?? []).map((f) =>
                       f.limit === 0 ? (
                         <li key={f.label} className={`flex items-start gap-2.5 ${featured ? "text-slate-400" : "text-slate-500"}`}>
@@ -178,7 +179,7 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
                         </li>
                       ) : (
                         <li key={f.label} className="flex items-start gap-2.5">
-                          <Icon as={Check} className={`mt-0.5 ${featured ? "text-amber-300" : "text-brand-600"}`} />
+                          <Icon as={Check} className={`mt-0.5 ${featured ? "text-accent-strong" : "text-brand-600"}`} />
                           <span>
                             <span className="num font-semibold">{f.limit}</span> {f.label}
                             <span className={featured ? "text-slate-400" : "text-slate-500"}>/month</span>
@@ -188,7 +189,7 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
                     )}
                   </ul>
                   {current ? (
-                    <p className={`mt-8 text-center text-sm font-semibold ${featured ? "text-slate-300" : "text-slate-500"}`}>You&apos;re on this plan</p>
+                    <p className={`mt-8 text-center text-sm font-semibold ${featured ? "text-fg-muted" : "text-slate-500"}`}>You&apos;re on this plan</p>
                   ) : (
                     <button onClick={() => handleUpgrade(p.priceId)} disabled={!paddleReady} className={`${featured ? "btn-primary" : "btn-secondary"} btn-lg mt-8 w-full`}>
                       {`Upgrade to ${p.name}`}
@@ -213,6 +214,7 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
           </a>{" "}
           for how cancellations work.
         </p>
+      </div>
       </div>
     </>
   );

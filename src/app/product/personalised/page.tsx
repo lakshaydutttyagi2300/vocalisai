@@ -78,8 +78,8 @@ export default async function PersonalisedPage() {
             points={["A mastery score for every skill", "Recent and harder answers count more", "Weak-area tests built for you", "Progress you can see week by week"]}
             media={
               <ClipFrame name="headphones" alt="A man with headphones reading and speaking at his desk" ratio="aspect-[4/3]">
-                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/10 bg-night-900/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
-                  <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-champagne-300">Your skills · Example</p>
+                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
+                  <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Your skills · Example</p>
                   <ul className="mt-3 grid gap-2.5 text-xs">
                     {(
                       [
@@ -89,10 +89,10 @@ export default async function PersonalisedPage() {
                       ] as const
                     ).map(([skill, band, value]) => (
                       <li key={skill} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1">
-                        <span className="text-mist-300">{skill}</span>
-                        <span className="text-mist-500">{band}</span>
-                        <span className="col-span-2 h-1 overflow-hidden rounded-full bg-white/10">
-                          <span className="block h-full rounded-full bg-champagne-300" style={{ width: `${value}%` }} />
+                        <span className="text-fg-muted">{skill}</span>
+                        <span className="text-fg-subtle">{band}</span>
+                        <span className="col-span-2 h-1 overflow-hidden rounded-full bg-fg/10">
+                          <span className="block h-full rounded-full bg-accent" style={{ width: `${value}%` }} />
                         </span>
                       </li>
                     ))}
@@ -104,7 +104,7 @@ export default async function PersonalisedPage() {
         </Container>
       </section>
 
-      <section className="border-y border-white/[0.06] bg-night-950 py-28 sm:py-36">
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-36">
         <Container>
           <SectionIntro eyebrow="Levels" title={<>Four levels. Never the {accent("same")} question twice.</>} text="Every skill runs from Beginner to Expert, and questions you've already seen wait until you've worked through the new ones." />
           <ol className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -113,11 +113,11 @@ export default async function PersonalisedPage() {
                 <li className="cine-surface h-full p-7">
                   <div className="flex gap-1.5" aria-hidden="true">
                     {LEVELS.map((_, j) => (
-                      <span key={j} className={`h-1 flex-1 rounded-full ${j <= i ? "bg-champagne-300" : "bg-white/10"}`} />
+                      <span key={j} className={`h-1 flex-1 rounded-full ${j <= i ? "bg-accent" : "bg-fg/10"}`} />
                     ))}
                   </div>
-                  <p className="cine-headline mt-8 text-2xl text-mist-50">{name}</p>
-                  <p className="mt-2 text-sm text-mist-400">{text}</p>
+                  <p className="cine-headline mt-8 text-2xl text-fg">{name}</p>
+                  <p className="mt-2 text-sm text-fg-muted">{text}</p>
                 </li>
               </FadeIn>
             ))}

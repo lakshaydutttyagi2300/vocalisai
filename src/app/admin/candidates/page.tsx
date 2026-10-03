@@ -330,7 +330,7 @@ export default function AdminCandidatesPage() {
                       </span>
                     </td>
                     <td className="py-2 pr-4">
-                      <span className={`badge ${u.isActive ? "badge-skill" : ""}`} style={u.isActive ? {} : { backgroundColor: "#fee2e2", color: "#b91c1c" }}>
+                      <span className={`badge ${u.isActive ? "badge-skill" : "badge-danger"}`}>
                         {u.isActive ? "Active" : "Suspended"}
                       </span>
                     </td>

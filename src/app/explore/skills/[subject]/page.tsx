@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { questionCounts, subjectDetail } from "@/lib/catalog-queries";
 import { getEffectivePlan, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
-import { Icon } from "@/components/ui/Icon";
 import { TestBuilder } from "@/components/explore/TestBuilder";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { subjectMedia } from "@/config/heroMedia";
 
 type Params = Promise<{ subject: string }>;
 
@@ -27,16 +26,10 @@ export default async function PracticeAreaPage({ params, searchParams }: { param
   const here = `/explore/skills/${subject.slug}`;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <Link href="/explore/skills" className="btn-ghost btn-sm -ml-3">
-        <Icon as={ArrowLeft} />
-        Practice by skill
-      </Link>
-      <h1 className="headline mt-4 text-3xl text-ink-950 sm:text-4xl">{subject.name}</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        {subject.description ?? `Practise ${subject.name.toLowerCase()} on its own or one skill at a time, at the level that suits you.`}
-      </p>
-      <div className="mt-8">
+    <div className="pb-20">
+      <MediaHero back={{ label: "Practice by skill", href: "/explore/skills" }} eyebrow="Practice by skill" title={subject.name} subtitle={subject.description ?? `Practise ${subject.name.toLowerCase()} on its own or one skill at a time, at the level that suits you.`} stats={[`${subject.skills.length} skill${subject.skills.length === 1 ? "" : "s"}`, "Beginner to Expert"]} media={subjectMedia(subject.slug)} variant="full-bleed" size="md" />
+    <div className="page-container mt-10">
+      <div>
         <TestBuilder
           examId={null}
           mockMinutes={null}
@@ -48,6 +41,7 @@ export default async function PracticeAreaPage({ params, searchParams }: { param
           initialSkillId={subject.skills.find((k) => k.slug === wantedSkill)?.id ?? null}
         />
       </div>
+    </div>
     </div>
   );
 }

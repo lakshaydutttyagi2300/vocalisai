@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { ArrowUpRight, CreditCard, Target } from "lucide-react";
 import { PROFILE_LIMITS } from "@/lib/profile-limits";
+import { Icon } from "@/components/ui/Icon";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { HEROES } from "@/config/heroMedia";
 
 type ProfileData = {
   name: string;
@@ -71,37 +77,24 @@ export default function ProfilePage() {
     }
   }
 
-  if (loadError) {
-    return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {loadError}
-        </p>
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
-        <div className="h-6 w-40 animate-pulse rounded bg-slate-200" />
-        <div className="mt-6 space-y-4">
-          <div className="h-10 animate-pulse rounded-md bg-slate-200" />
-          <div className="h-10 animate-pulse rounded-md bg-slate-200" />
-          <div className="h-24 animate-pulse rounded-md bg-slate-200" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink-950">Your profile</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        This information is private to your account.
-      </p>
-
-      <form onSubmit={handleSubmit} className="card mt-8 space-y-4 p-6">
+    <div className="pb-20">
+      <MediaHero {...HEROES.account} title="Your profile" subtitle="Your details and how VocalisAi looks for you. This information is private to your account." />
+      <div className="page-container mt-10 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        {loadError ? (
+          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            {loadError}
+          </p>
+        ) : !profile ? (
+          <div className="card space-y-4 p-6" aria-busy="true" aria-label="Loading your profile">
+            <div className="h-10 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-10 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-10 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-24 animate-pulse rounded-md bg-slate-200" />
+          </div>
+        ) : (
+      <form onSubmit={handleSubmit} className="card space-y-4 p-6">
+        <h2 className="text-lg font-semibold text-fg">Your details</h2>
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-slate-700">
             Email
@@ -175,6 +168,37 @@ export default function ProfilePage() {
           {isSaving ? "Saving..." : "Save changes"}
         </button>
       </form>
+        )}
+
+        <div className="grid gap-6">
+          <section aria-labelledby="appearance-heading" className="card p-6">
+            <h2 id="appearance-heading" className="text-lg font-semibold text-fg">
+              Appearance
+            </h2>
+            <p className="mt-1 text-sm text-fg-muted">Light is the default. Dark is easier on the eyes at night. Saved in this browser.</p>
+            <div className="mt-4">
+              <ThemeToggle />
+            </div>
+          </section>
+          <nav aria-label="More account pages" className="card divide-y divide-line overflow-hidden">
+            {[
+              { href: "/billing", label: "Plan & billing", detail: "Your plan and what you've used", icon: CreditCard },
+              { href: "/goal", label: "My goal", detail: "What you're preparing for", icon: Target },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="group flex items-center gap-4 px-6 py-4 hover:bg-surface-muted">
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent-strong">
+                  <Icon as={l.icon} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-fg">{l.label}</span>
+                  <span className="block text-sm text-fg-muted">{l.detail}</span>
+                </span>
+                <Icon as={ArrowUpRight} className="flex-none text-fg-subtle group-hover:text-accent-strong" />
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
     </div>
   );
 }

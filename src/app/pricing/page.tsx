@@ -46,7 +46,7 @@ export default async function PricingPage() {
         <Container className="relative pb-20 pt-24 text-center sm:pt-32">
           <div className="cine-copy mx-auto max-w-3xl">
             <p className="cine-eyebrow">Pricing</p>
-            <h1 className="cine-display mt-5 text-5xl text-mist-50 sm:text-7xl">Every mode. Every {accent("plan")}.</h1>
+            <h1 className="cine-display mt-5 text-5xl text-fg sm:text-7xl">Every mode. Every {accent("plan")}.</h1>
             <p className="cine-lede mx-auto mt-6 max-w-xl">Plans differ in how much you can do each month and which levels unlock. Start free, no card needed.</p>
           </div>
           <Waveform bars={64} className="mx-auto mt-14 h-10 max-w-2xl opacity-50" />
@@ -62,33 +62,33 @@ export default async function PricingPage() {
                 return (
                   <div
                     key={plan}
-                    className={`flex flex-col rounded-[1.5rem] border p-7 ${featured ? "border-champagne-300/40 bg-night-800 shadow-[0_0_0_1px_rgb(216_195_160_/_0.15),0_40px_80px_-40px_rgb(216_195_160_/_0.25)]" : "border-white/[0.08] bg-night-850"}`}
+                    className={`flex flex-col rounded-[1.5rem] border p-7 ${featured ? "border-accent-line bg-accent-softer shadow-[var(--shadow-lg)]" : "border-line bg-surface"}`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <h2 className="font-display text-xl font-semibold tracking-tight text-mist-50">{PLAN_DISPLAY[plan].label}</h2>
-                      {featured && <span className="rounded-full bg-champagne-300 px-2.5 py-0.5 text-[0.7rem] font-semibold text-night-900">Recommended</span>}
+                      <h2 className="font-display text-xl font-semibold tracking-tight text-fg">{PLAN_DISPLAY[plan].label}</h2>
+                      {featured && <span className="rounded-full bg-accent px-2.5 py-0.5 text-[0.7rem] font-semibold text-on-ink">Recommended</span>}
                     </div>
-                    <p className="mt-2 min-h-[2.5rem] text-sm text-mist-400">{PLAN_DISPLAY[plan].blurb}</p>
-                    <ul className="mt-6 flex-1 space-y-3 border-t border-white/[0.08] pt-6 text-sm text-mist-300">
+                    <p className="mt-2 min-h-[2.5rem] text-sm text-fg-muted">{PLAN_DISPLAY[plan].blurb}</p>
+                    <ul className="mt-6 flex-1 space-y-3 border-t border-line pt-6 text-sm text-fg-muted">
                       {HIGHLIGHTS.map((feature) => {
                         const count = limits[feature];
                         return count === 0 ? (
-                          <li key={feature} className="flex items-start gap-2.5 text-mist-500">
+                          <li key={feature} className="flex items-start gap-2.5 text-fg-subtle">
                             <Icon as={Lock} className="mt-0.5" />
                             <span>{FEATURE_LABELS_PLURAL[feature]} on paid plans</span>
                           </li>
                         ) : (
                           <li key={feature} className="flex items-start gap-2.5">
-                            <Icon as={Check} className="mt-0.5 text-champagne-300" />
+                            <Icon as={Check} className="mt-0.5 text-accent-strong" />
                             <span>
-                              <span className="num font-semibold text-mist-50">{count}</span> {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
-                              <span className="text-mist-500">{plan === "FREE" ? " (once)" : " / month"}</span>
+                              <span className="num font-semibold text-fg">{count}</span> {count === 1 ? FEATURE_LABELS[feature] : FEATURE_LABELS_PLURAL[feature]}
+                              <span className="text-fg-subtle">{plan === "FREE" ? " (once)" : " / month"}</span>
                             </span>
                           </li>
                         );
                       })}
                       <li className="flex items-start gap-2.5">
-                        <Icon as={Check} className="mt-0.5 text-champagne-300" />
+                        <Icon as={Check} className="mt-0.5 text-accent-strong" />
                         <span>{levels.length === 4 ? "All four levels" : `${levels.map((d) => d.charAt(0) + d.slice(1).toLowerCase()).join(" & ")} levels`}</span>
                       </li>
                     </ul>
@@ -103,17 +103,17 @@ export default async function PricingPage() {
         </Container>
       </section>
 
-      <section className="border-t border-white/[0.06] bg-night-950 py-24 sm:py-32">
+      <section className="border-t border-line bg-surface-muted py-24 sm:py-32">
         <Container className="grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div>
             <p className="cine-eyebrow">Questions</p>
-            <h2 className="cine-headline mt-5 text-4xl text-mist-50 sm:text-5xl">Good to {accent("know")}.</h2>
+            <h2 className="cine-headline mt-5 text-4xl text-fg sm:text-5xl">Good to {accent("know")}.</h2>
           </div>
-          <dl className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
+          <dl className="divide-y divide-line border-y border-line">
             {faqs.map(([q, a]) => (
               <div key={q} className="py-6">
-                <dt className="font-medium text-mist-50">{q}</dt>
-                <dd className="mt-2 text-sm leading-relaxed text-mist-400">{a}</dd>
+                <dt className="font-medium text-fg">{q}</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-fg-muted">{a}</dd>
               </div>
             ))}
           </dl>
@@ -121,8 +121,8 @@ export default async function PricingPage() {
       </section>
 
       <FinalCta
-        name="mic-hero"
-        alt="A woman speaking into a studio microphone"
+        name="portrait"
+        alt="A woman speaking to the camera with a warm smile"
         title={<>Start with your {accent("voice")}.</>}
         text="Free to begin. Upgrade only when you want more."
         primary={{ href: session ? "/dashboard" : "/signup", label: session ? "Go to your dashboard" : "Start free" }}

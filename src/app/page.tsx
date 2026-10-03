@@ -49,13 +49,13 @@ export default async function LandingPage() {
 
   const slides: CineSlide[] = [
     {
-      name: "mic-hero",
+      name: "reading-mic",
       label: "Speaking",
       eyebrow: "AI speaking practice",
       title: <>Give every answer a {accent("confident")} voice.</>,
       text: "Answer out loud and get feedback on pronunciation, fluency, grammar and pace that quotes your own words.",
       cta: { label: "Start speaking", href: signedIn ? "/practice/speaking" : "/signup" },
-      alt: "A woman speaking into a studio microphone",
+      alt: "A woman with headphones reading aloud into a microphone",
     },
     {
       name: "interviewer",
@@ -67,13 +67,13 @@ export default async function LandingPage() {
       alt: "An interviewer on a laptop screen during a video interview",
     },
     {
-      name: "studio",
+      name: "mic-macro",
       label: "Feedback",
       eyebrow: "Speech analysis",
       title: <>Hear how you {accent("really")} sound.</>,
       text: "Every recording is transcribed and rated on six dimensions, so you know exactly what to fix next.",
       cta: { label: "See speech analysis", href: "/product/speaking" },
-      alt: "A woman speaking at a studio microphone in warm light",
+      alt: "A close-up of a studio microphone",
       overlay: <AnalysisDemo />,
     },
     {
@@ -133,8 +133,8 @@ export default async function LandingPage() {
               <FadeIn key={f.title} delay={(i % 2) * 120}>
                 <article className="group">
                   <ClipFrame name={f.clip} alt={f.alt} ratio="aspect-[16/10]" mode="hover" />
-                  <h3 className="cine-headline mt-6 text-2xl text-mist-50">{f.title}</h3>
-                  <p className="mt-2 max-w-md leading-relaxed text-mist-400">{f.text}</p>
+                  <h3 className="cine-headline mt-6 text-2xl text-fg">{f.title}</h3>
+                  <p className="mt-2 max-w-md leading-relaxed text-fg-muted">{f.text}</p>
                 </article>
               </FadeIn>
             ))}
@@ -144,25 +144,25 @@ export default async function LandingPage() {
 
       {/* 3. Voice: a large cinematic visual with the waveform over it. */}
       <section className="px-2 sm:px-3">
-        <div className="relative overflow-hidden rounded-[1.75rem] bg-night-850 ring-1 ring-white/[0.06]">
+        <div className="relative overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
           <div className="absolute inset-0">
-            <CineVideo name="mic-macro" alt="A close-up of a studio microphone" />
+            <CineVideo name="presenting" alt="A professional presenting with a microphone" />
           </div>
           <div aria-hidden="true" className="scrim-left absolute inset-0" />
           <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
           <Container className="relative py-28 sm:py-40">
             <FadeIn className="max-w-2xl">
               <p className="cine-eyebrow">Speech analysis</p>
-              <h2 className="cine-display mt-5 text-5xl text-mist-50 sm:text-7xl">Feedback on the {accent("voice")}, not just the words.</h2>
-              <p className="cine-lede mt-6 text-mist-300">
+              <h2 className="cine-display mt-5 text-5xl text-fg sm:text-7xl">Feedback on the {accent("voice")}, not just the words.</h2>
+              <p className="cine-lede mt-6 text-fg-muted">
                 VocalisAi listens to how you speak: the sounds you stress, the pauses you leave, the fillers you use and how fast you go. Every comment quotes your
                 own words, with the fix beside it.
               </p>
               <dl className="mt-10 grid gap-x-10 gap-y-5 sm:grid-cols-2">
                 {SPEECH_DIMENSIONS.map(([name, text]) => (
                   <div key={name}>
-                    <dt className="text-sm font-medium text-mist-50">{name}</dt>
-                    <dd className="mt-1 text-sm leading-relaxed text-mist-400">{text}</dd>
+                    <dt className="text-sm font-medium text-fg">{name}</dt>
+                    <dd className="mt-1 text-sm leading-relaxed text-fg-muted">{text}</dd>
                   </div>
                 ))}
               </dl>
@@ -206,8 +206,8 @@ export default async function LandingPage() {
             link={{ href: "/product/personalised", label: "See personalised practice" }}
             media={
               <ClipFrame name="teacher" alt="A teacher helping a student at a desk" ratio="aspect-[4/5] sm:aspect-[4/3]">
-                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/10 bg-night-900/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
-                  <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-champagne-300">Your skills · Example</p>
+                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
+                  <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Your skills · Example</p>
                   <ul className="mt-3 grid gap-2.5 text-xs">
                     {(
                       [
@@ -217,10 +217,10 @@ export default async function LandingPage() {
                       ] as const
                     ).map(([skill, band, value]) => (
                       <li key={skill} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1">
-                        <span className="text-mist-300">{skill}</span>
-                        <span className="text-mist-500">{band}</span>
-                        <span className="col-span-2 h-1 overflow-hidden rounded-full bg-white/10">
-                          <span className="block h-full rounded-full bg-champagne-300" style={{ width: `${value}%` }} />
+                        <span className="text-fg-muted">{skill}</span>
+                        <span className="text-fg-subtle">{band}</span>
+                        <span className="col-span-2 h-1 overflow-hidden rounded-full bg-fg/10">
+                          <span className="block h-full rounded-full bg-accent" style={{ width: `${value}%` }} />
                         </span>
                       </li>
                     ))}
@@ -242,14 +242,14 @@ export default async function LandingPage() {
           <div className="mt-14 grid gap-4 md:grid-cols-12">
             {USE_CASES.map((u, i) => (
               <FadeIn key={u.id} delay={(i % 4) * 90} className={i < 2 ? "md:col-span-6" : "md:col-span-6 lg:col-span-3"}>
-                <Link href={u.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-white/[0.06]">
+                <Link href={u.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-line">
                   <div className={`relative ${i < 2 ? "aspect-[16/11]" : "aspect-[16/11] lg:aspect-[3/4]"}`}>
                     <CineVideo name={u.clip} alt={u.alt} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
                     <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
                     <div className="absolute inset-x-0 bottom-0 p-6">
-                      <h3 className="cine-headline text-2xl text-mist-50">{u.title}</h3>
-                      <p className="mt-2 max-w-sm text-sm leading-relaxed text-mist-300">{u.text}</p>
-                      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-champagne-200">
+                      <h3 className="cine-headline text-2xl text-fg">{u.title}</h3>
+                      <p className="mt-2 max-w-sm text-sm leading-relaxed text-fg-muted">{u.text}</p>
+                      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent-strong">
                         {u.cta}
                         <Icon as={ArrowUpRight} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </span>
@@ -263,7 +263,7 @@ export default async function LandingPage() {
       </section>
 
       {/* 7. Product walkthrough. */}
-      <section className="border-y border-white/[0.06] bg-night-950 py-28 sm:py-40">
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-40">
         <Container>
           <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div>
@@ -280,10 +280,10 @@ export default async function LandingPage() {
                 ].map(([t, d], i) => (
                   <FadeIn key={t} delay={i * 100}>
                     <li className="flex gap-4">
-                      <span className="num flex h-8 w-8 flex-none items-center justify-center rounded-full border border-white/15 text-xs text-champagne-300">{i + 1}</span>
+                      <span className="num flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line text-xs text-accent-strong">{i + 1}</span>
                       <div>
-                        <p className="font-medium text-mist-50">{t}</p>
-                        <p className="mt-1 text-sm leading-relaxed text-mist-400">{d}</p>
+                        <p className="font-medium text-fg">{t}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-fg-muted">{d}</p>
                       </div>
                     </li>
                   </FadeIn>
@@ -301,16 +301,16 @@ export default async function LandingPage() {
       <section className="py-24 sm:py-32">
         <Container>
           <FadeIn>
-            <dl className={`grid gap-px overflow-hidden rounded-[1.5rem] bg-white/[0.08] ring-1 ring-white/[0.08] sm:grid-cols-2 ${facts.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+            <dl className={`grid gap-px overflow-hidden rounded-[1.5rem] bg-accent-softer ring-1 ring-line sm:grid-cols-2 ${facts.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
               {facts.map((f) => (
-                <div key={f.label} className="bg-night-900 p-8">
+                <div key={f.label} className="bg-bg p-8">
                   <dt className="sr-only">{f.label}</dt>
-                  <dd className="cine-display text-5xl text-mist-50">{f.value}</dd>
-                  <dd className="mt-3 text-sm leading-relaxed text-mist-400">{f.label}</dd>
+                  <dd className="cine-display text-5xl text-fg">{f.value}</dd>
+                  <dd className="mt-3 text-sm leading-relaxed text-fg-muted">{f.label}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-6 max-w-3xl text-xs leading-relaxed text-mist-500">
+            <p className="mt-6 max-w-3xl text-xs leading-relaxed text-fg-subtle">
               Figures come straight from the live question bank and catalogue. Practice material is written by VocalisAi; we are not affiliated with or endorsed by
               the employers or test providers named.
             </p>
@@ -320,8 +320,8 @@ export default async function LandingPage() {
 
       {/* 9. Final call to action. */}
       <FinalCta
-        name="podcast-bokeh"
-        alt="A podcast microphone in soft focus"
+        name="graduates"
+        alt="Graduates in caps and gowns smiling together"
         title={<>Your next opportunity starts with your {accent("voice")}.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: start, label: signedIn ? "Go to your dashboard" : "Start practising" }}

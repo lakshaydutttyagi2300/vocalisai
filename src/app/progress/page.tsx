@@ -5,6 +5,8 @@ import { getProgressData, type OverallTrendPoint } from "@/lib/progress";
 import { SCORE_CATEGORIES, CATEGORY_LABELS } from "@/lib/scoring-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { examPaperStats } from "@/lib/candidate-history";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 function TrendChart({ points }: { points: OverallTrendPoint[] }) {
   const scored = points.filter((p) => p.overallScore !== null) as { sessionId: string; date: string; overallScore: number }[];
@@ -26,11 +28,11 @@ function TrendChart({ points }: { points: OverallTrendPoint[] }) {
 
   return (
     <svg data-chart="trend" viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="none">
-      <line x1={padding} y1={toY(0)} x2={width - padding} y2={toY(0)} stroke="#e2ded3" strokeWidth={1} />
-      <line x1={padding} y1={toY(100)} x2={width - padding} y2={toY(100)} stroke="#e2ded3" strokeWidth={1} />
-      <path d={pathD} fill="none" stroke="#106e64" strokeWidth={2} />
+      <line x1={padding} y1={toY(0)} x2={width - padding} y2={toY(0)} className="stroke-line" strokeWidth={1} />
+      <line x1={padding} y1={toY(100)} x2={width - padding} y2={toY(100)} className="stroke-line" strokeWidth={1} />
+      <path d={pathD} fill="none" className="stroke-accent" strokeWidth={2} />
       {scored.map((p, i) => (
-        <circle key={p.sessionId} cx={padding + i * stepX} cy={toY(p.overallScore)} r={3} fill="#106e64" />
+        <circle key={p.sessionId} cx={padding + i * stepX} cy={toY(p.overallScore)} r={3} className="fill-accent" />
       ))}
     </svg>
   );
@@ -52,12 +54,9 @@ export default async function ProgressPage() {
   const [data, exam] = await Promise.all([getProgressData(userId), examPaperStats(userId)]);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <h1 className="text-2xl font-semibold text-ink-950">Progress</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        Your real history across mock tests and practice - nothing here is estimated or inferred.
-      </p>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.progress} title="Progress" stats={[`${data.mockSessionsCompleted} mock test${data.mockSessionsCompleted === 1 ? "" : "s"} completed`]} />
+    <div className="page-container mt-10 max-w-5xl">
       <div className="card mt-6 p-6">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-ink-900">Overall score over time</h2>
@@ -201,6 +200,7 @@ export default async function ProgressPage() {
           .
         </p>
       )}
+    </div>
     </div>
   );
 }

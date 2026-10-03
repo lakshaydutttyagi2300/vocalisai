@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import { db } from "@/lib/db";
 import { sectionNames, SKILL_FIRST_CATEGORIES } from "@/lib/catalog-queries";
 import { Icon } from "@/components/ui/Icon";
-import { categoryIcon } from "@/components/explore/categoryIcons";
 import { ExamMonogram } from "@/components/explore/ExamMonogram";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { categoryMedia } from "@/config/heroMedia";
 
 async function loadCategory(slug: string) {
   return db.catalogCategory.findFirst({
@@ -46,23 +47,11 @@ export default async function ExploreCategoryPage({ params }: { params: Promise<
   const groups = [...new Set(category.exams.map((e) => e.groupName ?? ""))].map((name) => ({ name, exams: category.exams.filter((e) => (e.groupName ?? "") === name) }));
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <Link href="/explore" className="btn-ghost btn-sm -ml-3">
-        <Icon as={ArrowLeft} />
-        Explore
-      </Link>
-      <div className="mt-4 flex items-start gap-4">
-        <span className="hidden h-12 w-12 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700 sm:flex">
-          <Icon as={categoryIcon(category.slug)} size="md" />
-        </span>
-        <div className="min-w-0">
-          <h1 className="headline text-3xl text-ink-950 sm:text-4xl">{category.name}</h1>
-          {category.description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">{category.description}</p>}
-        </div>
-      </div>
-
+    <div className="pb-20">
+      <MediaHero back={{ label: "Explore", href: "/explore" }} eyebrow="Explore" title={category.name} subtitle={category.description ?? undefined} stats={[`${category.exams.length} assessment${category.exams.length === 1 ? "" : "s"}`, "Beginner to Expert"]} media={categoryMedia(category.slug)} variant="full-bleed" size="md" />
+    <div className="page-container mt-10">
       {SKILL_FIRST_CATEGORIES.includes(category.slug) && (
-        <Link href="/explore/skills" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
+        <Link href="/explore/skills" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
           Or practise one skill at a time
           <Icon as={ArrowRight} />
         </Link>
@@ -94,6 +83,7 @@ export default async function ExploreCategoryPage({ params }: { params: Promise<
           </section>
         ))
       )}
+    </div>
     </div>
   );
 }

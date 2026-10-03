@@ -973,7 +973,7 @@ export default function AdminQuestionsPage() {
                     Select all {total} questions matching these filters
                   </button>
                 )}
-                <button type="button" onClick={() => setConfirmingDelete(true)} disabled={deleting} className="btn-sm rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+                <button type="button" onClick={() => setConfirmingDelete(true)} disabled={deleting} className="btn-danger btn-sm">
                   Delete selected
                 </button>
                 <button type="button" onClick={clearSelection} className="text-xs font-medium text-slate-600 hover:underline">
@@ -998,7 +998,7 @@ export default function AdminQuestionsPage() {
                     type="button"
                     onClick={deleteSelected}
                     disabled={deleting || (needsTypedConfirm && confirmText.trim() !== "DELETE")}
-                    className="btn-sm rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                    className="btn-danger btn-sm"
                   >
                     {deleting ? "Deleting..." : `Yes, delete ${selectedCount}`}
                   </button>

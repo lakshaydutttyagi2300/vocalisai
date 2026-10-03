@@ -63,7 +63,7 @@ export function ExploreSearch({ items }: { items: SearchItem[] }) {
                         {r.detail && ` · ${r.detail}`}
                       </span>
                     </span>
-                    <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 group-hover:text-brand-600" />
+                    <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-fg-muted group-hover:text-brand-600" />
                   </Link>
                 </li>
               ))}

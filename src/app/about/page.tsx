@@ -57,8 +57,8 @@ export default function AboutPage() {
                   <div className="cine-media aspect-[4/5]">
                     <CineVideo name={b.clip} alt={b.alt} />
                   </div>
-                  <h3 className="cine-headline mt-7 text-2xl text-mist-50">{b.title}</h3>
-                  <p className="mt-3 leading-relaxed text-mist-400">{b.text}</p>
+                  <h3 className="cine-headline mt-7 text-2xl text-fg">{b.title}</h3>
+                  <p className="mt-3 leading-relaxed text-fg-muted">{b.text}</p>
                 </article>
               </FadeIn>
             ))}
@@ -66,7 +66,7 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      <section className="border-y border-white/[0.06] bg-night-950 py-28 sm:py-40">
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-40">
         <Container>
           <MediaSplit
             eyebrow="How it works"
@@ -76,7 +76,7 @@ export default function AboutPage() {
             media={
               <div className="relative">
                 <div className="cine-media aspect-[4/3]">
-                  <CineVideo name="studio" alt="A woman speaking at a studio microphone in warm light" />
+                  <CineVideo name="reading-mic" alt="A woman with headphones reading aloud into a microphone" />
                 </div>
                 <AnalysisDemo className="relative -mt-40 ml-auto w-[94%] sm:-mr-6 sm:w-[25rem]" />
               </div>
@@ -89,7 +89,7 @@ export default function AboutPage() {
         <Container className="flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="cine-eyebrow">Talk to us</p>
-            <h2 className="cine-headline mt-5 text-4xl text-mist-50 sm:text-5xl">Questions, schools or {accent("companies")}?</h2>
+            <h2 className="cine-headline mt-5 text-4xl text-fg sm:text-5xl">Questions, schools or {accent("companies")}?</h2>
           </div>
           <Link href="/contact" className="btn-secondary btn-lg">
             Contact us

@@ -239,7 +239,7 @@ export default function ConversationPage() {
             <div key={t.id} className={t.speaker === "ai" ? "text-left" : "text-right"}>
               <span
                 className={`inline-block max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                  t.speaker === "ai" ? "bg-slate-100 text-slate-700" : "bg-brand-600 text-white"
+                  t.speaker === "ai" ? "bg-surface-muted text-fg" : "bg-accent-soft text-fg"
                 }`}
               >
                 {t.text}
@@ -355,7 +355,7 @@ export default function ConversationPage() {
           <div key={t.id} className={t.speaker === "ai" ? "text-left" : "text-right"}>
             <span
               className={`inline-block max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                t.speaker === "ai" ? "bg-slate-100 text-slate-700" : "bg-brand-600 text-white"
+                t.speaker === "ai" ? "bg-surface-muted text-fg" : "bg-accent-soft text-fg"
               }`}
             >
               {t.text}
@@ -369,7 +369,7 @@ export default function ConversationPage() {
         {recordingState === "recording" && (
           <div className="mb-3 w-full">
             <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
+              <div className="h-full bg-accent transition-all duration-100" style={{ width: `${micLevel}%` }} />
             </div>
           </div>
         )}

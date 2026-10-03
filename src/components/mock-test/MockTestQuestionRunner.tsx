@@ -193,8 +193,8 @@ export function MockTestQuestionRunner({
 
   if (phase === "error") {
     return (
-      <div className="text-center text-white">
-        <p role="alert" className="rounded-md bg-red-500/20 px-3 py-2 text-sm text-red-200">
+      <div className="text-center text-fg">
+        <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger-strong">
           {error}
         </p>
         <button onClick={() => setPhase("answering")} className="btn-dark mt-4">
@@ -208,12 +208,12 @@ export function MockTestQuestionRunner({
   if (phase === "section-intro") {
     const modeDef = getModeByCategory(section.category);
     return (
-      <div className="text-center text-white">
-        <span className="badge" style={{ backgroundColor: "rgba(255,255,255,.1)", color: "#cbd5cf" }}>
+      <div className="text-center text-fg">
+        <span className="badge badge-neutral">
           Section {sectionIndex + 1} of {sections.length}
         </span>
         <h2 className="mt-3 font-display text-xl font-bold">{modeDef?.label ?? section.category}</h2>
-        <p className="mt-2 text-sm text-slate-300">{modeDef?.description}</p>
+        <p className="mt-2 text-sm text-fg-muted">{modeDef?.description}</p>
         <p className="mt-1 text-xs text-slate-400">{section.questionCount} question{section.questionCount === 1 ? "" : "s"}</p>
         <button onClick={startSection} className="btn-primary btn-lg mt-6">
           <Icon as={Play} />
@@ -240,14 +240,14 @@ export function MockTestQuestionRunner({
   return (
     <div className="w-full max-w-xl">
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <span className="font-semibold text-slate-200">{modeDef?.label ?? section.category}</span>
+        <span className="font-semibold text-fg-muted">{modeDef?.label ?? section.category}</span>
         <span
-          className={`font-mono text-sm font-semibold ${secondsLeft <= 10 ? "text-red-400" : "text-slate-300"}`}
+          className={`font-mono text-sm font-semibold ${secondsLeft <= 10 ? "text-red-400" : "text-fg-muted"}`}
         >
           {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}
         </span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
         <div
           className="h-full rounded-full bg-brand-500 transition-all duration-300"
           style={{ width: `${(answeredCount / Math.max(1, totalQuestions)) * 100}%` }}
@@ -309,7 +309,7 @@ export function MockTestQuestionRunner({
                   Recording...
                 </div>
                 <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
+                  <div className="h-full bg-accent transition-all duration-100" style={{ width: `${micLevel}%` }} />
                 </div>
                 <button onClick={stopRecording} className="btn-danger mt-3">
                   <Icon as={Square} />

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { countUnanalysedRecordings, listSpeechAnalyses, type SpeechAnalysisRow } from "@/lib/candidate-history";
 import type { Rating } from "@/lib/providers/gemini-analysis-provider";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "Speech Analysis - VocalisAi" };
 
@@ -38,21 +40,9 @@ export default async function SpeechAnalysisPage() {
   const strongPron = recent.filter((r) => r.ratings.pronunciation === "strong").length;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-ink-950">Speech Analysis</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            Every recording you&apos;ve had analysed - pronunciation, fluency, grammar, pace and filler words - in one place. Open any one for
-            the full breakdown and an improved model answer.
-          </p>
-        </div>
-        <Link href="/practice#speaking" className="btn-primary">
-          <Icon as={Mic} />
-          Record a new answer
-        </Link>
-      </div>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.speechAnalysis} title="Speech Analysis" subtitle="Every recording you've had analysed (pronunciation, fluency, grammar, pace and filler words) in one place. Open any one for the full breakdown and an improved model answer." cta={{ label: "Record your answer", href: "/practice#speaking" }} stats={[`${rows.length} analysed`, ...(avgWpm !== null && avgFillers !== null ? [`${Math.round(avgWpm)} wpm average`, `${avgFillers.toFixed(1)} fillers per answer`] : [])]} />
+    <div className="page-container mt-10">
       {rows.length > 0 && (
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <Stat label="Average speaking pace" value={avgWpm === null ? "-" : `${avgWpm} wpm`} hint="Across your last 10 analyses. Around 120-160 wpm is comfortable to follow." />
@@ -86,6 +76,7 @@ export default async function SpeechAnalysisPage() {
           ))}
         </ul>
       )}
+    </div>
     </div>
   );
 }

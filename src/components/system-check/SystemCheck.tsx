@@ -99,7 +99,7 @@ export function SystemCheck({
             <StatusBadge status={cameraStatus} />
           </div>
 
-          <div className="mt-3 aspect-video overflow-hidden rounded-md bg-ink-950">
+          <div className="mt-3 aspect-video overflow-hidden rounded-md bg-surface-muted">
             {cameraStream ? (
               <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
             ) : (

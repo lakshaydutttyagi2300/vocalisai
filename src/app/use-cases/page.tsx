@@ -39,10 +39,10 @@ export default function UseCasesPage() {
         }
       />
 
-      <nav aria-label="Use cases" className="sticky top-[4.4rem] z-30 border-b border-white/[0.06] bg-night-900/80 backdrop-blur-xl">
+      <nav aria-label="Use cases" className="sticky top-[4.4rem] z-30 border-b border-line bg-surface/80 backdrop-blur-xl">
         <Container className="flex gap-6 overflow-x-auto py-4 text-sm">
           {USE_CASES.map((u) => (
-            <a key={u.id} href={`#${u.id}`} className="whitespace-nowrap text-mist-400 transition-colors hover:text-mist-50">
+            <a key={u.id} href={`#${u.id}`} className="whitespace-nowrap text-fg-muted transition-colors hover:text-fg">
               {u.title}
             </a>
           ))}
@@ -50,7 +50,7 @@ export default function UseCasesPage() {
       </nav>
 
       {USE_CASES.map((u, i) => (
-        <section key={u.id} id={u.id} className={`scroll-mt-32 py-24 sm:py-32 ${i % 2 === 1 ? "bg-night-950" : ""}`}>
+        <section key={u.id} id={u.id} className={`scroll-mt-32 py-24 sm:py-32 ${i % 2 === 1 ? "bg-surface-muted" : ""}`}>
           <Container>
             <MediaSplit
               reverse={i % 2 === 1}
@@ -66,8 +66,8 @@ export default function UseCasesPage() {
       ))}
 
       <FinalCta
-        name="podcast-bokeh"
-        alt="A podcast microphone in soft focus"
+        name="teacher"
+        alt="A teacher helping a student at a desk"
         title={<>Ready for whatever&rsquo;s {accent("next")}.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

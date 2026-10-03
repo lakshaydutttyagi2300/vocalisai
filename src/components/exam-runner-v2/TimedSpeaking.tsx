@@ -120,7 +120,7 @@ export function TimedSpeaking({
             <span className="font-mono text-sm font-semibold text-ink-900">{formatSeconds(secondsLeft)}</span>
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full bg-red-400 transition-all duration-100" style={{ width: `${micLevel}%` }} />
+            <div className="h-full bg-accent transition-all duration-100" style={{ width: `${micLevel}%` }} />
           </div>
           <button type="button" onClick={stopRecording} className="btn-danger mt-3">
             <Icon as={Square} />

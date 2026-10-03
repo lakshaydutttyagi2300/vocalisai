@@ -203,7 +203,7 @@ export default function AdminCataloguePage() {
             ["subjects", "Subjects & skills"],
           ] as const
         ).map(([key, label]) => (
-          <button key={key} role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setSelected(null); }} className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${tab === key ? "border-ink-950 bg-ink-950 text-white" : "border-slate-200 bg-white text-slate-700"}`}>
+          <button key={key} role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setSelected(null); }} className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${tab === key ? "border-accent bg-accent-soft text-fg" : "border-slate-200 bg-white text-slate-700"}`}>
             {label}
           </button>
         ))}
@@ -216,7 +216,7 @@ export default function AdminCataloguePage() {
       )}
 
       {pending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/40 px-4" onClick={() => !pendingBusy && setPending(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => !pendingBusy && setPending(null)}>
           <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title" className="sheet w-full max-w-md p-5" onClick={(ev) => ev.stopPropagation()}>
             <h2 id="confirm-delete-title" className="font-semibold text-ink-950">
               {pending.title}
@@ -227,7 +227,7 @@ export default function AdminCataloguePage() {
               <button type="button" onClick={() => setPending(null)} disabled={pendingBusy} className="btn-ghost btn-sm">
                 Cancel
               </button>
-              <button type="button" onClick={confirmPending} disabled={pendingBusy} className="btn-sm inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+              <button type="button" onClick={confirmPending} disabled={pendingBusy} className="btn-danger btn-sm disabled:opacity-60">
                 <Icon as={Trash2} />
                 {pendingBusy ? "Deleting…" : "Delete"}
               </button>
@@ -356,7 +356,7 @@ function OnOffSwitch({ on, label, busy, onToggle }: { on: boolean; label: string
         aria-label={label}
         disabled={busy}
         onClick={onToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-60 ${on ? "bg-green-600" : "bg-slate-300"}`}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-60 ${on ? "bg-success" : "bg-line-strong"}`}
       >
         <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`} />
       </button>

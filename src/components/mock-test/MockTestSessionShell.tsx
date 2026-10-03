@@ -177,12 +177,12 @@ export function MockTestSessionShell({
   return (
     <div className="focus-surface min-h-screen">
       <div className="sticky top-0 z-30">
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-ink-950/95 px-6 py-3 backdrop-blur">
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-surface/95 px-6 py-3 backdrop-blur">
           <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
             <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
             Recording
           </div>
-          <div className="font-mono text-sm text-slate-300">{mm}:{ss} elapsed</div>
+          <div className="font-mono text-sm text-fg-muted">{mm}:{ss} elapsed</div>
           <button onClick={endTest} data-loading={ending || undefined} className="btn-danger btn-sm">
             <Icon as={SquareX} />
             End assessment
@@ -195,7 +195,7 @@ export function MockTestSessionShell({
         <div className="flex flex-col items-center">
           {startError ? (
             <div className="text-center">
-              <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger-strong">
                 {startError}
               </p>
               <button onClick={startSession} className="btn-dark btn-sm mt-4">
@@ -211,7 +211,7 @@ export function MockTestSessionShell({
           ) : !sections ? (
             <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : sections.length === 0 ? (
-            <p className="text-center text-sm text-slate-300">
+            <p className="text-center text-sm text-fg-muted">
               No assessment template is configured yet. Ask an admin to set one up.
             </p>
           ) : (
@@ -225,7 +225,7 @@ export function MockTestSessionShell({
             )
           )}
 
-          <div className="mt-8 aspect-video w-48 overflow-hidden rounded-md border border-white/10 bg-black">
+          <div className="mt-8 aspect-video w-48 overflow-hidden rounded-md border border-line bg-surface-muted">
             {cameraStream && <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />}
           </div>
         </div>
@@ -247,7 +247,7 @@ export function MockTestSessionShell({
           <ul className="mt-2 max-h-48 space-y-1.5 overflow-y-auto text-xs text-slate-400">
             {events.length === 0 && <li className="text-slate-500">No events yet.</li>}
             {[...events].reverse().map((e, i) => (
-              <li key={i} className="flex justify-between gap-2 border-b border-white/5 pb-1">
+              <li key={i} className="flex justify-between gap-2 border-b border-line pb-1">
                 <span>{describeProctoringEvent(e.eventType)}</span>
                 <span className="whitespace-nowrap text-slate-500">
                   {new Date(e.occurredAt).toLocaleTimeString()}
@@ -266,11 +266,11 @@ export function MockTestSessionShell({
 function CameraWarning({ status }: { status: LiveProctoringStatus }) {
   if (status.people === "multiple") {
     return (
-      <div role="alert" className="flex items-start gap-3 bg-red-600 px-6 py-3 text-white shadow-lg">
+      <div role="alert" className="flex items-start gap-3 bg-danger px-6 py-3 text-on-ink shadow-lg">
         <Icon as={UsersRound} size="md" className="mt-0.5 shrink-0" />
         <div>
           <p className="font-semibold">Multiple people detected. Only the candidate should be visible.</p>
-          <p className="text-sm text-red-100">
+          <p className="text-sm opacity-90">
             {status.peopleCount} people are in view of your camera. This has been recorded, and the warning clears as soon as only you are in view.
           </p>
         </div>
@@ -279,7 +279,7 @@ function CameraWarning({ status }: { status: LiveProctoringStatus }) {
   }
   if (status.people === "none") {
     return (
-      <div role="status" className="flex items-start gap-3 bg-amber-500 px-6 py-3 text-ink-950 shadow-lg">
+      <div role="status" className="flex items-start gap-3 bg-warning-soft px-6 py-3 text-warning-strong shadow-lg">
         <Icon as={ScanFace} size="md" className="mt-0.5 shrink-0" />
         <p className="font-semibold">We can&apos;t see your face. Please sit facing the camera.</p>
       </div>
@@ -298,13 +298,13 @@ function StatusRow({
   detail: string;
 }) {
   const styles = {
-    ok: "bg-green-500/20 text-green-300",
-    warning: "bg-amber-500/20 text-amber-300",
-    unavailable: "bg-slate-500/20 text-slate-400",
+    ok: "bg-success-soft text-success-strong",
+    warning: "bg-warning-soft text-warning-strong",
+    unavailable: "bg-surface text-fg-muted",
   };
   return (
-    <div className="flex items-center justify-between rounded-md bg-white/5 px-3 py-2 text-sm">
-      <span className="text-slate-300">{label}</span>
+    <div className="flex items-center justify-between rounded-md bg-surface-muted px-3 py-2 text-sm">
+      <span className="text-fg-muted">{label}</span>
       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${styles[state]}`}>{detail}</span>
     </div>
   );

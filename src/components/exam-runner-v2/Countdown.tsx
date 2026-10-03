@@ -31,7 +31,7 @@ export function Countdown({ label, seconds, warnBelow = 60 }: { label: string; s
   return (
     <div className="text-right">
       <div className="text-[11px] uppercase tracking-wide text-slate-400">{label}</div>
-      <div className={`font-mono text-sm font-semibold ${warn ? "text-red-400" : "text-slate-100"}`} aria-live={warn ? "polite" : "off"}>
+      <div className={`font-mono text-sm font-semibold ${warn ? "text-red-400" : "text-fg-muted"}`} aria-live={warn ? "polite" : "off"}>
         {formatSeconds(seconds)}
       </div>
     </div>

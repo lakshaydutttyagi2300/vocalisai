@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Mic, Timer, Target } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 const GROUPS: { id: string; title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
   {
@@ -67,7 +69,7 @@ function ModeRow({ mode }: { mode: PracticeModeDef }) {
           <span className="mt-1 block text-sm leading-relaxed text-slate-600">{mode.description}</span>
         </span>
         <span className="hidden flex-none pt-0.5 text-xs text-slate-400 sm:block">Beginner &rarr; Expert</span>
-        <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 transition-colors group-hover:text-brand-600" />
+        <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-fg-muted transition-colors group-hover:text-brand-600" />
       </Link>
     </li>
   );
@@ -75,21 +77,17 @@ function ModeRow({ mode }: { mode: PracticeModeDef }) {
 
 export default function PracticeHubPage() {
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <p className="eyebrow">Practice</p>
-      <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Practice Library</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        Pick one skill and practise it at your level, from Beginner to Expert. Speaking modes ask for microphone access first.
-      </p>
-
-      <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Link href="/practice/conversation" className="panel-ink group block overflow-hidden rounded-[1.25rem] p-7 text-white sm:p-8">
+    <div className="pb-20">
+      <MediaHero {...HEROES.practice} title="Practice Library" subtitle="Pick one skill and practise it at your level, from Beginner to Expert. Speaking modes ask for microphone access first." stats={[`${PRACTICE_MODES.length} skills to practise`, "Beginner to Expert"]} />
+    <div className="page-container mt-10">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Link href="/practice/conversation" className="panel-ink lift group block overflow-hidden rounded-xl p-7 sm:p-8">
           <p className="eyebrow eyebrow-on-ink">AI voice conversation · Needs mic</p>
           <h2 className="display mt-4 max-w-xl text-2xl sm:text-3xl">Talk with an AI customer, interviewer, supervisor or conversation partner</h2>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-fg-muted">
             A real back-and-forth conversation, not a scripted quiz - the closest thing to a live Voice &amp; Accent interview you can practice on your own.
           </p>
-          <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-amber-300">
+          <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-accent-strong">
             Start a conversation
             <Icon as={ArrowRight} className="transition-transform group-hover:translate-x-0.5" />
           </span>
@@ -116,7 +114,7 @@ export default function PracticeHubPage() {
         </div>
       </div>
 
-      <nav aria-label="Skill groups" className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+      <nav aria-label="Skill groups" className="-mx-4 mt-10 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
         {GROUPS.map((g) => (
           <a key={g.id} href={`#${g.id}`} className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400">
             {g.title}
@@ -148,6 +146,7 @@ export default function PracticeHubPage() {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

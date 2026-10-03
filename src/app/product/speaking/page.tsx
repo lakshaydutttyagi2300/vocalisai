@@ -37,8 +37,8 @@ export default function SpeakingPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="studio"
-        alt="A woman speaking at a studio microphone in warm light"
+        name="reading-mic"
+        alt="A woman with headphones reading aloud into a microphone"
         eyebrow="Speaking practice"
         title={<>Speak. Hear exactly how you {accent("sound")}.</>}
         text="Answer out loud and VocalisAi transcribes and rates your answer on six dimensions, quoting your own words with the fix beside each one."
@@ -72,7 +72,7 @@ export default function SpeakingPage() {
         </Container>
       </section>
 
-      <section className="border-y border-white/[0.06] bg-night-950 py-28 sm:py-36">
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-36">
         <Container>
           <SectionIntro eyebrow="Before and after" title={<>Small fixes, a {accent("clearer")} you.</>} text="Three of the changes the feedback asks for most often." />
           <div className="mt-14 grid gap-4 lg:grid-cols-3">
@@ -80,9 +80,9 @@ export default function SpeakingPage() {
               <FadeIn key={b.skill} delay={i * 110}>
                 <div className="cine-surface h-full p-7">
                   <p className="cine-eyebrow">{b.skill}</p>
-                  <p className="mt-6 text-lg text-mist-500 line-through decoration-white/25">{b.before}</p>
-                  <p className="mt-3 font-display text-2xl font-semibold tracking-tight text-mist-50">{b.after}</p>
-                  <p className="mt-6 border-t border-white/[0.08] pt-5 text-sm text-mist-400">{b.note}</p>
+                  <p className="mt-6 text-lg text-fg-subtle line-through decoration-fg-subtle">{b.before}</p>
+                  <p className="mt-3 font-display text-2xl font-semibold tracking-tight text-fg">{b.after}</p>
+                  <p className="mt-6 border-t border-line pt-5 text-sm text-fg-muted">{b.note}</p>
                 </div>
               </FadeIn>
             ))}
@@ -98,16 +98,16 @@ export default function SpeakingPage() {
             eyebrow="Ways to practise"
             title={<>Every kind of {accent("speaking")}, in one place.</>}
             text="Pick the skill you want to work on, at Beginner, Intermediate, Advanced or Expert. Every mode gives the same detailed feedback."
-            media={<ClipFrame name="reading-mic" alt="A woman with headphones reading aloud into a microphone" ratio="aspect-[4/3]" />}
+            media={<ClipFrame name="presenting" alt="A professional presenting with a microphone" ratio="aspect-[4/3]" />}
           />
-          <div className="mt-14 grid gap-px overflow-hidden rounded-[1.5rem] bg-white/[0.08] ring-1 ring-white/[0.08] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-px overflow-hidden rounded-[1.5rem] bg-accent-softer ring-1 ring-line sm:grid-cols-2 lg:grid-cols-3">
             {MODES.map(([name, href, text]) => (
-              <Link key={href} href={href} className="group bg-night-900 p-7 transition-colors hover:bg-night-850">
-                <p className="flex items-center justify-between font-display text-lg font-semibold tracking-tight text-mist-50">
+              <Link key={href} href={href} className="group bg-bg p-7 transition-colors hover:bg-surface">
+                <p className="flex items-center justify-between font-display text-lg font-semibold tracking-tight text-fg">
                   {name}
-                  <Icon as={ArrowRight} className="text-mist-500 transition-transform group-hover:translate-x-0.5 group-hover:text-champagne-300" />
+                  <Icon as={ArrowRight} className="text-fg-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent-strong" />
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-mist-400">{text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{text}</p>
               </Link>
             ))}
           </div>
@@ -124,8 +124,8 @@ export default function SpeakingPage() {
       </section>
 
       <FinalCta
-        name="podcast-bokeh"
-        alt="A podcast microphone in soft focus"
+        name="headphones"
+        alt="A man with headphones speaking and reading"
         title={<>Your voice, {accent("clearer")} every week.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

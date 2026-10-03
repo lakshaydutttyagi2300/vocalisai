@@ -47,11 +47,11 @@ export default function GoalExplorer({ goals, ctaHref }: { goals: GoalOption[]; 
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(i)}
               className={`group flex flex-none items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition-colors lg:py-4 ${
-                selected ? "border-champagne-300/60 bg-white/[0.08] text-mist-50" : "border-white/10 text-mist-400 hover:border-white/20 hover:text-mist-50"
+                selected ? "border-accent-line bg-accent-softer text-fg" : "border-line text-fg-muted hover:border-line-strong hover:text-fg"
               }`}
             >
               <span className="whitespace-nowrap">{g.name}</span>
-              <Icon as={ArrowRight} className={`hidden lg:block ${selected ? "text-champagne-300" : "text-mist-500 group-hover:text-mist-300"}`} />
+              <Icon as={ArrowRight} className={`hidden lg:block ${selected ? "text-accent-strong" : "text-fg-subtle group-hover:text-fg-muted"}`} />
             </button>
           );
         })}
@@ -59,12 +59,12 @@ export default function GoalExplorer({ goals, ctaHref }: { goals: GoalOption[]; 
 
       <div role="tabpanel" id="goal-panel" aria-labelledby={`goal-tab-${goal.slug}`} className="cine-surface flex min-w-0 flex-col p-7 sm:p-10">
         <p className="cine-eyebrow">Goal track</p>
-        <h3 className="cine-headline mt-3 text-3xl text-mist-50 sm:text-4xl">{goal.name}</h3>
+        <h3 className="cine-headline mt-3 text-3xl text-fg sm:text-4xl">{goal.name}</h3>
         <p className="cine-lede mt-3">{goal.tagline}</p>
-        <ul className="mt-8 grid gap-4 border-t border-white/[0.08] pt-8 sm:grid-cols-3">
+        <ul className="mt-8 grid gap-4 border-t border-line pt-8 sm:grid-cols-3">
           {goal.includes.map((item) => (
-            <li key={item} className="flex gap-3 text-sm leading-relaxed text-mist-300">
-              <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-champagne-300/15 text-champagne-200">
+            <li key={item} className="flex gap-3 text-sm leading-relaxed text-fg-muted">
+              <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-accent-soft text-accent-strong">
                 <Icon as={Check} size="xs" />
               </span>
               {item}

@@ -115,7 +115,7 @@ export function TestBuilder({
 
   const step = (n: number, title: string) => (
     <h2 className="flex items-center gap-3 text-sm font-semibold text-ink-950">
-      <span className="num flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs text-white">{n}</span>
+      <span className="num flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent-strong">{n}</span>
       {title}
     </h2>
   );
@@ -130,11 +130,11 @@ export function TestBuilder({
               const selected = scope === s.id;
               const heading = s.section && s.section !== subjects[i - 1]?.section ? s.section : null;
               return (
-                <div key={s.id} className={selected ? "bg-brand-50/60" : undefined}>
+                <div key={s.id} className={selected ? "bg-accent-softer" : undefined}>
                   {heading && <p className="eyebrow bg-slate-50 px-5 pb-2 pt-3 text-slate-500">{heading}</p>}
                   <button type="button" role="radio" aria-checked={selected} onClick={() => chooseScope(s.id)} className="flex w-full items-center gap-4 px-5 py-4 text-left">
                     <span aria-hidden="true" className={`flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 ${selected ? "border-brand-600 bg-brand-600" : "border-slate-300"}`}>
-                      {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+                      {selected && <span className="h-2 w-2 rounded-full bg-surface" />}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold text-ink-950">{s.name}</span>
@@ -155,10 +155,10 @@ export function TestBuilder({
                             type="button"
                             aria-pressed={on}
                             onClick={() => setSkillId(k.id)}
-                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${on ? "border-accent bg-accent-soft text-fg" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"}`}
                           >
                             {k.name}
-                            {n !== null && <span className={on ? "text-slate-300" : "text-slate-400"}> {n}</span>}
+                            {n !== null && <span className={on ? "text-fg-muted" : "text-slate-400"}> {n}</span>}
                           </button>
                         );
                       })}
@@ -197,14 +197,14 @@ export function TestBuilder({
                   role="radio"
                   aria-checked={on}
                   onClick={() => setLevel(l.id)}
-                  className={`flex flex-col rounded-xl border p-3 text-left transition ${on ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-ink-950 hover:border-slate-400"}`}
+                  data-selected={on} className="choice flex flex-col p-3 text-left text-fg"
                 >
                   <span className="flex items-center justify-between gap-2 text-sm font-semibold">
                     {l.label}
-                    {locked && <Icon as={Lock} size="xs" className={on ? "text-amber-300" : "text-slate-400"} />}
+                    {locked && <Icon as={Lock} size="xs" className={on ? "text-accent-strong" : "text-fg-subtle"} />}
                   </span>
-                  <span className={`mt-0.5 text-xs ${on ? "text-slate-300" : "text-slate-500"}`}>{l.hint}</span>
-                  <span className={`num mt-2 text-xs ${on ? "text-slate-300" : "text-slate-400"}`}>{available(l.id)} questions</span>
+                  <span className="mt-0.5 text-xs text-fg-muted">{l.hint}</span>
+                  <span className="num mt-2 text-xs text-fg-muted">{available(l.id)} questions</span>
                 </button>
               );
             })}
@@ -224,9 +224,9 @@ export function TestBuilder({
                   role="radio"
                   aria-checked={on}
                   onClick={() => setMode(m)}
-                  className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${on ? "border-brand-600 bg-brand-50" : "border-slate-200 bg-white hover:border-slate-400"}`}
+                  data-selected={on} className="choice flex items-start gap-3 p-4 text-left"
                 >
-                  <Icon as={def.icon} className={on ? "mt-0.5 text-brand-700" : "mt-0.5 text-slate-400"} />
+                  <Icon as={def.icon} className={on ? "mt-0.5 text-accent-strong" : "mt-0.5 text-fg-subtle"} />
                   <span>
                     <span className="block text-sm font-semibold text-ink-950">{def.label}</span>
                     <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
@@ -248,7 +248,7 @@ export function TestBuilder({
                     role="radio"
                     aria-checked={count === n}
                     onClick={() => setCount(n)}
-                    className={`num rounded-lg border px-3 py-1.5 text-sm font-semibold ${count === n ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700"}`}
+                    className={`num rounded-lg border px-3 py-1.5 text-sm font-semibold ${count === n ? "border-accent bg-accent-soft text-fg" : "border-slate-200 bg-white text-slate-700"}`}
                   >
                     {n}
                   </button>
@@ -259,19 +259,19 @@ export function TestBuilder({
         </section>
       </div>
 
-      <aside aria-label="Your selection" className="panel-ink sticky top-24 overflow-hidden rounded-[1.25rem] p-6 text-white">
+      <aside aria-label="Your selection" className="panel-ink sticky top-24 overflow-hidden rounded-xl p-6">
         <p className="eyebrow eyebrow-on-ink">Ready to start</p>
         <dl className="mt-4 grid gap-3 text-sm">
           <div>
-            <dt className="text-xs text-slate-400">Practising</dt>
+            <dt className="text-xs text-fg-muted">Practising</dt>
             <dd className="font-semibold">{scope === "EXAM" ? "Whole exam" : `${subject?.name}${skillId ? ` · ${subject?.skills.find((k) => k.id === skillId)?.name}` : ""}`}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-400">Level</dt>
+            <dt className="text-xs text-fg-muted">Level</dt>
             <dd className="font-semibold">{LEVELS.find((l) => l.id === level)!.label}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-400">Mode</dt>
+            <dt className="text-xs text-fg-muted">Mode</dt>
             <dd className="font-semibold">{MODES[activeMode].label}</dd>
           </div>
         </dl>
@@ -291,9 +291,9 @@ export function TestBuilder({
             {!empty && <Icon as={ArrowRight} />}
           </button>
         )}
-        {empty && signedIn && !levelLocked && <p className="mt-3 text-xs leading-relaxed text-slate-400">Questions for this choice are being added. Try another level or subject.</p>}
+        {empty && signedIn && !levelLocked && <p className="mt-3 text-xs leading-relaxed text-fg-muted">Questions for this choice are being added. Try another level or subject.</p>}
         {error && (
-          <p role="alert" className="mt-3 rounded-md bg-red-500/15 px-3 py-2 text-xs leading-relaxed text-red-100">
+          <p role="alert" className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-xs leading-relaxed text-danger-strong">
             {error}
           </p>
         )}

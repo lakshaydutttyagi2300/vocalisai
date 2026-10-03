@@ -8,6 +8,8 @@ import { CandidateRules } from "@/components/mock-test/CandidateRules";
 import { MockTestSessionShell } from "@/components/mock-test/MockTestSessionShell";
 import { TrademarkDisclaimer } from "@/components/exam/TrademarkDisclaimer";
 import type { MockTestOption } from "@/lib/mock-test-options";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 type Stage = "intro" | "system-check" | "rules" | "session";
 
@@ -59,13 +61,15 @@ export function MockTestEntry() {
 
   if (stage === "intro" && !hasChoice) {
     return (
-      <div className="mx-auto max-w-lg px-6 py-16 text-center">
-        <p className="eyebrow">Proctored assessment</p>
-        <h1 className="headline mt-4 text-3xl text-ink-950">Prepare for your assessment</h1>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          A realistic, timed Voice &amp; Accent assessment - the closest thing to the real hiring process you can practice on your own.
-        </p>
-        <PrepChecks className="mt-8" />
+      <div className="pb-20">
+        <MediaHero
+          {...HEROES.mockTests}
+          eyebrow="Proctored assessment"
+          title="Prepare for your assessment"
+          subtitle="A realistic, timed Voice & Accent assessment: the closest thing to the real hiring process you can practise on your own."
+        />
+      <div className="page-container mt-10 max-w-lg text-center">
+        <PrepChecks />
         <button onClick={() => setStage("system-check")} className="btn-primary btn-lg mt-6">
           <Icon as={ShieldCheck} />
           Begin system check
@@ -77,29 +81,18 @@ export function MockTestEntry() {
           </a>
         </p>
       </div>
+      </div>
     );
   }
 
   if (stage === "intro") {
     return (
-      <div className="mx-auto max-w-6xl px-5 pb-36 pt-8 sm:px-6 sm:pt-10 lg:pb-16">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0">
-            <p className="eyebrow">Proctored mock exams</p>
-            <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Prepare for your assessment</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-              Choose the test you want to take. Every test is timed and proctored, just like the real thing.
-            </p>
-          </div>
-          <a href="/mock-tests/history" className="btn-secondary btn-sm">
-            My past results
-            <Icon as={ArrowRight} />
-          </a>
-        </div>
-
+      <div className="pb-36 lg:pb-20">
+        <MediaHero {...HEROES.mockTests} title="Prepare for your assessment" subtitle="Choose the test you want to take. Every test is timed and proctored, just like the real thing." secondary={{ label: "My past results", href: "/mock-tests/history" }} stats={[`${options.length} mock exam${options.length === 1 ? "" : "s"}`, "Timed sections", "Camera check"]} />
+      <div className="page-container mt-10">
         {showFilters && (
           // One sideways-scrolling row on phones; wraps on wider screens.
-          <div role="group" aria-label="Exam type" className="-mx-5 mt-8 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          <div role="group" aria-label="Exam type" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
             {[["ALL", "All exams"] as [string, string], ...types].map(([key, label]) => {
               const count = key === "ALL" ? options.length : options.filter((o) => o.typeKey === key).length;
               const active = typeFilter === key;
@@ -110,10 +103,10 @@ export function MockTestEntry() {
                   aria-pressed={active}
                   onClick={() => setTypeFilter(key)}
                   className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                    active ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                    active ? "border-accent bg-accent-soft text-fg" : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
                   }`}
                 >
-                  {label} <span className={active ? "text-amber-300" : "text-slate-400"}>{count}</span>
+                  {label} <span className={active ? "text-accent-strong" : "text-fg-subtle"}>{count}</span>
                 </button>
               );
             })}
@@ -139,11 +132,11 @@ export function MockTestEntry() {
 
           {chosen && (
             <aside aria-label="Your test" className="sticky top-24 hidden lg:block">
-              <div className="panel-ink overflow-hidden rounded-[1.25rem] p-6 text-white">
+              <div className="panel-ink overflow-hidden rounded-xl p-6">
                 <p className="eyebrow eyebrow-on-ink">Selected</p>
                 <p className="headline mt-3 text-2xl">{chosen.name}</p>
-                <p className="mt-1 text-sm text-slate-400">{chosen.typeName}</p>
-                {chosen.description && <p className="mt-4 text-sm leading-relaxed text-slate-300">{chosen.description}</p>}
+                <p className="mt-1 text-sm text-fg-muted">{chosen.typeName}</p>
+                {chosen.description && <p className="mt-4 text-sm leading-relaxed text-fg-muted">{chosen.description}</p>}
                 <TestShape option={chosen} />
                 <button onClick={() => setStage("system-check")} className="btn-primary btn-lg mt-6 w-full">
                   <Icon as={ShieldCheck} />
@@ -168,6 +161,7 @@ export function MockTestEntry() {
             </button>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -286,7 +280,7 @@ function TestShape({ option }: { option: MockTestOption }) {
   const total = option.papers.reduce((sum, p) => sum + p.minutes, 0);
   const versions = option.versionTemplateIds.length;
   return (
-    <div className="mt-6 border-t border-white/10 pt-5">
+    <div className="mt-6 border-t border-line pt-5">
       <p className="text-xs text-slate-400">{metaLine(option)}</p>
       {option.papers.length > 0 && total > 0 ? (
         <>
@@ -298,7 +292,7 @@ function TestShape({ option }: { option: MockTestOption }) {
           <ul className="mt-3 grid gap-1.5 text-sm">
             {option.papers.map((p, i) => (
               <li key={p.name} className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-slate-200">
+                <span className="flex items-center gap-2 text-fg-muted">
                   <span aria-hidden="true" className={`h-2 w-2 rounded-full ${i % 2 ? "bg-amber-400" : "bg-brand-300"}`} />
                   {p.name}
                 </span>
@@ -311,7 +305,7 @@ function TestShape({ option }: { option: MockTestOption }) {
         option.skills.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {option.skills.map((s) => (
-              <li key={s} className="rounded-full border border-white/15 px-2.5 py-0.5 text-xs text-slate-200">
+              <li key={s} className="rounded-full border border-line px-2.5 py-0.5 text-xs text-fg-muted">
                 {s}
               </li>
             ))}

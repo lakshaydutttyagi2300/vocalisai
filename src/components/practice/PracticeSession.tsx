@@ -9,9 +9,11 @@ import {
   type PracticeModeDef,
 } from "@/lib/practice-taxonomy";
 import { StimulusView } from "@/components/questions/StimulusView";
-import { ArrowLeft, ArrowRight, Check, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, Check, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import type { Stimulus } from "@/lib/question-stimulus";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { practiceModeMedia } from "@/config/heroMedia";
 
 type Question = {
   id: string;
@@ -176,16 +178,11 @@ export function PracticeSession({ mode, suggestedLevel = null }: { mode: Practic
 
   if (stage === "pick-difficulty") {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16">
-        <Link href="/practice" className="btn-ghost btn-sm -ml-3">
-          <Icon as={ArrowLeft} />
-          Back to Practice
-        </Link>
-        <h1 className="mt-4 text-2xl font-semibold text-ink-950">{mode.label}</h1>
-        <p className="mt-1 text-sm text-slate-600">{mode.description}</p>
-
-        <p className="mt-8 text-sm font-medium text-slate-700">Choose a difficulty</p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="pb-20">
+        <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Practice" title={mode.label} subtitle={mode.description} stats={["Beginner to Expert", "Instant feedback"]} media={practiceModeMedia(mode.slug)} variant="split" size="sm" />
+      <div className="page-container mt-10">
+        <p className="text-base font-semibold text-fg">Choose a difficulty</p>
+        <div className="mt-3 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
           {DIFFICULTIES.map((d) => (
             <button key={d} onClick={() => startSession(d)} className={`${d === suggestedLevel ? "btn-primary" : "btn-secondary"} btn-lg justify-between`}>
               {DIFFICULTY_LABELS[d]}
@@ -193,6 +190,23 @@ export function PracticeSession({ mode, suggestedLevel = null }: { mode: Practic
             </button>
           ))}
         </div>
+
+        <ol aria-label="How it works" className="mt-10 grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
+          {(
+            [
+              ["Pick a level", "Start where you're comfortable. You can move up or down any time."],
+              ["Answer 5 questions", "One at a time, with feedback after each answer."],
+              ["Build your rating", "Your answers count towards your skill ratings on My Skills."],
+            ] as const
+          ).map(([title, detail], i) => (
+            <li key={title} className="card p-4">
+              <span className="num text-xs font-semibold text-accent-strong">Step {i + 1}</span>
+              <span className="mt-1 block font-semibold text-fg">{title}</span>
+              <span className="mt-1 block text-sm text-fg-muted">{detail}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
       </div>
     );
   }

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { skillFirstAreas } from "@/lib/catalog-queries";
 import { Icon } from "@/components/ui/Icon";
 import { SpeakingPracticeLinks } from "@/components/explore/SpeakingPracticeLinks";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata: Metadata = {
   title: "Practice by skill - VocalisAi",
@@ -19,17 +21,9 @@ export default async function PracticeBySkillPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <Link href="/explore" className="btn-ghost btn-sm -ml-3">
-        <Icon as={ArrowLeft} />
-        Explore
-      </Link>
-      <p className="eyebrow mt-4">Practice by skill</p>
-      <h1 className="headline mt-2 text-3xl text-ink-950 sm:text-4xl">Work on the skill, whichever test you face</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        Weak in reasoning? Start there. These are the same questions behind the company and provider assessments, at Beginner to Expert level.
-      </p>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.exploreSkills} back={{ label: "Explore", href: "/explore" }} subtitle="Weak in reasoning? Start there. These are the same questions behind the company and provider assessments, at Beginner to Expert level." />
+    <div className="page-container mt-2">
       {groups.map((g) => (
         <section key={g.slug} aria-labelledby={`group-${g.slug}`} className="mt-10">
           <h2 id={`group-${g.slug}`} className="eyebrow text-slate-500">
@@ -43,7 +37,7 @@ export default async function PracticeBySkillPage() {
                     <span className="block font-semibold text-ink-950 group-hover:text-brand-700">{s.name}</span>
                     <span className="mt-1 block text-xs text-slate-500">{s.skillCount > 0 ? `${s.skillCount} skills` : "Practice questions"}</span>
                   </span>
-                  <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 transition-colors group-hover:text-brand-600" />
+                  <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-fg-muted transition-colors group-hover:text-brand-600" />
                 </Link>
               </li>
             ))}
@@ -54,6 +48,7 @@ export default async function PracticeBySkillPage() {
       <div className="mt-10">
         <SpeakingPracticeLinks />
       </div>
+    </div>
     </div>
   );
 }

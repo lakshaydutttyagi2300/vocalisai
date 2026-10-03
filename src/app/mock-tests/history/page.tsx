@@ -4,6 +4,8 @@ import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { listMockExams, type MockExamRow } from "@/lib/candidate-history";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "My mock exam results - VocalisAi" };
 
@@ -34,18 +36,9 @@ export default async function MockExamHistoryPage() {
   const rows = await listMockExams(session!.user.id);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-ink-950">My mock exam results</h1>
-          <p className="mt-1 text-sm text-slate-600">Every mock assessment and exam-style practice test you&apos;ve started, newest first.</p>
-        </div>
-        <Link href="/mock-tests" className="btn-primary">
-          <Icon as={Play} />
-          Take a mock exam
-        </Link>
-      </div>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.mockHistory} title="My mock exam results" subtitle="Every mock assessment and exam-style practice test you've started, newest first." cta={{ label: "Take a mock exam", href: "/mock-tests" }} stats={[`${rows.length} started`]} />
+    <div className="page-container mt-10 max-w-5xl">
       {rows.length === 0 ? (
         <div className="card mt-8 flex flex-col items-center p-10 text-center">
           <p className="font-display text-lg font-bold text-ink-900">No mock exams yet</p>
@@ -81,6 +74,7 @@ export default async function MockExamHistoryPage() {
           ))}
         </ul>
       )}
+    </div>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import { drillableCountsByNode, VOICE_CATEGORY_PRACTICE, visibleSkillWhere } fro
 import { MIN_ATTEMPTS_FOR_BAND, type Band, type MasteryResult } from "@/lib/skills/mastery";
 import { reconcileUserMastery } from "@/lib/skills/mastery-store";
 import { CATEGORY_SHORT_NAMES, displayName } from "@/lib/skills/taxonomy";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "My Skills - VocalisAi" };
 
@@ -46,12 +48,9 @@ export default async function SkillsDashboardPage() {
   const totalAnswers = [...mastery.entries()].filter(([id]) => byId.get(id)?.depth === 1).reduce((s, [, r]) => s + r.attempts, 0);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink-950">My Skills</h1>
-      <p className="mt-1 max-w-2xl text-sm text-slate-600">
-        How strong you are in each area, worked out from every answer you give - recent answers and harder questions count more. A skill gets a
-        rating after {MIN_ATTEMPTS_FOR_BAND} answers.
-      </p>
+    <div className="pb-20">
+      <MediaHero {...HEROES.skills} title="My Skills" subtitle={`How strong you are in each area, worked out from every answer you give: recent answers and harder questions count more. A skill gets a rating after ${MIN_ATTEMPTS_FOR_BAND} answers.`} stats={[`${totalAnswers} answers so far`]} />
+    <div className="page-container mt-10">
       <BandLegend />
 
       <section className="card mt-6 p-5">
@@ -152,6 +151,7 @@ export default async function SkillsDashboardPage() {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

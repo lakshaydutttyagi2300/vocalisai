@@ -7,7 +7,8 @@ import { Icon } from "@/components/ui/Icon";
 import { ExploreSearch, type SearchItem } from "@/components/explore/ExploreSearch";
 import { categoryIcon } from "@/components/explore/categoryIcons";
 import { ExamMonogram } from "@/components/explore/ExamMonogram";
-import { CineVideo } from "@/components/cine/CineVideo";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata: Metadata = {
   title: "Explore assessments - VocalisAi",
@@ -51,39 +52,22 @@ export default async function ExplorePage() {
   const otherCategories = tree.filter((c) => c.slug !== HIRING_CATEGORY);
 
   return (
-    <div>
-      {/* A cinematic band with the title and search; browsing below stays light. */}
-      <section className="px-2 pt-2 sm:px-3 sm:pt-3">
-        <div className="relative rounded-[1.75rem] bg-night-850 ring-1 ring-white/[0.06]">
-          <div className="absolute inset-0 overflow-hidden rounded-[1.75rem]">
-            <CineVideo name="office" alt="A young professional working at a laptop in a bright office" priority />
-            <div aria-hidden="true" className="scrim-left absolute inset-0" />
-            <div aria-hidden="true" className="absolute inset-0 bg-night-950/35" />
-          </div>
-          <div className="relative mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
-            <p className="cine-eyebrow">Explore</p>
-            <h1 className="cine-display mt-5 max-w-3xl text-4xl text-mist-50 sm:text-6xl">Prepare for company assessments, interviews and workplace skills</h1>
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-mist-300 sm:text-base">
-              Start from the test you&apos;re facing, or from the skill you want to improve. Both lead to the same questions, at Beginner to Expert level.
-            </p>
-            <div className="mt-8">
-              <ExploreSearch items={items} />
-            </div>
-          </div>
-        </div>
-      </section>
-      <div className="mx-auto max-w-6xl px-5 pb-16 pt-2 sm:px-6">
+    <div className="pb-20">
+      <MediaHero {...HEROES.explore}>
+        <ExploreSearch items={items} />
+      </MediaHero>
+      <div className="page-container">
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        <Link href={`/explore/${HIRING_CATEGORY}`} className="panel-ink group flex items-start gap-4 overflow-hidden rounded-[1.25rem] p-6 text-white">
-          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-white/10 text-amber-300">
+        <Link href={`/explore/${HIRING_CATEGORY}`} className="panel-ink lift group flex items-start gap-4 overflow-hidden rounded-xl p-6">
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-fg/10 text-accent-strong">
             <Icon as={Building2} size="md" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-display text-lg font-bold">By company or assessment</span>
-            <span className="mt-1 block text-sm text-slate-300">AMCAT, eLitmus, TCS NQT, Infosys, Accenture and more, section by section.</span>
+            <span className="mt-1 block text-sm text-fg-muted">AMCAT, eLitmus, TCS NQT, Infosys, Accenture and more, section by section.</span>
           </span>
-          <Icon as={ArrowRight} className="mt-1 text-amber-300 transition-transform group-hover:translate-x-0.5" />
+          <Icon as={ArrowRight} className="mt-1 text-accent-strong transition-transform group-hover:translate-x-0.5" />
         </Link>
         <Link href="/explore/skills" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -180,7 +164,7 @@ export default async function ExplorePage() {
                   <span className="block font-semibold text-ink-950 group-hover:text-brand-700">{c.name}</span>
                   {c.description && <span className="mt-1 block text-xs leading-relaxed text-slate-500">{c.description}</span>}
                 </span>
-                <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-slate-300 transition-colors group-hover:text-brand-600" />
+                <Icon as={ArrowUpRight} className="mt-0.5 flex-none text-fg-muted transition-colors group-hover:text-brand-600" />
               </Link>
             </li>
           ))}

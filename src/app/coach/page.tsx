@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 interface CategoryTrend {
   average: number | null;
@@ -105,12 +107,9 @@ export default function CoachPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-2xl font-semibold text-ink-950">Personal AI Coach</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        Ask about your performance and get advice grounded in your real assessment history.
-      </p>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.coach} title="Personal AI Coach" />
+    <div className="page-container mt-10 max-w-4xl">
       {loaded && loadError && (
         <p role="alert" className="mt-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
           {loadError}
@@ -192,7 +191,7 @@ export default function CoachPage() {
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                    m.role === "user" ? "bg-brand-600 text-white" : "bg-slate-100 text-ink-900"
+                    m.role === "user" ? "bg-accent-soft text-fg" : "bg-surface-muted text-fg"
                   }`}
                 >
                   {m.content}
@@ -237,6 +236,7 @@ export default function CoachPage() {
           </form>
         </div>
       )}
+    </div>
     </div>
   );
 }

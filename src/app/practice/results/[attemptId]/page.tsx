@@ -201,7 +201,7 @@ export default function AttemptResultsPage() {
               </div>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className={`h-full rounded-full ${c.score >= 75 ? "bg-brand-500" : c.score >= 55 ? "bg-amber-500" : "bg-red-500"}`}
+                  className={`h-full rounded-full ${c.score >= 55 ? "bg-accent" : "bg-warning"}`}
                   style={{ width: `${c.score}%` }}
                 />
               </div>

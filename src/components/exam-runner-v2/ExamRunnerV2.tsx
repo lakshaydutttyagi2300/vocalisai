@@ -204,7 +204,7 @@ export function ExamRunnerV2({
   if (loadError) {
     return (
       <div className="text-center">
-        <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{loadError}</p>
+        <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger-strong">{loadError}</p>
         <button onClick={() => { setLoadError(null); load(); }} className="btn-dark btn-sm mt-4">
           <Icon as={RotateCcw} />
           Try again
@@ -232,7 +232,7 @@ export function ExamRunnerV2({
           <div className="text-[11px] uppercase tracking-wide text-slate-400">
             Section {view.paperIndex + 1} of {view.paperCount}
           </div>
-          <h2 className="font-display text-lg font-bold text-white">{paper.name}</h2>
+          <h2 className="font-display text-lg font-bold text-fg">{paper.name}</h2>
         </div>
         <div className="flex gap-5">
           <Countdown label="Section" seconds={paperSeconds} />
@@ -241,7 +241,7 @@ export function ExamRunnerV2({
       </div>
 
       {paper.instructions && (
-        <p className="mt-3 whitespace-pre-line rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-slate-300">{paper.instructions}</p>
+        <p className="mt-3 whitespace-pre-line rounded-md bg-surface-muted px-3 py-2 text-xs leading-relaxed text-fg-muted">{paper.instructions}</p>
       )}
 
       <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
@@ -264,7 +264,7 @@ export function ExamRunnerV2({
                 aria-current={i === index ? "step" : undefined}
                 aria-label={`Question ${i + 1}${a?.answer != null ? ", answered" : ""}${a?.flagged ? ", flagged" : ""}`}
                 className={`relative h-8 w-8 rounded-md text-xs font-semibold transition ${
-                  i === index ? "bg-brand-500 text-white" : a?.answer != null ? "bg-white/20 text-white" : "bg-white/5 text-slate-300 hover:bg-white/10"
+                  i === index ? "bg-accent text-on-ink" : a?.answer != null ? "bg-accent-soft text-accent-strong" : "bg-surface-muted text-fg-muted hover:bg-surface-muted"
                 }`}
               >
                 {i + 1}
@@ -336,9 +336,9 @@ export function ExamRunnerV2({
       </div>
 
       {confirmSubmit && (
-        <div role="dialog" aria-modal="true" aria-labelledby="submit-title" className="mt-4 rounded-lg border border-amber-400/40 bg-amber-500/10 p-4 text-sm text-slate-100">
+        <div role="dialog" aria-modal="true" aria-labelledby="submit-title" className="mt-4 rounded-lg border border-amber-400/40 bg-amber-500/10 p-4 text-sm text-fg-muted">
           <p id="submit-title" className="font-semibold">Submit this section?</p>
-          <p className="mt-1 text-slate-300">
+          <p className="mt-1 text-fg-muted">
             {unanswered > 0 ? `${unanswered} question${unanswered === 1 ? " is" : "s are"} still unanswered. ` : ""}
             You won&apos;t be able to come back to this section once it&apos;s submitted.
           </p>

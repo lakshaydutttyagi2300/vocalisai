@@ -8,6 +8,8 @@ import { MasteryBadge, MasteryBar } from "@/components/skills/MasteryBadge";
 import { authOptions } from "@/lib/auth";
 import { buildTrackPlan, getUserTrack, type PlanArea } from "@/lib/goal-tracks";
 import { MIN_ATTEMPTS_FOR_BAND } from "@/lib/skills/mastery";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "My goal plan - VocalisAi" };
 
@@ -19,18 +21,9 @@ export default async function GoalPlanPage() {
   const plan = await buildTrackPlan(userId, track);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">My goal</p>
-          <h1 className="font-display text-2xl font-bold text-ink-950">{track.name}</h1>
-          {track.description && <p className="mt-1 max-w-2xl text-sm text-slate-600">{track.description}</p>}
-        </div>
-        <Link href="/goal/choose" className="btn-secondary btn-sm">
-          Change goal
-        </Link>
-      </div>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.goal} title={track.name} subtitle={track.description ?? HEROES.goal.subtitle} secondary={{ label: "Change goal", href: "/goal/choose" }} />
+    <div className="page-container mt-10">
       <section className="card mt-6 grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
         <div className="flex flex-col items-center gap-2">
           {plan.readiness === null ? (
@@ -110,6 +103,7 @@ export default async function GoalPlanPage() {
           </Link>
         </p>
       </section>
+    </div>
     </div>
   );
 }

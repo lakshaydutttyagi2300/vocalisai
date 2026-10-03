@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { ArrowLeft } from "lucide-react";
-import { Icon } from "@/components/ui/Icon";
 import { GoalChooser } from "@/components/goals/GoalChooser";
 import { authOptions } from "@/lib/auth";
 import { getUserTrack, listEnabledTracks, TRACK_COPY } from "@/lib/goal-tracks";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "Choose your goal - VocalisAi" };
 
@@ -14,20 +14,9 @@ export default async function ChooseGoalPage({ searchParams }: { searchParams: P
   const firstName = session?.user.name?.split(" ")[0];
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      {!welcome && (
-        <Link href={current ? "/goal" : "/dashboard"} className="btn-ghost btn-sm -ml-3">
-          <Icon as={ArrowLeft} />
-          {current ? "Back to my plan" : "Back to dashboard"}
-        </Link>
-      )}
-      <h1 className="mt-4 font-display text-2xl font-bold text-ink-950">
-        {welcome ? `Welcome${firstName ? `, ${firstName}` : ""}! What are you preparing for?` : "What are you preparing for?"}
-      </h1>
-      <p className="mt-1 max-w-2xl text-sm text-slate-600">
-        Pick your goal and we&apos;ll build your plan around it - the skills that matter most, your next steps, and the right exam. You can change it any
-        time.
-      </p>
+    <div className="pb-20">
+      <MediaHero {...HEROES.goal} eyebrow="Your goal" back={welcome ? undefined : { label: current ? "Back to my plan" : "Back to dashboard", href: current ? "/goal" : "/dashboard" }} title={welcome ? `Welcome${firstName ? `, ${firstName}` : ""}! What are you preparing for?` : "What are you preparing for?"} subtitle="Pick your goal and we'll build your plan around it: the skills that matter most, your next steps, and the right exam. You can change it any time." />
+    <div className="page-container mt-2">
       <div className="mt-8">
         <GoalChooser
           current={current?.slug ?? null}
@@ -46,6 +35,7 @@ export default async function ChooseGoalPage({ searchParams }: { searchParams: P
           </Link>
         </p>
       )}
+    </div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { ArrowRight } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Icon } from "@/components/ui/Icon";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "Test history - VocalisAi" };
 
@@ -35,26 +35,21 @@ export default async function PracticeTestHistoryPage() {
     },
   });
 
-  return (
-    <div className="mx-auto max-w-5xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Your tests</p>
-          <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Test history</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/performance" className="btn-secondary btn-sm">
-            Performance
-          </Link>
-          <Link href="/explore" className="btn-primary btn-sm">
-            New test
-            <Icon as={ArrowRight} />
-          </Link>
-        </div>
-      </div>
+  const finished = tests.filter((t) => t.status === "SUBMITTED");
+  const average = finished.length ? Math.round(finished.reduce((n, t) => n + (t.scorePercent ?? 0), 0) / finished.length) : null;
 
+  return (
+    <div className="pb-20">
+      <MediaHero
+        {...HEROES.testHistory}
+        title="Test history"
+        cta={{ label: "New test", href: "/explore" }}
+        secondary={{ label: "Performance", href: "/performance" }}
+        stats={[`${tests.length} test${tests.length === 1 ? "" : "s"}`, `${finished.length} finished`, ...(average === null ? [] : [`${average}% average score`])]}
+      />
+      <div className="page-container mt-10">
       {tests.length === 0 ? (
-        <div className="sheet mt-8 p-6 text-sm text-slate-600">
+        <div className="sheet p-6 text-sm text-slate-600">
           No tests yet.{" "}
           <Link href="/explore" className="font-semibold text-brand-700 hover:underline">
             Choose an exam to start
@@ -62,7 +57,7 @@ export default async function PracticeTestHistoryPage() {
           .
         </div>
       ) : (
-        <ul aria-label="Tests" className="sheet mt-8 divide-y divide-slate-100 overflow-hidden">
+        <ul aria-label="Tests" className="sheet divide-y divide-slate-100 overflow-hidden">
           {tests.map((t) => {
             const done = t.status === "SUBMITTED";
             const accuracy = done && t.answeredCount ? Math.round(((t.correctCount ?? 0) / t.answeredCount) * 100) : null;
@@ -98,6 +93,7 @@ export default async function PracticeTestHistoryPage() {
           })}
         </ul>
       )}
+      </div>
     </div>
   );
 }

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { currentExamCategory, examDetail, questionCountsForExam, sectionNames } from "@/lib/catalog-queries";
 import { getEffectivePlan, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
-import { Icon } from "@/components/ui/Icon";
 import { TestBuilder } from "@/components/explore/TestBuilder";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { categoryMedia } from "@/config/heroMedia";
 
 type Params = Promise<{ category: string; exam: string }>;
 
@@ -34,18 +33,10 @@ export default async function ExploreExamPage({ params }: { params: Params }) {
   const sections = sectionNames(exam.subjects);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <Link href={`/explore/${exam.category.slug}`} className="btn-ghost btn-sm -ml-3">
-        <Icon as={ArrowLeft} />
-        {exam.category.name}
-      </Link>
-      {exam.groupName && <p className="eyebrow mt-4">{exam.groupName}</p>}
-      <h1 className={`headline text-3xl text-ink-950 sm:text-4xl ${exam.groupName ? "mt-2" : "mt-4"}`}>{exam.name}</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-        {exam.description ?? `Practise the ${sections.join(", ")} sections, skill by skill, at the level that suits you.`}
-      </p>
-
-      <div className="mt-8">
+    <div className="pb-20">
+      <MediaHero back={{ label: exam.category.name, href: `/explore/${exam.category.slug}` }} eyebrow={exam.groupName ?? exam.category.name} title={exam.name} subtitle={exam.description ?? `Practise the ${sections.join(", ")} sections, skill by skill, at the level that suits you.`} stats={[`${sections.length} section${sections.length === 1 ? "" : "s"}`, `${exam.subjects.reduce((n, s) => n + s.subject.skills.length, 0)} skills`, "Beginner to Expert"]} media={categoryMedia(exam.category.slug)} variant="full-bleed" size="md" />
+    <div className="page-container mt-10">
+      <div>
         {exam.subjects.length === 0 ? (
           <p className="sheet p-6 text-sm text-slate-600">Sections for this assessment are being set up. Please check back soon.</p>
         ) : (
@@ -70,6 +61,7 @@ export default async function ExploreExamPage({ params }: { params: Params }) {
       <p className="mt-8 max-w-2xl text-xs leading-relaxed text-slate-400">
         Practice questions are written by VocalisAi to match the skills these assessments test. VocalisAi is not affiliated with or endorsed by the companies or test providers named.
       </p>
+    </div>
     </div>
   );
 }

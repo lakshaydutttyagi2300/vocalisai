@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { servableWhere } from "@/lib/practice-bank";
 import { BookmarksList } from "@/components/practice-tests/BookmarksList";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "Bookmarks - VocalisAi" };
 
@@ -21,10 +23,9 @@ export default async function BookmarksPage() {
   const legacyName = new Map(subjects.map((s) => [s.legacyCategory!, s.name]));
 
   return (
-    <div className="mx-auto max-w-4xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <p className="eyebrow">Revision</p>
-      <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">Bookmarks</h1>
-      <p className="mt-3 text-sm text-slate-600">Questions you saved to come back to.</p>
+    <div className="pb-20">
+      <MediaHero {...HEROES.bookmarks} title="Bookmarks" stats={[`${bookmarks.length} saved`]} />
+      <div className="page-container mt-10">
       <BookmarksList
         initial={bookmarks.map((b) => ({
           questionId: b.questionId,
@@ -33,6 +34,7 @@ export default async function BookmarksPage() {
           level: b.question.difficulty,
         }))}
       />
+      </div>
     </div>
   );
 }

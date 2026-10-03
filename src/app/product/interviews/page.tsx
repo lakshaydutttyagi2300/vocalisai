@@ -73,13 +73,13 @@ export default function InterviewsPage() {
           <div className="mt-14 grid gap-4 sm:grid-cols-2">
             {SCENARIOS.map((s, i) => (
               <FadeIn key={s.title} delay={(i % 2) * 110}>
-                <Link href={s.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-white/[0.06]">
+                <Link href={s.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-line">
                   <div className="relative aspect-[16/11]">
                     <CineVideo name={s.clip} alt={s.alt} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
                     <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
                     <div className="absolute inset-x-0 bottom-0 p-7">
-                      <h3 className="cine-headline text-3xl text-mist-50">{s.title}</h3>
-                      <p className="mt-2 max-w-md text-sm leading-relaxed text-mist-300">{s.text}</p>
+                      <h3 className="cine-headline text-3xl text-fg">{s.title}</h3>
+                      <p className="mt-2 max-w-md text-sm leading-relaxed text-fg-muted">{s.text}</p>
                     </div>
                   </div>
                 </Link>
@@ -89,7 +89,7 @@ export default function InterviewsPage() {
         </Container>
       </section>
 
-      <section className="border-y border-white/[0.06] bg-night-950 py-28 sm:py-40">
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-40">
         <Container>
           <MediaSplit
             reverse
@@ -107,8 +107,8 @@ export default function InterviewsPage() {
                       [Timer, "Timed sections"],
                     ] as const
                   ).map(([glyph, text]) => (
-                    <li key={text} className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-night-900/80 px-3 py-2.5 text-sm text-mist-50 backdrop-blur-md">
-                      <Icon as={glyph} className="text-champagne-300" />
+                    <li key={text} className="flex items-center gap-2.5 rounded-xl border border-line bg-surface/80 px-3 py-2.5 text-sm text-fg backdrop-blur-md">
+                      <Icon as={glyph} className="text-accent-strong" />
                       {text}
                     </li>
                   ))}

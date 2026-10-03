@@ -55,8 +55,8 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
   return (
     <div role="region" aria-roledescription="carousel" aria-label="English micro-lessons">
       <div className="flex items-center justify-between gap-4">
-        <p className="num text-sm text-mist-400" aria-live="polite">
-          {String(index + 1).padStart(2, "0")} <span className="text-mist-500">/ {String(lessons.length).padStart(2, "0")}</span>
+        <p className="num text-sm text-fg-muted" aria-live="polite">
+          {String(index + 1).padStart(2, "0")} <span className="text-fg-subtle">/ {String(lessons.length).padStart(2, "0")}</span>
         </p>
         <div className="flex gap-2">
           <button type="button" className="btn-secondary btn-sm" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous lesson">
@@ -73,7 +73,7 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
         onScroll={onScroll}
         onKeyDown={onKeyDown}
         tabIndex={0}
-        className="rail mt-6 [grid-auto-columns:minmax(17rem,1fr)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-champagne-300 sm:[grid-auto-columns:minmax(20rem,24rem)]"
+        className="rail mt-6 [grid-auto-columns:minmax(17rem,1fr)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:[grid-auto-columns:minmax(20rem,24rem)]"
       >
         {lessons.map((lesson, i) => (
           <article
@@ -81,13 +81,13 @@ export default function LessonsSlider({ lessons }: { lessons: Lesson[] }) {
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${lessons.length}: ${lesson.title}`}
-            className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-night-850"
+            className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-line bg-surface"
           >
             {lesson.video && <LessonVideo video={lesson.video} />}
             <div className="flex flex-1 flex-col p-6">
               <p className="cine-eyebrow">{lesson.topic}</p>
-              <h3 className="cine-headline mt-3 text-xl text-mist-50">{lesson.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-mist-400">{lesson.body}</p>
+              <h3 className="cine-headline mt-3 text-xl text-fg">{lesson.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-fg-muted">{lesson.body}</p>
             </div>
           </article>
         ))}
@@ -100,7 +100,7 @@ function LessonVideo({ video }: { video: NonNullable<Lesson["video"]> }) {
   const [playing, setPlaying] = useState(false);
   return (
     <figure>
-      <div className="relative aspect-video bg-night-800">
+      <div className="relative aspect-video bg-surface-muted">
         {playing ? (
           <video src={video.src} poster={video.poster} controls autoPlay muted playsInline preload="none" className="h-full w-full object-cover">
             {video.label}
@@ -117,7 +117,7 @@ function LessonVideo({ video }: { video: NonNullable<Lesson["video"]> }) {
           </button>
         )}
       </div>
-      <figcaption className="px-6 pt-3 text-xs text-mist-500">{video.label}</figcaption>
+      <figcaption className="px-6 pt-3 text-xs text-fg-subtle">{video.label}</figcaption>
     </figure>
   );
 }

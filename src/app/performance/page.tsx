@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { candidatePerformance, type AreaStats } from "@/lib/performance";
+import { MediaHero } from "@/components/ui/MediaHero";
+import { HEROES } from "@/config/heroMedia";
 
 export const metadata = { title: "Performance - VocalisAi" };
 
@@ -25,7 +27,7 @@ function AreaTable({ title, rows, empty }: { title: string; rows: AreaStats[]; e
                 </span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                <div className={`h-full rounded-full ${r.accuracy < 50 ? "bg-red-500" : r.accuracy < 70 ? "bg-amber-500" : "bg-green-600"}`} style={{ width: `${r.accuracy}%` }} />
+                <div className={`h-full rounded-full ${r.accuracy < 50 ? "bg-warning" : r.accuracy < 85 ? "bg-accent" : "bg-success"}`} style={{ width: `${r.accuracy}%` }} />
               </div>
             </li>
           ))}
@@ -47,11 +49,9 @@ export default async function PerformancePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10">
-      <p className="eyebrow">Performance</p>
-      <h1 className="headline mt-3 text-3xl text-ink-950 sm:text-4xl">How you&apos;re doing</h1>
-      <p className="mt-3 max-w-2xl text-sm text-slate-600">From every exam practice test you&apos;ve taken. Accuracy counts answered questions.</p>
-
+    <div className="pb-20">
+      <MediaHero {...HEROES.performance} title="How you're doing" subtitle="From every exam practice test you've taken. Accuracy counts answered questions." />
+    <div className="page-container mt-2">
       <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 lg:grid-cols-4">
         {stats.map(([label, value]) => (
           <div key={label} className="bg-white p-5">
@@ -94,6 +94,7 @@ export default async function PerformancePage() {
           See all your tests &rarr;
         </Link>
       </p>
+    </div>
     </div>
   );
 }
