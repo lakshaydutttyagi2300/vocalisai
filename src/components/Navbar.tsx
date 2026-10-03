@@ -115,15 +115,15 @@ function CandidateDropdown({ entry, pathname }: { entry: Extract<CandidateEntry,
         data-active={active ? "true" : undefined}
         onClick={() => setOpen((v) => !v)}
         className={`relative flex items-center gap-1 whitespace-nowrap py-1 text-sm font-medium transition-colors ${
-          active || open ? "text-mist-50" : "text-mist-400 hover:text-mist-50"
+          active || open ? "text-fg" : "text-fg-muted hover:text-fg"
         }`}
       >
         {entry.label}
         <Icon as={ChevronDown} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-        {active && <span className="absolute -bottom-[17px] left-0 right-0 h-px bg-champagne-300" />}
+        {active && <span className="absolute -bottom-[17px] left-0 right-0 h-px bg-accent" />}
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-4 w-72 -translate-x-1/2 rounded-2xl border border-white/10 bg-night-850/95 p-2 shadow-2xl backdrop-blur-xl">
+        <div className="absolute left-1/2 top-full z-50 mt-4 w-72 -translate-x-1/2 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
           {entry.items.map((item) => {
             const itemActive = pathname === item.href;
             return (
@@ -132,10 +132,10 @@ function CandidateDropdown({ entry, pathname }: { entry: Extract<CandidateEntry,
                 href={item.href}
                 onClick={() => setOpen(false)}
                 aria-current={itemActive ? "page" : undefined}
-                className={`block rounded-xl px-3 py-2.5 transition-colors ${itemActive ? "bg-white/[0.08]" : "hover:bg-white/[0.05]"}`}
+                className={`block rounded-xl px-3 py-2.5 transition-colors ${itemActive ? "bg-accent-softer" : "hover:bg-surface-muted"}`}
               >
-                <span className={`block text-sm font-medium ${itemActive ? "text-champagne-200" : "text-mist-50"}`}>{item.label}</span>
-                {item.hint && <span className="mt-0.5 block text-xs leading-snug text-mist-500">{item.hint}</span>}
+                <span className={`block text-sm font-medium ${itemActive ? "text-accent-strong" : "text-fg"}`}>{item.label}</span>
+                {item.hint && <span className="mt-0.5 block text-xs leading-snug text-fg-subtle">{item.hint}</span>}
               </Link>
             );
           })}
@@ -186,9 +186,9 @@ const ADMIN_LINKS: AdminLink[] = ADMIN_NAV.flatMap((e) => (e.kind === "link" ? [
 // highlight on hover, and the current section as a solid amber pill with
 // dark text - readable at a glance, not just a thin underline.
 const ADMIN_ITEM = "flex items-center gap-1 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-semibold transition-colors";
-const ADMIN_ITEM_IDLE = "text-slate-100 hover:bg-white/10 hover:text-white";
-const ADMIN_ITEM_ACTIVE = "bg-amber-400 text-ink-950";
-const ADMIN_ITEM_OPEN = "bg-white/15 text-white";
+const ADMIN_ITEM_IDLE = "text-fg-muted hover:bg-surface-muted hover:text-fg";
+const ADMIN_ITEM_ACTIVE = "bg-accent-soft text-accent-strong";
+const ADMIN_ITEM_OPEN = "bg-surface-muted text-fg";
 
 function isActiveAdmin(pathname: string, href: string) {
   return href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`);
@@ -227,7 +227,7 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
         <Icon as={ChevronDown} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 rounded-xl border border-slate-600 bg-ink-900 p-2 shadow-2xl">
+        <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
           {items.map((item) => {
             const itemActive = isActiveAdmin(pathname, item.href);
             return (
@@ -236,10 +236,10 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
                 href={item.href}
                 onClick={() => setOpen(false)}
                 aria-current={itemActive ? "page" : undefined}
-                className={`block rounded-lg px-3 py-2.5 transition-colors ${itemActive ? "bg-amber-400" : "hover:bg-white/10"}`}
+                className={`block rounded-lg px-3 py-2.5 transition-colors ${itemActive ? "bg-accent-soft" : "hover:bg-surface-muted"}`}
               >
-                <span className={`block text-[15px] font-semibold ${itemActive ? "text-ink-950" : "text-white"}`}>{item.label}</span>
-                {item.hint && <span className={`block text-[13px] ${itemActive ? "text-ink-800" : "text-slate-300"}`}>{item.hint}</span>}
+                <span className={`block text-[15px] font-semibold ${itemActive ? "text-accent-strong" : "text-fg"}`}>{item.label}</span>
+                {item.hint && <span className="block text-[13px] text-fg-muted">{item.hint}</span>}
               </Link>
             );
           })}
@@ -253,7 +253,7 @@ function BrandGlyph({ tone }: { tone: "teal" | "amber" }) {
   return (
     <span
       className={`flex h-8 w-8 items-center justify-center rounded-[10px] ${
-        tone === "teal" ? "bg-champagne-300" : "bg-amber-500"
+        tone === "teal" ? "bg-accent" : "bg-amber-500"
       }`}
     >
       <Icon as={Mic} size="md" className="text-ink-950" />
@@ -269,11 +269,11 @@ export function Navbar() {
 
   if (isAdmin) {
     return (
-      <header className="sticky top-0 z-40 border-b border-ink-800 bg-ink-950">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-xl">
+        <div className="page-container flex items-center justify-between gap-6 py-4">
           <Link href="/admin" className="flex shrink-0 items-center gap-2.5">
             <BrandGlyph tone="amber" />
-            <span className="whitespace-nowrap text-lg font-bold tracking-tight text-white">
+            <span className="whitespace-nowrap text-lg font-bold tracking-tight text-fg">
               VocalisAi <span className="text-amber-500">Admin</span>
             </span>
           </Link>
@@ -300,13 +300,13 @@ export function Navbar() {
           <div className="flex shrink-0 items-center gap-3">
             <Link
               href="/dashboard"
-              className="hidden whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-semibold text-slate-100 hover:bg-white/10 hover:text-white lg:inline"
+              className="hidden whitespace-nowrap rounded-full px-3.5 py-1.5 text-[15px] font-semibold text-fg-muted hover:bg-surface-muted hover:text-fg lg:inline"
             >
               Candidate view
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="whitespace-nowrap rounded-full border border-slate-400 px-4 py-1.5 text-[15px] font-semibold text-white hover:bg-white hover:text-ink-950"
+              className="btn-secondary btn-sm whitespace-nowrap"
             >
               Log out
             </button>
@@ -314,7 +314,7 @@ export function Navbar() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className="rounded-md border border-slate-400 p-2 text-white md:hidden"
+              className="rounded-lg border border-line-strong p-2 text-fg md:hidden"
             >
               <Icon as={mobileOpen ? X : Menu} size="md" />
             </button>
@@ -322,7 +322,7 @@ export function Navbar() {
         </div>
 
         {mobileOpen && (
-          <nav aria-label="Admin" className="border-t border-ink-800 px-6 py-3 md:hidden">
+          <nav aria-label="Admin" className="border-t border-line px-6 py-3 md:hidden">
             <div className="flex flex-col gap-1">
               {[...ADMIN_LINKS, { href: "/dashboard", label: "Candidate view" }].map((link) => (
                 <Link
@@ -330,7 +330,7 @@ export function Navbar() {
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
                   className={`rounded-lg px-3 py-2.5 text-[15px] font-semibold ${
-                    isActiveAdmin(pathname, link.href) ? "bg-amber-400 text-ink-950" : "text-slate-100 hover:bg-white/10"
+                    isActiveAdmin(pathname, link.href) ? "bg-accent-soft text-accent-strong" : "text-fg-muted hover:bg-surface-muted hover:text-fg"
                   }`}
                 >
                   {link.label}
@@ -345,13 +345,13 @@ export function Navbar() {
 
   return (
     <header
-      className="site-header cine sticky top-0 z-40 border-b border-white/[0.06] bg-night-900/95 backdrop-blur-xl"
+      className="site-header sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-xl"
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
+      <div className="page-container flex items-center justify-between gap-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <BrandGlyph tone="teal" />
-          <span className="font-display text-lg font-semibold tracking-tight text-mist-50">
-            Vocalis<span className="text-champagne-300">Ai</span>
+          <span className="font-display text-lg font-semibold tracking-tight text-fg">
+            Vocalis<span className="text-accent">Ai</span>
           </span>
         </Link>
 
@@ -365,7 +365,7 @@ export function Navbar() {
                   key={entry.href}
                   href={entry.href}
                   aria-current={inArea(pathname, entry.match) ? "page" : undefined}
-                  className={`text-sm font-medium transition-colors ${inArea(pathname, entry.match) ? "text-mist-50" : "text-mist-400 hover:text-mist-50"}`}
+                  className={`text-sm font-medium transition-colors ${inArea(pathname, entry.match) ? "text-fg" : "text-fg-muted hover:text-fg"}`}
                 >
                   {entry.label}
                 </Link>
@@ -385,11 +385,11 @@ export function Navbar() {
                   href={entry.href}
                   aria-current={active ? "page" : undefined}
                   className={`relative whitespace-nowrap py-1 text-sm font-medium transition-colors ${
-                    active ? "text-mist-50" : "text-mist-400 hover:text-mist-50"
+                    active ? "text-fg" : "text-fg-muted hover:text-fg"
                   }`}
                 >
                   {entry.label}
-                  {active && <span className="absolute -bottom-[17px] left-0 right-0 h-px bg-champagne-300" />}
+                  {active && <span className="absolute -bottom-[17px] left-0 right-0 h-px bg-accent" />}
                 </Link>
               );
             })}
@@ -398,15 +398,15 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           {status === "loading" ? (
-            <div className="h-9 w-20 animate-pulse rounded-full bg-white/10" />
+            <div className="h-9 w-20 animate-pulse rounded-full bg-fg/10" />
           ) : session ? (
             <>
               {session.user.role === "ADMIN" && (
-                <Link href="/admin" className="badge badge-ai hidden whitespace-nowrap sm:inline-flex">
+                <Link href="/admin" className="badge badge-skill hidden whitespace-nowrap sm:inline-flex">
                   Admin panel
                 </Link>
               )}
-              <span className="hidden max-w-[10rem] truncate text-sm text-mist-400 2xl:inline">{session.user.name}</span>
+              <span className="hidden max-w-[10rem] truncate text-sm text-fg-muted 2xl:inline">{session.user.name}</span>
               <button onClick={() => signOut({ callbackUrl: "/" })} className="btn-secondary whitespace-nowrap">
                 Log out
               </button>
@@ -414,14 +414,14 @@ export function Navbar() {
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label="Toggle menu"
                 aria-expanded={mobileOpen}
-                className="rounded-full border border-white/15 p-2 text-mist-50 lg:hidden"
+                className="rounded-full border border-line p-2 text-fg lg:hidden"
               >
                 <Icon as={mobileOpen ? X : Menu} size="md" />
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="hidden text-sm font-medium text-mist-300 transition-colors hover:text-mist-50 sm:inline">
+              <Link href="/login" className="hidden text-sm font-medium text-fg-muted transition-colors hover:text-fg sm:inline">
                 Log in
               </Link>
               <Link href="/signup" className="btn-primary btn-sm">
@@ -431,7 +431,7 @@ export function Navbar() {
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label="Toggle menu"
                 aria-expanded={mobileOpen}
-                className="rounded-full border border-white/15 p-2 text-mist-50 lg:hidden"
+                className="rounded-full border border-line p-2 text-fg lg:hidden"
               >
                 <Icon as={mobileOpen ? X : Menu} size="md" />
               </button>
@@ -441,20 +441,20 @@ export function Navbar() {
       </div>
 
       {status !== "loading" && mobileOpen && (
-        <nav aria-label="Main" className="max-h-[calc(100svh-4.5rem)] overflow-y-auto border-t border-white/[0.06] px-5 py-4 lg:hidden">
+        <nav aria-label="Main" className="max-h-[calc(100svh-4.5rem)] overflow-y-auto border-t border-line px-5 py-4 lg:hidden">
           <div className="flex flex-col gap-4">
             {(status === "authenticated" ? CANDIDATE_NAV : SITE_NAV).map((entry) => {
               const links = entry.kind === "link" ? [entry] : entry.items;
               return (
                 <div key={entry.label}>
-                  {entry.kind === "group" && <p className="px-2 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-mist-500">{entry.label}</p>}
+                  {entry.kind === "group" && <p className="px-2 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-fg-subtle">{entry.label}</p>}
                   {links.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
                       className={`block rounded-lg px-2 py-2 text-sm font-medium ${
-                        pathname === link.href ? "bg-white/[0.08] text-champagne-200" : "text-mist-300 hover:bg-white/[0.05] hover:text-mist-50"
+                        pathname === link.href ? "bg-accent-soft text-accent-strong" : "text-fg-muted hover:bg-surface-muted hover:text-fg"
                       }`}
                     >
                       {link.label}
@@ -464,7 +464,7 @@ export function Navbar() {
               );
             })}
             {status === "unauthenticated" && (
-              <Link href="/login" onClick={() => setMobileOpen(false)} className="block rounded-lg px-2 py-2 text-sm font-medium text-mist-300 hover:text-mist-50">
+              <Link href="/login" onClick={() => setMobileOpen(false)} className="block rounded-lg px-2 py-2 text-sm font-medium text-fg-muted hover:text-fg">
                 Log in
               </Link>
             )}

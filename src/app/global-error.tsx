@@ -22,15 +22,15 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen bg-bg text-fg antialiased">
         <div className="mx-auto max-w-md px-6 py-24 text-center">
-          <h1 className="text-2xl font-semibold text-ink-900">Something went wrong</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <h1 className="text-3xl font-semibold text-fg">Something went wrong</h1>
+          <p className="mt-3 text-sm leading-relaxed text-fg-muted">
             The app hit an unexpected error and couldn&apos;t load. You can try again, or come back later.
           </p>
           <button
             onClick={reset}
-            className="mt-6 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="btn-primary mt-6"
           >
             Try again
           </button>

@@ -19,9 +19,15 @@ export const metadata: Metadata = {
     "Practice and prepare for English language tests, academic and workplace English assessments, recruitment and pre-employment assessments, and proctored mock exams - with real AI-powered speech, grammar and performance analysis.",
 };
 
+const THEME_SCRIPT = `try{if(localStorage.getItem("vx-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${interTight.variable} ${inter.variable} ${instrumentSerif.variable} ${plexMono.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning className={`${interTight.variable} ${inter.variable} ${instrumentSerif.variable} ${plexMono.variable}`}>
+      <head>
+        {/* Applies the saved theme (Account settings) before the first paint, so dark mode never flashes light. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen antialiased">
         <Providers>
           <Navbar />

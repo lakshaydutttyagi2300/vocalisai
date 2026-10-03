@@ -28,7 +28,7 @@ export function ScoreRing({
   const scale = size / SIZE;
   const pct = value === null ? 0 : Math.max(0, Math.min(100, value));
   const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
-  const strokeColor = tone === "amber" ? "var(--color-amber-500)" : "var(--color-brand-600)";
+  const strokeColor = tone === "amber" ? "var(--warning)" : "var(--accent)";
 
   const [displayed, setDisplayed] = useState<number | null>(value);
   const rafRef = useRef<number | null>(null);
@@ -62,7 +62,7 @@ export function ScoreRing({
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg data-chart="score-ring" width={size} height={size} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none" stroke="var(--color-slate-100)" strokeWidth={STROKE} />
+        <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none" stroke="var(--surface-muted)" strokeWidth={STROKE} />
         {value !== null && (
           <circle
             cx={SIZE / 2}

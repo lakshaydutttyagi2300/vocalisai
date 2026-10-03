@@ -47,7 +47,7 @@ export function IconBadge({
   tone?: "brand" | "solid";
   className?: string;
 }) {
-  const colours = tone === "solid" ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-600";
+  const colours = tone === "solid" ? "bg-accent text-on-ink" : "bg-brand-50 text-brand-600";
   return (
     <span className={`flex flex-none items-center justify-center ${TILE[size]} ${colours} ${className}`.trim()} aria-hidden="true">
       <Icon as={as} size={size === "lg" ? "xl" : "lg"} />
