@@ -19,9 +19,10 @@ test("choose a goal from the dashboard, see the plan, and start the goal's own e
 
   try {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: "What are you preparing for?" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("No goal yet")).toBeVisible({ timeout: 30_000 });
     await page.getByRole("link", { name: /Choose my goal/ }).click();
     await expect(page).toHaveURL(/\/goal\/choose$/);
+    await expect(page.getByRole("heading", { name: "What are you preparing for?" })).toBeVisible({ timeout: 30_000 });
 
     const goals = page.getByRole("radiogroup", { name: "Choose your goal" });
     for (const name of ["General English", "BPO / Customer Support", "Interview Preparation", "Campus Placement", "Study Abroad"]) {

@@ -1,11 +1,11 @@
 import { BAND_LABELS, type Band } from "@/lib/skills/mastery";
 
 export const BAND_STYLE: Record<Band, { pill: string; bar: string }> = {
-  UNRATED: { pill: "bg-slate-100 text-slate-600", bar: "bg-slate-300" },
-  WEAK: { pill: "bg-red-50 text-red-700", bar: "bg-red-500" },
-  DEVELOPING: { pill: "bg-amber-50 text-amber-800", bar: "bg-amber-500" },
-  PROFICIENT: { pill: "bg-brand-100 text-ink-800", bar: "bg-champagne-400" },
-  MASTERED: { pill: "bg-emerald-50 text-emerald-700", bar: "bg-emerald-500" },
+  UNRATED: { pill: "bg-surface-muted text-fg-muted", bar: "bg-line-strong" },
+  WEAK: { pill: "bg-warning-soft text-warning-strong", bar: "bg-warning" },
+  DEVELOPING: { pill: "bg-accent-softer text-accent-strong", bar: "bg-accent" },
+  PROFICIENT: { pill: "bg-accent-soft text-accent-strong", bar: "bg-accent" },
+  MASTERED: { pill: "bg-success-soft text-success-strong", bar: "bg-success" },
 };
 
 export function MasteryBadge({ band, score }: { band: Band; score?: number | null }) {
@@ -20,7 +20,7 @@ export function MasteryBadge({ band, score }: { band: Band; score?: number | nul
 export function MasteryBar({ band, score }: { band: Band; score: number | null }) {
   const pct = band === "UNRATED" || score === null ? 0 : Math.max(2, Math.min(100, score));
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="presentation">
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted" role="presentation">
       <div className={`h-full rounded-full ${BAND_STYLE[band].bar}`} style={{ width: `${pct}%` }} />
     </div>
   );
