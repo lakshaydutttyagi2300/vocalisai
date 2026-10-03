@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { preload } from "react-dom";
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { useReducedMotion, useSlowConnection, useSmallScreen } from "@/components/cine/media";
@@ -177,6 +178,12 @@ export function MediaHero({
     }, 100);
     return () => window.clearInterval(id);
   }, [rotating, started, index, media, noVideo, go]);
+
+  // The first poster is the page's largest picture: ask for it from the <head>.
+  if (media[0]) {
+    preload(poster(media[0], true), { as: "image", fetchPriority: "high", media: "(max-width: 767px)" });
+    preload(poster(media[0], false), { as: "image", fetchPriority: "high", media: "(min-width: 768px)" });
+  }
 
   const Heading = headingLevel === 1 ? "h1" : "h2";
   const minH = size === "lg" ? "min-h-[55svh] sm:min-h-[70svh]" : size === "md" ? "min-h-[46svh] sm:min-h-[54svh]" : "min-h-[16rem] sm:min-h-[20rem]";

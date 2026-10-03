@@ -88,7 +88,8 @@ test("new entry points: Practice menu, Practice library and Quick practice", asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/skills");
   // Nothing may stick out past the right edge (a clipped overflow wouldn't show in scrollWidth).
-  const overflow = await page.evaluate(() => Math.max(...[...document.querySelectorAll("main *")].map((e) => e.getBoundingClientRect().right)) - window.innerWidth);
+  // Hero pictures are skipped: their slow zoom grows them inside a frame that clips them by design.
+  const overflow = await page.evaluate(() => Math.max(...[...document.querySelectorAll("main *")].filter((e) => !e.closest(".cine-slide")).map((e) => e.getBoundingClientRect().right)) - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
   await shot(page, "skills-mobile");
 });

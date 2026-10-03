@@ -136,7 +136,7 @@ test("a practice session can be done entirely by clicking, and shows up on the d
     const attempts = await db.practiceAttempt.count({ where: { userId: user.id, category: "GRAMMAR" } });
     expect(attempts).toBeGreaterThan(0);
     await page.goto("/dashboard");
-    await expect(page.getByText(`${attempts} practice attempt`)).toBeVisible();
+    await expect(page.getByText(`${attempts} answer${attempts === 1 ? "" : "s"} so far`)).toBeVisible();
   } finally {
     await db.practiceAttempt.deleteMany({ where: { userId: user.id } });
     await db.user.delete({ where: { id: user.id } });
@@ -217,7 +217,7 @@ test("speech analyses and mock exams each appear in their own candidate section 
 
     // Dashboard shows both.
     await page.goto("/dashboard");
-    await expect(page.getByRole("link", { name: new RegExp(created.template.name) })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Recent activity" }).getByRole("link", { name: new RegExp(created.template.name) })).toBeVisible();
     await expect(page.getByText("136 wpm · 1 filler")).toBeVisible();
     await expect(page.getByText("Score 78")).toBeVisible(); // a scored voice answer is never shown as "Incorrect"
     await page.screenshot({ path: "test-results/candidate/dashboard.png", fullPage: true });

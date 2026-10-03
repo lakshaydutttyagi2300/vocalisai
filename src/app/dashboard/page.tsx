@@ -94,8 +94,12 @@ export default async function DashboardPage() {
   const firstName = session?.user.name?.split(" ")[0] ?? "there";
   const userId = session!.user.id;
 
-  const [track, skillWhere] = await Promise.all([getUserTrack(userId), visibleSkillWhere()]);
-  const [recentAttempts, totalAttempts, coach, exams, analyses, analysedCount, plan, days, categories, mastery, openTest, practiceTestsFinished, mockExamsFinished] = await Promise.all([
+  // Everything is fetched in one parallel round; the plan and skill areas start as soon as
+  // the goal and the visible-skill rule are known, and the standard mock exam list only
+  // for candidates without a goal (whose plan would otherwise supply the exams).
+  const trackP = getUserTrack(userId);
+  const [track, recentAttempts, totalAttempts, coach, exams, analyses, analysedCount, plan, days, categories, mastery, openTest, practiceTestsFinished, mockExamsFinished, standardExams] = await Promise.all([
+    trackP,
     db.practiceAttempt.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -107,9 +111,9 @@ export default async function DashboardPage() {
     listMockExams(userId, 5),
     listSpeechAnalyses(userId, 5),
     db.practiceAttempt.count({ where: { userId, analysis: { isNot: null } } }),
-    track ? buildTrackPlan(userId, track) : Promise.resolve(null),
+    trackP.then((t) => (t ? buildTrackPlan(userId, t) : null)),
     dailyActivity(userId),
-    db.skill.findMany({ where: { AND: [skillWhere, { depth: 1 }] }, orderBy: { sortOrder: "asc" }, select: { id: true, name: true } }),
+    visibleSkillWhere().then((where) => db.skill.findMany({ where: { AND: [where, { depth: 1 }] }, orderBy: { sortOrder: "asc" }, select: { id: true, name: true } })),
     db.userSkillMastery.findMany({ where: { userId, skill: { depth: 1 } }, select: { skillId: true, score: true, band: true, attempts: true } }),
     db.practiceTest.findFirst({
       where: { userId, status: "IN_PROGRESS" },
@@ -118,12 +122,13 @@ export default async function DashboardPage() {
     }),
     db.practiceTest.count({ where: { userId, status: "SUBMITTED" } }),
     db.mockTestSession.count({ where: { userId, OR: [{ endedAt: { not: null } }, { examSessionState: { status: "COMPLETED" } }] } }),
+    trackP.then((t) => (t ? null : listMockTestOptions().catch(() => []))),
   ]);
 
   // Mock exams to suggest: the goal's own exams, else the standard list.
   const suggestedExams: { name: string; detail: string; meta: string[]; href: string }[] = plan?.exams.length
     ? plan.exams.slice(0, 3).map((e) => ({ name: e.name, detail: e.description, meta: [e.kind === "interview" ? "Live AI interview" : "Proctored"], href: e.href }))
-    : (await listMockTestOptions().catch(() => []))
+    : (standardExams ?? (await listMockTestOptions().catch(() => [])))
         .sort((a, b) => Number(b.isDefault) - Number(a.isDefault))
         .slice(0, 3)
         .map((o) => ({
