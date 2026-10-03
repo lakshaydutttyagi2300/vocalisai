@@ -78,7 +78,6 @@ export function CineVideo({
         <video
           ref={video}
           key={small ? "s" : "l"}
-          src={clipSrc(name, small)}
           muted
           playsInline
           loop
@@ -87,7 +86,10 @@ export function CineVideo({
           tabIndex={-1}
           onPlaying={() => setReady(true)}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
-        />
+        >
+          <source src={`${CINE}/${name}-${small ? 640 : 1280}.webm`} type="video/webm" />
+          <source src={clipSrc(name, small)} type="video/mp4" />
+        </video>
       )}
     </div>
   );

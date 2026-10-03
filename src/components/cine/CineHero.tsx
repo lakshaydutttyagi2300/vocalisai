@@ -154,7 +154,7 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
       className="px-2 pt-2 sm:px-3 sm:pt-3"
     >
       <h1 className="sr-only">{heading}</h1>
-      <div className="relative h-[calc(100svh-5.5rem)] min-h-[36rem] max-h-[58rem] overflow-hidden rounded-[1.75rem] bg-night-850 ring-1 ring-white/[0.06]">
+      <div className="relative h-[calc(100svh-5.5rem)] min-h-[36rem] max-h-[58rem] overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
         {slides.map((s, i) => (
           <div
             key={s.name}
@@ -187,7 +187,6 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
                     videos.current[i] = el;
                   }}
                   key={small ? "s" : "l"}
-                  src={clipSrc(s.name, small)}
                   muted
                   playsInline
                   loop
@@ -195,7 +194,10 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
                   aria-hidden="true"
                   tabIndex={-1}
                   className="absolute inset-0 h-full w-full object-cover"
-                />
+                >
+                  <source src={`${CINE}/${s.name}-${small ? 640 : 1280}.webm`} type="video/webm" />
+                  <source src={clipSrc(s.name, small)} type="video/mp4" />
+                </video>
               )}
             </div>
             {s.overlay && <div className="pointer-events-none absolute right-8 top-1/2 hidden w-[23rem] -translate-y-1/2 xl:block">{s.overlay}</div>}
@@ -207,9 +209,9 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
         <div className="absolute inset-x-0 bottom-0 px-6 pb-24 sm:px-12 sm:pb-28 lg:px-16">
           <div key={index} className="cine-copy max-w-3xl" aria-live={running ? "off" : "polite"}>
             <p className="cine-eyebrow">{slide.eyebrow}</p>
-            <p className="cine-display mt-5 text-[2.7rem] text-mist-50 sm:text-7xl lg:text-[5.4rem]">{slide.title}</p>
+            <p className="cine-display mt-5 text-[2.7rem] text-fg sm:text-7xl lg:text-[5.4rem]">{slide.title}</p>
             <div>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-mist-300 sm:text-lg">{slide.text}</p>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">{slide.text}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href={slide.cta.href} className="btn-primary btn-lg">
                   {slide.cta.label}
@@ -236,14 +238,14 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
                 aria-current={i === index ? "true" : undefined}
                 className="group text-left"
               >
-                <span className={`hidden pb-2 text-xs font-medium transition-colors md:block ${i === index ? "text-mist-50" : "text-mist-500 group-hover:text-mist-300"}`}>{s.label}</span>
-                <span className="relative block h-[2px] overflow-hidden rounded-full bg-white/15">
+                <span className={`hidden pb-2 text-xs font-medium transition-colors md:block ${i === index ? "text-fg" : "text-fg-subtle group-hover:text-fg-muted"}`}>{s.label}</span>
+                <span className="relative block h-[2px] overflow-hidden rounded-full bg-fg/10">
                   {i === index && (
                     <span
                       ref={(el) => {
                         fill.current = el;
                       }}
-                      className="absolute inset-0 origin-left rounded-full bg-champagne-300 transition-transform duration-100 ease-linear"
+                      className="absolute inset-0 origin-left rounded-full bg-accent transition-transform duration-100 ease-linear"
                       style={{ transform: still || !playing ? "scaleX(1)" : "scaleX(0)" }}
                     />
                   )}
@@ -256,7 +258,7 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
               type="button"
               onClick={() => setPlaying((p) => !p)}
               aria-label={playing ? "Pause slideshow" : "Play slideshow"}
-              className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-white/15 bg-white/5 text-mist-50 backdrop-blur transition-colors hover:bg-white/15"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-line bg-surface-muted text-fg backdrop-blur transition-colors hover:bg-fg/10"
             >
               <Icon as={playing ? Pause : Play} />
             </button>

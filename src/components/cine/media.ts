@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 
-// Media helpers for the cinematic pages. Clips live in /public/media/cine as
-// <name>-1280.mp4 / <name>-640.mp4 (seamless 6-second loops, H.264,
-// faststart) with posters <name>.webp / <name>-640.webp
-// (docs/MEDIA_SOURCES.md).
+// Media helpers. Clips live in /public/media/cine as <name>-1280 / <name>-640
+// (.webm and .mp4, seamless 6-second loops) with posters <name>.webp /
+// <name>-640.webp; stills in /public/media/stills as <name>.webp,
+// <name>-800.webp and <name>.jpg (docs/MEDIA_SOURCES.md).
 export const CINE = "/media/cine";
 
 function useMedia(query: string) {
@@ -20,18 +20,32 @@ function useMedia(query: string) {
 
 const noSubscribe = () => () => {};
 
-/** True when clips should stay still: reduced motion, Save-Data or a 2G connection. */
-export function useStillMedia() {
-  const reduced = useMedia("(prefers-reduced-motion: reduce)");
-  const lowData = useSyncExternalStore(
+function connection() {
+  return (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+}
+
+/** Reduced motion: no autoplay, no rotation. */
+export function useReducedMotion() {
+  return useMedia("(prefers-reduced-motion: reduce)");
+}
+
+/** Save-Data, or a 2G/3G connection: pictures only. */
+export function useSlowConnection() {
+  return useSyncExternalStore(
     noSubscribe,
     () => {
-      const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-      return Boolean(c?.saveData) || /(^|-)2g$/.test(c?.effectiveType ?? "");
+      const c = connection();
+      return Boolean(c?.saveData) || /(^|-)(2g|3g)$/.test(c?.effectiveType ?? "");
     },
     () => false
   );
-  return reduced || lowData;
+}
+
+/** True when clips should stay still: reduced motion or a slow / Save-Data connection. */
+export function useStillMedia() {
+  const reduced = useReducedMotion();
+  const slow = useSlowConnection();
+  return reduced || slow;
 }
 
 /** Phones get the 640px clips. */

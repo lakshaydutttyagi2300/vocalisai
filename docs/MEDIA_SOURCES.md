@@ -22,9 +22,7 @@ made each loop stall for about a second. They were replaced.)
 
 | Name | Shows | Pexels video | By |
 | --- | --- | --- | --- |
-| `mic-hero` | A woman speaking into a studio microphone | 27153538 | Nino Souza |
 | `interviewer` | An interviewer on a laptop screen | 8512946 | Artem Podrez |
-| `studio` | A woman at a studio microphone, warm light | 7086278 | cottonbro studio |
 | `agent` | A customer-service agent with a headset | 7682757 | Mikhail Nilov |
 | `reading-mic` | A woman with headphones reading into a mic | 4540151 | Kaboompics |
 | `videocall` | A woman talking on a video call | 8993403 | Hanna Pad |
@@ -35,10 +33,25 @@ made each loop stall for about a second. They were replaced.)
 | `graduates` | Graduates in caps and gowns | 8060941 | olia danilevich |
 | `callcentre` | A call-centre agent with a headset | 7706876 | MART PRODUCTION |
 | `teacher` | A teacher with a student | 6672045 | Andy Barbour |
-| `podcast-bokeh` | A podcast microphone in soft focus | 7586494 | Los Muertos Crew |
 | `presenting` | A woman presenting with a microphone | 8716788 | Pavel Danilyuk |
 | `office` | Young professionals in a modern office | 5944692 | Theo Decker |
 | `interview` | A woman in a job interview | 7426752 | Pavel Danilyuk |
+
+Every clip also has **WebM (VP9)** versions, `<name>-1280.webm` and
+`<name>-640.webm`, made from the MP4s with ffmpeg (`libvpx-vp9 -crf 35/37 -b:v 0`).
+Browsers take the WebM first and fall back to the MP4.
+
+The darker clips used by the earlier night-time design (`mic-hero`, `studio`,
+`podcast-bokeh`) were removed in the October 2026 light redesign.
+
+### Stills (`public/media/stills/`)
+
+One still per clip above (except `interview`), taken from a **different moment**
+of the same Pexels source as the loop, so a hero's stills and clips don't repeat
+each other. Same warm grade. Three files each: `<name>.webp` (1600 px wide),
+`<name>-800.webp` (phones) and `<name>.jpg` (fallback). Same licence and
+credits as the clip of the same name. Which page shows which clip and still is
+set in `src/config/heroMedia.ts`; shots we'd still like are in `MEDIA_TODO.md`.
 
 **To add or replace a clip:** download it from Pexels (ask the owner first), then
 run the same ffmpeg recipe (the filter graph is: trim D+X seconds, split, blend
@@ -52,7 +65,9 @@ project dependency.
 only near the screen, plays it only while visible (or on hover, where a mouse
 exists), and never loads clips with reduced motion or Save-Data. `CineHero`
 loads the first clip after the page has loaded, the next one half-way through
-the current slide, and hands over just before the loop point.
+the current slide, and hands over just before the loop point. `MediaHero`
+(every app page's hero) works the same way and also never loads video on phones
+or slow connections: stills and posters only.
 
 ## Product demos
 

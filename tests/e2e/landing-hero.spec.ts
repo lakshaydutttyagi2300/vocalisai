@@ -39,7 +39,7 @@ test("the landing hero plays its clip, changes slide by itself, follows the prog
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(hero).toBeVisible({ timeout: 30_000 });
-  await expect.poll(() => hero.locator("video").first().evaluate((v: HTMLVideoElement) => v.currentSrc), { timeout: 30_000 }).toContain("-640.mp4");
+  await expect.poll(() => hero.locator("video").first().evaluate((v: HTMLVideoElement) => v.currentSrc), { timeout: 30_000 }).toMatch(/-640\.(webm|mp4)$/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   expect(errors).toEqual([]);
 });
