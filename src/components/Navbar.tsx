@@ -52,6 +52,7 @@ const CANDIDATE_NAV: CandidateEntry[] = [
     match: ["/practice", "/skills", "/explore", "/bookmarks", "/performance"],
     items: [
       { href: "/explore", label: "Explore exams", hint: "Company assessments and skills: AMCAT, TCS NQT, reasoning and more" },
+      { href: "/explore/skills", label: "Practice by skill", hint: "Critical thinking, data interpretation, reasoning, English and more" },
       { href: "/practice-tests", label: "Test history", hint: "Every exam practice test, with review" },
       { href: "/performance", label: "Performance", hint: "Accuracy and speed by subject, skill and level" },
       { href: "/bookmarks", label: "Bookmarks", hint: "Questions you saved to revise" },

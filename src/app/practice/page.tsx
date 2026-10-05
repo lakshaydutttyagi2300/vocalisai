@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Mic, Timer, Target } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers3, Mic, Timer, Target } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 import { MediaHero } from "@/components/ui/MediaHero";
 import { HEROES } from "@/config/heroMedia";
+import { skillFirstAreas } from "@/lib/catalog-queries";
 
 const GROUPS: { id: string; title: string; blurb: string; categories: string[]; liveConversationHref?: string }[] = [
   {
@@ -75,10 +76,22 @@ function ModeRow({ mode }: { mode: PracticeModeDef }) {
   );
 }
 
-export default function PracticeHubPage() {
+// The catalogue's skill areas (Critical Thinking, Data Interpretation...) live
+// under Explore; they're listed here too so the library shows every skill.
+async function skillAreas() {
+  try {
+    return await skillFirstAreas();
+  } catch (err) {
+    console.error("practice: skill areas unavailable", err);
+    return [];
+  }
+}
+
+export default async function PracticeHubPage() {
+  const areas = await skillAreas();
   return (
     <div className="pb-20">
-      <MediaHero {...HEROES.practice} title="Practice Library" subtitle="Pick one skill and practise it at your level, from Beginner to Expert. Speaking modes ask for microphone access first." stats={[`${PRACTICE_MODES.length} skills to practise`, "Beginner to Expert"]} />
+      <MediaHero {...HEROES.practice} title="Practice Library" subtitle="Pick one skill and practise it at your level, from Beginner to Expert. Speaking modes ask for microphone access first." stats={[`${PRACTICE_MODES.length} practice modes`, ...(areas.length ? [`${areas.reduce((n, x) => n + x.subjects.length, 0)} skill areas`] : []), "Beginner to Expert"]} />
     <div className="page-container mt-10">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Link href="/practice/conversation" className="panel-ink lift group block overflow-hidden rounded-xl p-7 sm:p-8">
@@ -114,7 +127,53 @@ export default function PracticeHubPage() {
         </div>
       </div>
 
+      {areas.length > 0 && (
+        <section id="skill-areas" aria-labelledby="skill-areas-heading" className="mt-10 scroll-mt-24">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 id="skill-areas-heading" className="headline text-xl text-ink-950">
+                Aptitude, reasoning and workplace skills
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-slate-600">The skills behind company and entrance tests, one at a time, from Beginner to Expert.</p>
+            </div>
+            <Link href="/explore/skills" className="text-sm font-semibold text-brand-700 hover:underline">
+              All skill areas &rarr;
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-6 lg:grid-cols-3">
+            {areas.map((a) => (
+              <div key={a.slug}>
+                <h3 className="eyebrow text-slate-500">{a.name}</h3>
+                <ul className="sheet mt-3 divide-y divide-slate-100 overflow-hidden">
+                  {a.subjects.map((sub) => (
+                    <li key={sub.slug}>
+                      <Link href={`/explore/skills/${sub.slug}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
+                        <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
+                          <Icon as={Layers3} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold text-ink-950 group-hover:text-brand-700">{sub.name}</span>
+                          <span className="block text-xs text-slate-500">
+                            {sub.skillCount} skill{sub.skillCount === 1 ? "" : "s"} · Beginner &rarr; Expert
+                          </span>
+                        </span>
+                        <Icon as={ArrowUpRight} className="flex-none text-fg-muted transition-colors group-hover:text-brand-600" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <nav aria-label="Skill groups" className="-mx-4 mt-10 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        {areas.length > 0 && (
+          <a href="#skill-areas" className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400">
+            Aptitude &amp; reasoning skills
+          </a>
+        )}
         {GROUPS.map((g) => (
           <a key={g.id} href={`#${g.id}`} className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-400">
             {g.title}
