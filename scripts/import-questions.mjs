@@ -5,6 +5,7 @@
 //   node scripts/import-questions.mjs <file.csv>                 # check only (dry run), dev database (.env)
 //   node scripts/import-questions.mjs <file.csv> --save          # check, then save
 //   DATABASE_URL=... node scripts/import-questions.mjs <file.csv> --save --production   # REQUIRED for the live DB
+//   ... --rows=2501-3000    only those data rows (1 = the first row under the header)
 //
 // Every batch is checked first; nothing is saved unless every batch passes.
 // Rows already in the bank ("Already in the question bank") are skipped, so
@@ -55,6 +56,8 @@ async function main() {
   const args = process.argv.slice(2);
   const file = args.find((a) => !a.startsWith("--"));
   const save = args.includes("--save");
+  const range = args.find((a) => a.startsWith("--rows="))?.slice(7).split("-").map(Number);
+  if (range && !(range.length === 2 && range[0] >= 1 && range[1] >= range[0])) throw new Error("--rows must look like --rows=2501-3000");
   const production = args.includes("--production");
   if (!file) throw new Error("Usage: node scripts/import-questions.mjs <file.csv> [--save] [--production]");
 
@@ -69,8 +72,9 @@ async function main() {
   const missing = IMPORT_COLUMNS.filter((c) => !header.includes(c));
   if (missing.length) throw new Error(`Missing columns: ${missing.join(", ")}`);
   // Keep each row's line number in the file (header = row 1) for error reports.
-  const rows = body.map((cells, i) => ({ line: i + 2, data: Object.fromEntries(header.map((h, k) => [h, cells[k] ?? ""])) }));
-  console.log(`${rows.length} rows read from ${file}`);
+  const all = body.map((cells, i) => ({ line: i + 2, data: Object.fromEntries(header.map((h, k) => [h, cells[k] ?? ""])) }));
+  const rows = range ? all.slice(range[0] - 1, range[1]) : all;
+  console.log(`${all.length} rows read from ${file}${range ? `; using rows ${range[0]}-${range[1]} (${rows.length})` : ""}`);
 
   // One batch per subject (split further if a subject has over 2,000 rows), in file order.
   const batches = [];
