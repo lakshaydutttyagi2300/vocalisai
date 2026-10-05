@@ -25,7 +25,7 @@ Licences and credits: all footage and photos are from [Pexels](https://www.pexel
 | `home.feature.listen` | `headphones-notes` | Photo | A man with headphones taking notes at a laptop | 5554277 |
 | `home.feature.test` | `laptops-class` | Clip | Students typing on laptops in a classroom | 31575745 |
 | `home.useCase.campus-placements` | `campus-walk` | Clip | Students walking across a sunny campus | 7683333 |
-| `home.useCase.company-assessments` | `exam-classroom` | Clip | Students concentrating during a test in a bright classroom | 6671806 |
+| `home.useCase.company-assessments` | `hourglass-books` | Photo | An hourglass beside a stack of books | 5357099 |
 | `home.useCase.interviews` | `interview-lounge` | Clip | A job interview in a bright office lounge | 7652008 |
 | `home.useCase.customer-service` | `headset-agent` | Photo | An agent with a headset helping a customer | 7681286 |
 | `home.useCase.professionals` | `presenter-work` | Clip | A woman presenting to colleagues at work | 7692781 |
@@ -86,7 +86,7 @@ Licences and credits: all footage and photos are from [Pexels](https://www.pexel
 | --- | --- | --- | --- | --- |
 | `about.hero` | `whiteboard-planning` | Clip | Colleagues planning together at a whiteboard | 6563890 |
 | `about.feedback` | `book-notes` | Photo | A book marked with sticky notes | 3832033 |
-| `about.realThing` | `hourglass-books` | Photo | An hourglass beside a stack of books | 5357099 |
+| `about.realThing` | `exam-hall` | Clip | A student under pressure in a written exam | 8196796 |
 | `about.honest` | `library-reader` | Photo | A woman reading in a library | 2065490 |
 | `about.howItWorks` | `sofa-call` | Photo | A woman on a video call on the sofa | 7606078 |
 | `about.final` | `graduation-caps` | Clip | Graduates throwing their caps in the air | 7712354 |
@@ -128,7 +128,7 @@ Licences and credits: all footage and photos are from [Pexels](https://www.pexel
 | `app.category.career-entrance` (2) | `students-talking` | Photo | Students walking and talking | 7972658 |
 | `app.category.professional-certification` (1) | `accounts-desk` | Clip | Accounts and receipts on a desk | 5981287 |
 | `app.category.professional-certification` (2) | `charts-presenter` | Photo | A woman holding printed charts | 8424935 |
-| `app.mockTests` | `exam-hall` | Clip | A student thinking through a written exam | 8196796 |
+| `app.mockTests` | `exam-classroom` | Clip | Students concentrating during a test in a bright classroom | 6671806 |
 | `app.mockHistory` | `chart-review` | Photo | Reviewing results on a printed chart | 7876456 |
 | `app.speechAnalysis` (1) | `waveform-screen` | Clip | An audio waveform on a computer screen | 6892725 |
 | `app.speechAnalysis` (2) | `kitchen-recording` | Photo | A woman recording herself with a phone at home | 7669738 |
