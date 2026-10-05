@@ -84,7 +84,7 @@ test("a candidate finds TCS NQT, practises a skill, reviews it and sees history,
     await search.fill("tcs nqt");
     await results.getByRole("link", { name: /TCS NQT/ }).click();
     await expect(page).toHaveURL(/\/explore\/company-hiring-assessments\/tcs-nqt$/, { timeout: 30_000 });
-    await expect(page.getByText("Reasoning Ability", { exact: true })).toBeVisible({ timeout: 30_000 }); // TCS's own section name
+    await expect(page.getByText("Reasoning Ability", { exact: true }).first()).toBeVisible({ timeout: 30_000 }); // TCS's own section name (in the preview and the test builder)
 
     // Signed out: the exam page asks to sign in, and returns here after.
     await expect(page.getByRole("link", { name: "Sign in to start" })).toBeVisible({ timeout: 30_000 });

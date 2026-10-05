@@ -60,7 +60,7 @@ export function ModePreview({ mode }: { mode: PracticeModeDef }) {
   return (
     <figure className={frame} aria-label={`What a ${mode.label} question looks like`}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">{mode.label} · Question 1 of 5</p>
+        <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">{mode.label} · Example question</p>
         <span className="rounded-full border border-line bg-surface px-2.5 py-1 text-[0.68rem] font-medium text-fg-muted">Example</span>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-fg">{mode.description}</p>

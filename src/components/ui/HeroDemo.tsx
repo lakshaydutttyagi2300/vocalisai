@@ -104,7 +104,7 @@ function ExamRoomDemo({ label }: { label: string }) {
     <Stage label={label}>
       <div className={card}>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Section 2 of 4 · Logical reasoning</p>
+          <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Logical reasoning · Section 2/4</p>
           <Example />
         </div>
         <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-surface-muted px-3 py-2.5">
@@ -113,7 +113,7 @@ function ExamRoomDemo({ label }: { label: string }) {
           </span>
           <span className="num text-lg font-semibold text-fg">14:32</span>
         </div>
-        <p className="mt-4 text-sm font-semibold text-fg">Question 7 of 20</p>
+        <p className="mt-4 text-sm font-semibold text-fg">7 / 20</p>
         <p className="mt-1 text-sm leading-relaxed text-fg-muted">All pens are bags. Some bags are boxes. Does &ldquo;some pens are boxes&rdquo; follow?</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           {["Follows", "Does not follow"].map((o, i) => (
