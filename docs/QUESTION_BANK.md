@@ -41,6 +41,7 @@ Live database (read-only audit, 26 Sep 2026):
 3. **Admin bulk import**:
    - Admin, Question Bank: paste JSON, or upload XLSX/CSV/JSON/TXT (`src/lib/question-import.ts`, `question-file-format.ts`, `question-validation.ts`).
    - Rows are validated, checked for near-duplicates, and (since Phase 5) **auto-tagged with skill and level**.
+   - **Catalogue files over 2,000 rows** (the Admin catalogue import limit): `node scripts/import-questions.mjs <file.csv>` checks every row with the same `importQuestions()` the Admin page uses, one subject at a time; add `--save` to load, and `--save --production` (with `DATABASE_URL` set to production) for the live site. Nothing saves unless every batch passes; questions already in the bank are skipped, so a re-run never adds a question twice. Used on 3 Oct 2026 to load 6,509 questions into 15 subjects.
 4. **Admin single add / edit / duplicate**: tags follow category and difficulty automatically. Hand-set tags are kept (`tagsAfterEdit`).
 5. **AI scenarios**: `POST /api/practice/questions/generate` (Gemini) creates `AI_GENERATED` customer-service or role-play scenarios, auto-tagged.
 6. **Demo IELTS-style practice tests**: `prisma/exam-demo/` (3 tests; seeded with `npm run seed:exam-demo`).
