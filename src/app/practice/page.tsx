@@ -143,7 +143,7 @@ export default async function PracticeHubPage() {
           <div className="mt-5 grid gap-6 lg:grid-cols-3">
             {areas.map((a) => (
               <div key={a.slug}>
-                <h3 className="eyebrow text-slate-500">{a.name}</h3>
+                <p className="eyebrow text-slate-500">{a.name}</p>
                 <ul className="sheet mt-3 divide-y divide-slate-100 overflow-hidden">
                   {a.subjects.map((sub) => (
                     <li key={sub.slug}>
