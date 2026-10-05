@@ -7,6 +7,7 @@ import { CineVideo } from "@/components/cine/CineVideo";
 import { FadeIn } from "@/components/cine/FadeIn";
 import { Container, FinalCta, MediaSplit, PageHero, SectionIntro } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "About - VocalisAi",
@@ -17,31 +18,27 @@ const accent = (word: string) => <span className="serif-accent">{word}</span>;
 
 const BELIEFS = [
   {
-    clip: "reading-mic",
-    alt: "A woman with headphones reading aloud into a microphone",
+    id: "feedback",
     title: "Feedback you can act on",
     text: "Every comment quotes your own words and sits next to the fix. “Improve your fluency” helps no one; “you said um four times in the first sentence” does.",
   },
   {
-    clip: "meeting",
-    alt: "A laptop showing a man in an online meeting",
+    id: "realThing",
     title: "Practice like the real thing",
     text: "Timed sections, real test formats and an AI that replies to what you said, so the real day feels like the second time you've done it.",
   },
   {
-    clip: "teacher",
-    alt: "A teacher helping a student at a desk",
+    id: "honest",
     title: "Honest by design",
     text: "Practice material is our own, written in the style of each test. Examples are labelled as examples, and we never invent scores, reviews or results.",
   },
-];
+] as const;
 
 export default function AboutPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="presenting"
-        alt="A professional presenting with a microphone"
+        name={scene("about.hero")}
         eyebrow="About VocalisAi"
         title={<>For the people who have to {accent("perform")}.</>}
         text="Interviews, placement tests, customer calls, presentations: moments where how you speak, and how you think against the clock, decide what happens next. VocalisAi is where you practise them until they feel familiar."
@@ -55,7 +52,7 @@ export default function AboutPage() {
               <FadeIn key={b.title} delay={i * 120}>
                 <article>
                   <div className="cine-media aspect-[4/5]">
-                    <CineVideo name={b.clip} alt={b.alt} />
+                    <CineVideo name={scene(`about.${b.id}`)} />
                   </div>
                   <h3 className="cine-headline mt-7 text-2xl text-fg">{b.title}</h3>
                   <p className="mt-3 leading-relaxed text-fg-muted">{b.text}</p>
@@ -76,9 +73,9 @@ export default function AboutPage() {
             media={
               <div className="relative">
                 <div className="cine-media aspect-[4/3]">
-                  <CineVideo name="reading-mic" alt="A woman with headphones reading aloud into a microphone" />
+                  <CineVideo name={scene("about.howItWorks")} />
                 </div>
-                <AnalysisDemo className="relative -mt-40 ml-auto w-[94%] sm:-mr-6 sm:w-[25rem]" />
+                <AnalysisDemo example="readAloud" className="relative -mt-40 ml-auto w-[94%] sm:-mr-6 sm:w-[25rem]" />
               </div>
             }
           />
@@ -99,8 +96,7 @@ export default function AboutPage() {
       </section>
 
       <FinalCta
-        name="graduates"
-        alt="Graduates in caps and gowns smiling together"
+        name={scene("about.final")}
         title={<>Make the real day the {accent("second")} time.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

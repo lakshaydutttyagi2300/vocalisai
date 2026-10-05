@@ -44,14 +44,26 @@ Browsers take the WebM first and fall back to the MP4.
 The darker clips used by the earlier night-time design (`mic-hero`, `studio`,
 `podcast-bokeh`) were removed in the October 2026 light redesign.
 
+### Added 5 October 2026: one scene per place
+
+So that no picture repeats anywhere on the site, 37 more clips and 41 photos
+were added (all Pexels, same licence, same warm grade and loop recipe). Every
+scene, its Pexels id and the one place it is used are listed in
+[MEDIA_INVENTORY.md](MEDIA_INVENTORY.md), generated from
+`src/config/mediaLibrary.ts`. A clip and a still made from it are the same
+scene, so the stills that were frames of the first clips were removed.
+
 ### Stills (`public/media/stills/`)
 
-One still per clip above (except `interview`), taken from a **different moment**
-of the same Pexels source as the loop, so a hero's stills and clips don't repeat
-each other. Same warm grade. Three files each: `<name>.webp` (1600 px wide),
-`<name>-800.webp` (phones) and `<name>.jpg` (fallback). Same licence and
-credits as the clip of the same name. Which page shows which clip and still is
-set in `src/config/heroMedia.ts`; shots we'd still like are in `MEDIA_TODO.md`.
+Photos (not frames of clips), three files each: `<name>.webp` (1600 px wide),
+`<name>-800.webp` (phones) and `<name>.jpg` (fallback), with the same warm
+grade as the clips.
+
+**To add a picture:** add it to `LIBRARY` in `src/config/mediaLibrary.ts`, give
+it exactly one placement in `PLACEMENTS`, then run
+`node scripts/media-inventory.mjs`. `tests/unit/media-library.test.ts` fails if a
+scene is placed twice, never placed, missing a file, or if a page uses a
+picture outside the library.
 
 **To add or replace a clip:** download it from Pexels (ask the owner first), then
 run the same ffmpeg recipe (the filter graph is: trim D+X seconds, split, blend

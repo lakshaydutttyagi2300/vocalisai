@@ -5,6 +5,14 @@ import {
   ArrowUpRight,
   AudioLines,
   BookOpen,
+  Briefcase,
+  Calculator,
+  Headphones,
+  Headset,
+  Mic,
+  PenLine,
+  Puzzle,
+  Users,
   Bookmark,
   Bot,
   Check,
@@ -37,7 +45,8 @@ import { ScoreRing } from "@/components/ui/ScoreRing";
 import { MasteryBadge } from "@/components/skills/MasteryBadge";
 import { WeeklyChart } from "@/components/dashboard/WeeklyChart";
 import { LearningResources } from "@/components/dashboard/LearningResources";
-import { HEROES, practiceModeMedia } from "@/config/heroMedia";
+import { HEROES } from "@/config/heroMedia";
+import { Waveform } from "@/components/cine/Waveform";
 
 export const metadata = { title: "Dashboard - VocalisAi" };
 
@@ -58,17 +67,17 @@ function improveLink(categoryId: string): { href: string; label: string } {
   return p.href !== "/practice" ? p : { href: `/skills/diagnostic/${categoryId.toLowerCase()}`, label: "Short skill check" };
 }
 
-/** A still per practice card, from the same media sets as the practice pages, never the same one twice. */
-function withStills<T extends { href: string }>(cards: T[]): (T & { still: string })[] {
-  const used = new Set<string>();
-  const fallback = ["office", "teacher", "presenting", "meeting", "portrait", "headphones"].map((n) => `/media/stills/${n}`);
-  return cards.map((c) => {
-    const slug = c.href.includes("#") ? c.href.split("#")[1] : (c.href.split("/").pop() ?? "");
-    const own = practiceModeMedia(slug).map((m) => m.src.replace("/media/cine/", "/media/stills/"));
-    const src = [...own, ...fallback].find((p) => !used.has(p)) ?? fallback[0];
-    used.add(src);
-    return { ...c, still: `${src}-800.webp` };
-  });
+/** The icon on a practice card's header: what kind of practice it is at a glance. */
+function practiceIcon(href: string): LucideIcon {
+  if (/speaking|pronunciation|fluency|reading$|#speaking|conversation/.test(href)) return Mic;
+  if (/listening/.test(href)) return Headphones;
+  if (/interview/.test(href)) return Briefcase;
+  if (/customer|supervisor/.test(href)) return Headset;
+  if (/numerical|quant|QNT|calc/i.test(href)) return Calculator;
+  if (/logical|reasoning|\/rea$/i.test(href)) return Puzzle;
+  if (/situational|SJT|judgement/i.test(href)) return Users;
+  if (/writing/.test(href)) return PenLine;
+  return BookOpen;
 }
 
 // Answers per UTC day (all time - one row per active day).
@@ -343,13 +352,14 @@ export default async function DashboardPage() {
         <section aria-labelledby="recommended-heading">
           <SectionHead id="recommended-heading" title="Recommended practice" href="/practice" link="Practice library" />
           <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {withStills(recommendations(toImprove, coach)).map((r) => (
+            {recommendations(toImprove, coach).map((r) => (
               <li key={r.href}>
                 <Link href={r.href} className="card lift group flex h-full flex-col overflow-hidden">
-                  <span className="relative block aspect-[16/9] overflow-hidden bg-surface-muted">
-                    {/* Decorative: the card's text says what it is. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element -- static local still with its own phone-sized file */}
-                    <img src={r.still} alt="" loading="lazy" decoding="async" width={800} height={450} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                  <span aria-hidden="true" className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-[radial-gradient(18rem_10rem_at_80%_0%,var(--accent-soft),transparent_70%),var(--surface-muted)]">
+                    <Waveform bars={22} className="absolute inset-x-6 bottom-4 h-8 opacity-30" />
+                    <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-accent-strong shadow-[var(--shadow-md)] transition-transform duration-500 group-hover:scale-105">
+                      <Icon as={practiceIcon(r.href)} size="xl" />
+                    </span>
                   </span>
                   <span className="flex flex-1 flex-col p-5">
                     <span className="badge badge-skill self-start">{r.reason}</span>

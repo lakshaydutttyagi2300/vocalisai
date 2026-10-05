@@ -90,6 +90,8 @@ is no flash.
 
 ## Media rules
 
+- **One place per picture.** Every photo and clip is registered once in `src/config/mediaLibrary.ts` and has exactly one placement on the whole site; a clip and its still count as one. Pages ask the library for their scene (`scene("home.voice")`, `placed("app.dashboard")`) and never name a file themselves. The full list is [MEDIA_INVENTORY.md](MEDIA_INVENTORY.md); tests fail on any repeat.
+- Pages built from a template (each company test, skill area, practice mode) show a preview of their own content (`ContentPreview.tsx`) instead of a photo; product demos repeated across pages use a different example each time.
 - Local files only (no hotlinking): clips in `public/media/cine/`, stills in `public/media/stills/`; sources and licences in `docs/MEDIA_SOURCES.md`. Wanted shots are listed in `MEDIA_TODO.md`.
 - Bright, warm, real situations (speaking, interviews, calls, studying). No company logos, robots or "AI brain" art.
 - No invented testimonials, logos, user counts or scores. Every number on a page comes from the database; examples are labelled "Example".

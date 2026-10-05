@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ClipFrame, Container, FinalCta, MediaSplit, PageHero } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
 import { USE_CASES } from "@/components/cine/content";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Use cases - VocalisAi",
@@ -26,8 +27,7 @@ export default function UseCasesPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="agent"
-        alt="A customer-service agent listening on a headset"
+        name={scene("useCases.hero")}
         eyebrow="Use cases"
         title={<>Built for the {accent("moment")} that matters.</>}
         text="A placement test, an interview, a customer on the line, a presentation tomorrow. Whatever you're preparing for, practise it the way it will happen."
@@ -59,15 +59,14 @@ export default function UseCasesPage() {
               text={u.text}
               points={POINTS[u.id]}
               link={{ href: u.href, label: u.cta }}
-              media={<ClipFrame name={u.clip} alt={u.alt} ratio="aspect-[4/3]" />}
+              media={<ClipFrame name={scene(`useCases.${u.id}`)} ratio="aspect-[4/3]" />}
             />
           </Container>
         </section>
       ))}
 
       <FinalCta
-        name="teacher"
-        alt="A teacher helping a student at a desk"
+        name={scene("useCases.final")}
         title={<>Ready for whatever&rsquo;s {accent("next")}.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

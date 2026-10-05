@@ -5,10 +5,11 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Reac
 import { ArrowRight, Pause, Play } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { CINE, clipSrc, useSmallScreen, useStillMedia } from "./media";
+import type { SceneName } from "@/config/mediaLibrary";
 
 export interface CineSlide {
-  /** Clip name in /public/media/cine. */
-  name: string;
+  /** A clip scene from src/config/mediaLibrary.ts (each used once on the site). */
+  name: SceneName;
   /** Short label under the slide's progress bar. */
   label: string;
   eyebrow: string;
@@ -163,6 +164,7 @@ export function CineHero({ slides, heading, secondary }: { slides: CineSlide[]; 
             aria-label={`${i + 1} of ${slides.length}: ${s.label}`}
             aria-hidden={i !== index}
             data-active={i === index}
+            data-scene={s.name}
             className="cine-slide absolute inset-0"
           >
             <div className="cine-slide-media absolute inset-0">

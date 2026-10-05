@@ -7,6 +7,9 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "l
 import { Icon } from "@/components/ui/Icon";
 import { useReducedMotion, useSlowConnection, useSmallScreen } from "@/components/cine/media";
 import type { HeroMediaItem } from "@/config/heroMedia";
+import { HeroDemo } from "@/components/ui/HeroDemo";
+
+type PictureItem = Extract<HeroMediaItem, { type: "video" | "image" }>;
 
 // A page hero that rotates through a few clips and stills (src/config/heroMedia.ts).
 //  - 800ms cross-fade; a clip shows for one loop (~6 s), a still for 7 s with a slow zoom.
@@ -17,6 +20,9 @@ import type { HeroMediaItem } from "@/config/heroMedia";
 //  - Reduced motion: first picture only, no autoplay or rotation, arrows to step.
 //  - Phones, Save-Data and 2G/3G: stills and posters only, never video.
 //  - Light treatment: a warm cream gradient behind dark text, never a black overlay.
+//  - Media come from src/config/mediaLibrary.ts (one placement per scene);
+//    "demo" items are product UI drawn by HeroDemo. Template pages pass a
+//    `visual` (a preview of their own content) instead of media.
 
 const IMAGE_SECONDS = 7;
 const CLIP_SECONDS = 6;
@@ -35,18 +41,24 @@ export interface MediaHeroProps {
   /** A widget beside the text (e.g. a readiness ring). */
   side?: ReactNode;
   media: HeroMediaItem[];
+  /** Shown in place of the media frame (split layout): e.g. a preview of the page's own content. */
+  visual?: ReactNode;
   variant?: "full-bleed" | "split";
   size?: "lg" | "md" | "sm";
   /** The visible title is the page's h1 unless the page already has one. */
   headingLevel?: 1 | 2;
 }
 
-function poster(item: HeroMediaItem, small: boolean) {
+function poster(item: PictureItem, small: boolean) {
   if (item.type === "video") return `${item.src}${small ? "-640" : ""}.webp`;
   return `${item.src}${small ? "-800" : ""}.webp`;
 }
 
-function Picture({ item, priority, className = "" }: { item: HeroMediaItem; priority: boolean; className?: string }) {
+function keyOf(item: HeroMediaItem, n: number) {
+  return (item.type === "demo" ? item.demo : item.src) + n;
+}
+
+function Picture({ item, priority, className = "" }: { item: PictureItem; priority: boolean; className?: string }) {
   const desktop = poster(item, false);
   const phone = poster(item, true);
   return (
@@ -77,11 +89,17 @@ export function MediaHero({
   children,
   stats,
   side,
-  media,
+  media: allMedia,
+  visual,
   variant = "full-bleed",
   size = "lg",
   headingLevel = 1,
 }: MediaHeroProps) {
+  // In the split layout two photos float over the frame; they are left out of
+  // the rotation so the same picture never shows twice at once.
+  const overlays = variant === "split" && size !== "sm" ? allMedia.filter((m): m is PictureItem => m.type === "image").slice(0, 2) : [];
+  const useOverlays = overlays.length === 2 && allMedia.length > 2;
+  const media = useOverlays ? allMedia.filter((m) => !overlays.includes(m as PictureItem)) : allMedia;
   const [index, setIndex] = useState(0);
   const [mounted, setMounted] = useState<number[]>([0]);
   const [paused, setPaused] = useState(false);
@@ -159,6 +177,7 @@ export function MediaHero({
       last = now;
       const item = media[index];
       const v = videos.current[index];
+      if (!item) return;
       let p: number;
       if (item.type === "video" && v && !noVideo && v.readyState >= 2 && !v.paused && Number.isFinite(v.duration)) {
         p = v.currentTime / Math.min(v.duration, CLIP_SECONDS);
@@ -180,7 +199,7 @@ export function MediaHero({
   }, [rotating, started, index, media, noVideo, go]);
 
   // The first poster is the page's largest picture: ask for it from the <head>.
-  if (media[0]) {
+  if (media[0] && media[0].type !== "demo") {
     preload(poster(media[0], true), { as: "image", fetchPriority: "high", media: "(max-width: 767px)" });
     preload(poster(media[0], false), { as: "image", fetchPriority: "high", media: "(min-width: 768px)" });
   }
@@ -191,9 +210,9 @@ export function MediaHero({
   const slides = (
     <>
       {media.map((item, n) => (
-        <div key={item.src + n} aria-hidden={n !== index} data-active={n === index} className="cine-slide absolute inset-0">
+        <div key={keyOf(item, n)} aria-hidden={n !== index} data-active={n === index} className="cine-slide absolute inset-0">
           <div className="cine-slide-media absolute inset-0">
-            {(n === 0 || mounted.includes(n)) && <Picture item={item} priority={n === 0} />}
+            {item.type === "demo" ? (n === 0 || mounted.includes(n)) && <HeroDemo name={item.demo} label={item.alt} /> : (n === 0 || mounted.includes(n)) && <Picture item={item} priority={n === 0} />}
             {item.type === "video" && started && !noVideo && mounted.includes(n) && (
               <video
                 ref={(el) => {
@@ -222,7 +241,7 @@ export function MediaHero({
     <div className="flex items-center gap-3">
       <div className="flex flex-1 gap-1.5">
         {media.map((item, n) => (
-          <button key={item.src + n} type="button" onClick={() => go(n)} aria-label={`Show picture ${n + 1} of ${media.length}`} aria-current={n === index ? "true" : undefined} className="group flex h-6 flex-1 items-center">
+          <button key={keyOf(item, n)} type="button" onClick={() => go(n)} aria-label={`Show picture ${n + 1} of ${media.length}`} aria-current={n === index ? "true" : undefined} className="group flex h-6 flex-1 items-center">
             <span className="relative block h-[3px] w-full overflow-hidden rounded-full bg-fg/15 transition-colors group-hover:bg-fg/25">
               {n === index && (
                 <span
@@ -296,9 +315,8 @@ export function MediaHero({
   );
 
   if (variant === "split") {
-    const stills = media.filter((m) => m.type === "image").slice(0, 2);
     return (
-      <section ref={rootRef} aria-label="Page introduction" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} className="page-container pt-8 sm:pt-12">
+      <section ref={rootRef} aria-label="Page introduction" data-media={[...allMedia.flatMap((m) => (m.type === "demo" ? [] : [m.scene]))].join(" ") || undefined} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} className="page-container pt-8 sm:pt-12">
         <div className={`grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 ${size === "sm" ? "" : "min-h-[22rem]"}`}>
           <div className="min-w-0">
             {text}
@@ -307,19 +325,21 @@ export function MediaHero({
           <div className="pb-6 sm:pb-10 lg:pr-8">
             {/* The overlapping stills hang off the frame, clear of the controls below it. */}
             <div className="relative">
-              <div className={`relative overflow-hidden rounded-[1.25rem] border border-line bg-surface-muted shadow-[var(--shadow-lg)] ${size === "sm" ? "aspect-[16/9]" : "aspect-[4/3]"}`}>{slides}</div>
-              {stills.length > 1 && size !== "sm" && (
+              {visual ?? (
+                <div className={`relative overflow-hidden rounded-[1.25rem] border border-line bg-surface-muted shadow-[var(--shadow-lg)] ${size === "sm" ? "aspect-[16/9]" : "aspect-[4/3]"}`}>{slides}</div>
+              )}
+              {!visual && useOverlays && (
                 <>
                   <div className="absolute -bottom-6 -left-6 hidden aspect-[4/3] w-[34%] overflow-hidden rounded-xl border-4 border-surface shadow-[var(--shadow-lg)] sm:block">
-                    <Picture item={stills[0]} priority={false} />
+                    <Picture item={overlays[0]} priority={false} />
                   </div>
                   <div className="absolute -right-2 -top-6 hidden aspect-square w-[24%] overflow-hidden rounded-xl border-4 border-surface shadow-[var(--shadow-lg)] lg:block">
-                    <Picture item={stills[1]} priority={false} />
+                    <Picture item={overlays[1]} priority={false} />
                   </div>
                 </>
               )}
             </div>
-            {many && <div className={`mt-4 ${stills.length > 1 && size !== "sm" ? "sm:ml-[30%] sm:mt-6" : "sm:mt-6"}`}>{controls}</div>}
+            {!visual && many && <div className={`mt-4 ${useOverlays ? "sm:ml-[30%] sm:mt-6" : "sm:mt-6"}`}>{controls}</div>}
           </div>
         </div>
       </section>
@@ -327,7 +347,7 @@ export function MediaHero({
   }
 
   return (
-    <section ref={rootRef} aria-label="Page introduction" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} className="px-2 pt-2 sm:px-3 sm:pt-3">
+    <section ref={rootRef} aria-label="Page introduction" data-media={[...allMedia.flatMap((m) => (m.type === "demo" ? [] : [m.scene]))].join(" ") || undefined} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} className="px-2 pt-2 sm:px-3 sm:pt-3">
       <div className={`relative flex rounded-[1.25rem] border border-line bg-surface-muted ${minH}`}>
         {/* Media is clipped on its own layer so a search box's results can grow the hero. */}
         <div className="absolute inset-0 overflow-hidden rounded-[1.25rem]">

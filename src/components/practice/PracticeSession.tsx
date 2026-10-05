@@ -13,7 +13,7 @@ import { ArrowRight, Check, RotateCcw, TrendingDown, TrendingUp } from "lucide-r
 import { Icon } from "@/components/ui/Icon";
 import type { Stimulus } from "@/lib/question-stimulus";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { practiceModeMedia } from "@/config/heroMedia";
+import { ModePreview } from "@/components/ui/ContentPreview";
 
 type Question = {
   id: string;
@@ -179,7 +179,7 @@ export function PracticeSession({ mode, suggestedLevel = null }: { mode: Practic
   if (stage === "pick-difficulty") {
     return (
       <div className="pb-20">
-        <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Practice" title={mode.label} subtitle={mode.description} stats={["Beginner to Expert", "Instant feedback"]} media={practiceModeMedia(mode.slug)} variant="split" size="sm" />
+        <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Practice" title={mode.label} subtitle={mode.description} stats={["Beginner to Expert", "Instant feedback"]} media={[]} visual={<ModePreview mode={mode} />} variant="split" size="sm" />
       <div className="page-container mt-10">
         <p className="text-base font-semibold text-fg">Choose a difficulty</p>
         <div className="mt-3 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">

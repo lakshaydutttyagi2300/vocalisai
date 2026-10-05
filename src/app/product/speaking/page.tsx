@@ -9,6 +9,7 @@ import { ClipFrame, Container, FinalCta, MediaSplit, PageHero, SectionIntro } fr
 import { SiteFooter } from "@/components/cine/SiteFooter";
 import { Waveform } from "@/components/cine/Waveform";
 import { LESSONS, SPEECH_DIMENSIONS } from "@/components/cine/content";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Speaking practice with AI feedback - VocalisAi",
@@ -37,8 +38,7 @@ export default function SpeakingPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="reading-mic"
-        alt="A woman with headphones reading aloud into a microphone"
+        name={scene("speaking.hero")}
         eyebrow="Speaking practice"
         title={<>Speak. Hear exactly how you {accent("sound")}.</>}
         text="Answer out loud and VocalisAi transcribes and rates your answer on six dimensions, quoting your own words with the fix beside each one."
@@ -64,8 +64,8 @@ export default function SpeakingPage() {
             points={SPEECH_DIMENSIONS.map(([name, text]) => `${name}: ${text.toLowerCase()}`)}
             media={
               <div className="relative">
-                <ClipFrame name="mic-macro" alt="A close-up of a studio microphone" ratio="aspect-[4/3]" />
-                <AnalysisDemo className="relative -mt-40 ml-auto w-[94%] sm:-mr-6 sm:w-[25rem]" />
+                <ClipFrame name={scene("speaking.analysis")} ratio="aspect-[4/3]" />
+                <AnalysisDemo example="presentation" className="relative -mt-40 ml-auto w-[94%] sm:-mr-6 sm:w-[25rem]" />
               </div>
             }
           />
@@ -98,7 +98,7 @@ export default function SpeakingPage() {
             eyebrow="Ways to practise"
             title={<>Every kind of {accent("speaking")}, in one place.</>}
             text="Pick the skill you want to work on, at Beginner, Intermediate, Advanced or Expert. Every mode gives the same detailed feedback."
-            media={<ClipFrame name="presenting" alt="A professional presenting with a microphone" ratio="aspect-[4/3]" />}
+            media={<ClipFrame name={scene("speaking.presenting")} ratio="aspect-[4/3]" />}
           />
           <div className="mt-14 grid gap-px overflow-hidden rounded-[1.5rem] bg-accent-softer ring-1 ring-line sm:grid-cols-2 lg:grid-cols-3">
             {MODES.map(([name, href, text]) => (
@@ -124,8 +124,7 @@ export default function SpeakingPage() {
       </section>
 
       <FinalCta
-        name="headphones"
-        alt="A man with headphones speaking and reading"
+        name={scene("speaking.final")}
         title={<>Your voice, {accent("clearer")} every week.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

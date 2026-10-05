@@ -1,11 +1,10 @@
-// Shared words and pictures for the cinematic pages. Every clip is chosen to
-// show what VocalisAi does (docs/MEDIA_SOURCES.md); the people in them are
-// stock footage, never presented as our users.
+// Shared words for the cinematic pages. Their pictures come from
+// src/config/mediaLibrary.ts, where each section has its own scene (the home
+// page's use-case cards and the Use cases page show different footage). The
+// people in them are stock footage, never presented as our users.
 
 export interface UseCase {
-  id: string;
-  clip: string;
-  alt: string;
+  id: "campus-placements" | "company-assessments" | "interviews" | "customer-service" | "professionals" | "spoken-english";
   title: string;
   text: string;
   href: string;
@@ -15,8 +14,6 @@ export interface UseCase {
 export const USE_CASES: UseCase[] = [
   {
     id: "campus-placements",
-    clip: "graduates",
-    alt: "Graduates in caps and gowns smiling together",
     title: "Campus placements",
     text: "Freshers preparing for placement season: aptitude, reasoning and English, then interview practice to finish.",
     href: "/explore/company-hiring-assessments",
@@ -24,8 +21,6 @@ export const USE_CASES: UseCase[] = [
   },
   {
     id: "company-assessments",
-    clip: "office",
-    alt: "A young professional working at a laptop in a bright office",
     title: "Company assessments",
     text: "AMCAT, eLitmus, TCS NQT, Infosys, Accenture and more, section by section, at the level you need.",
     href: "/explore",
@@ -33,8 +28,6 @@ export const USE_CASES: UseCase[] = [
   },
   {
     id: "interviews",
-    clip: "interviewer",
-    alt: "An interviewer on a laptop screen during a video interview",
     title: "Job interviews",
     text: "Rehearse the questions you'll be asked with an AI interviewer that replies to what you actually say.",
     href: "/product/interviews",
@@ -42,8 +35,6 @@ export const USE_CASES: UseCase[] = [
   },
   {
     id: "customer-service",
-    clip: "callcentre",
-    alt: "A customer-service agent speaking into a headset",
     title: "Customer service & BPO",
     text: "Practise calls with an AI customer and get feedback on clarity, tone, grammar and pace.",
     href: "/product/interviews",
@@ -51,8 +42,6 @@ export const USE_CASES: UseCase[] = [
   },
   {
     id: "professionals",
-    clip: "presenting",
-    alt: "A professional presenting with a microphone",
     title: "Working professionals",
     text: "Presentations, meetings and workplace English, practised out loud until they feel easy.",
     href: "/product/speaking",
@@ -60,8 +49,6 @@ export const USE_CASES: UseCase[] = [
   },
   {
     id: "spoken-english",
-    clip: "portrait",
-    alt: "A woman speaking to the camera with a warm smile",
     title: "Everyday spoken English",
     text: "Grammar, vocabulary, pronunciation and conversation practice at your own pace, from Beginner to Expert.",
     href: "/product/personalised",
@@ -69,28 +56,24 @@ export const USE_CASES: UseCase[] = [
   },
 ];
 
-export const FEATURES = [
+export const FEATURES: { id: "speak" | "partner" | "listen" | "test"; title: string; text: string }[] = [
   {
-    clip: "reading-mic",
-    alt: "A woman with headphones reading aloud into a microphone",
+    id: "speak",
     title: "Speak and get scored",
     text: "Answer out loud. Feedback on pronunciation, fluency, grammar, vocabulary and pace quotes what you said.",
   },
   {
-    clip: "videocall",
-    alt: "A woman talking on a video call at her laptop",
+    id: "partner",
     title: "Talk to an AI partner",
     text: "Interviews, customer calls and everyday conversation with an AI that replies to your actual words.",
   },
   {
-    clip: "headphones",
-    alt: "A man with headphones reading and speaking at his desk",
+    id: "listen",
     title: "Listen and respond",
     text: "Listening and read-aloud practice in natural AI voices and accents, at your level.",
   },
   {
-    clip: "meeting",
-    alt: "A laptop on a desk showing a man in an online meeting",
+    id: "test",
     title: "Test under real conditions",
     text: "Timed, camera-checked mock tests for company assessments and English exams.",
   },

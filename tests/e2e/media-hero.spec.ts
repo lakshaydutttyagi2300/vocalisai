@@ -14,7 +14,7 @@ test("a page hero plays its first clip, moves on by itself and pauses", async ({
   await page.goto("/explore");
   const hero = page.getByRole("region", { name: "Page introduction" });
   await expect(hero.getByRole("heading", { level: 1 })).toHaveText(TITLE, { timeout: 30_000 });
-  await expect(hero.getByRole("button", { name: /^Show picture/ })).toHaveCount(4);
+  await expect(hero.getByRole("button", { name: /^Show picture/ })).toHaveCount(3);
 
   // The first poster is requested eagerly; its clip loads after the page and plays silently.
   await expect(hero.locator("img").first()).toHaveAttribute("fetchpriority", "high");
@@ -23,15 +23,15 @@ test("a page hero plays its first clip, moves on by itself and pauses", async ({
   expect(await first.evaluate((v: HTMLVideoElement) => v.currentSrc)).toMatch(/-1280\.(webm|mp4)$/);
 
   // It moves on by itself.
-  await expect(hero.getByRole("button", { name: "Show picture 2 of 4" })).toHaveAttribute("aria-current", "true", { timeout: 15_000 });
+  await expect(hero.getByRole("button", { name: "Show picture 2 of 3" })).toHaveAttribute("aria-current", "true", { timeout: 15_000 });
 
   // A chosen picture stays put while paused.
-  await hero.getByRole("button", { name: "Show picture 4 of 4" }).click();
+  await hero.getByRole("button", { name: "Show picture 3 of 3" }).click();
   await hero.getByRole("button", { name: "Pause hero media" }).click();
   await expect(hero.getByRole("button", { name: "Play hero media" })).toBeVisible();
   await page.mouse.move(5, 890); // off the hero, so only the Pause button holds it
   await page.waitForTimeout(8000);
-  await expect(hero.getByRole("button", { name: "Show picture 4 of 4" })).toHaveAttribute("aria-current", "true");
+  await expect(hero.getByRole("button", { name: "Show picture 3 of 3" })).toHaveAttribute("aria-current", "true");
   await expect.poll(() => hero.locator("video").evaluateAll((vs: HTMLVideoElement[]) => vs.every((v) => v.paused))).toBe(true);
   expect(errors).toEqual([]);
 });
@@ -45,9 +45,9 @@ test("with reduced motion a page hero shows still pictures with arrows and never
   await page.waitForLoadState("load");
   await expect(hero.getByRole("button", { name: "Pause hero media" })).toHaveCount(0);
   await hero.getByRole("button", { name: "Next picture" }).click();
-  await expect(hero.getByRole("button", { name: "Show picture 2 of 4" })).toHaveAttribute("aria-current", "true");
+  await expect(hero.getByRole("button", { name: "Show picture 2 of 3" })).toHaveAttribute("aria-current", "true");
   await page.waitForTimeout(8000);
-  await expect(hero.getByRole("button", { name: "Show picture 2 of 4" })).toHaveAttribute("aria-current", "true");
+  await expect(hero.getByRole("button", { name: "Show picture 2 of 3" })).toHaveAttribute("aria-current", "true");
   await expect(page.locator("video")).toHaveCount(0);
   await context.close();
 });

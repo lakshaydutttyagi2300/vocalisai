@@ -15,7 +15,7 @@ export default async function ChooseGoalPage({ searchParams }: { searchParams: P
 
   return (
     <div className="pb-20">
-      <MediaHero {...HEROES.goal} eyebrow="Your goal" back={welcome ? undefined : { label: current ? "Back to my plan" : "Back to dashboard", href: current ? "/goal" : "/dashboard" }} title={welcome ? `Welcome${firstName ? `, ${firstName}` : ""}! What are you preparing for?` : "What are you preparing for?"} subtitle="Pick your goal and we'll build your plan around it: the skills that matter most, your next steps, and the right exam. You can change it any time." />
+      <MediaHero {...HEROES.goalChoose} back={welcome ? undefined : { label: current ? "Back to my plan" : "Back to dashboard", href: current ? "/goal" : "/dashboard" }} title={welcome ? `Welcome${firstName ? `, ${firstName}` : ""}! What are you preparing for?` : "What are you preparing for?"} subtitle="Pick your goal and we'll build your plan around it: the skills that matter most, your next steps, and the right exam. You can change it any time." />
     <div className="page-container mt-2">
       <div className="mt-8">
         <GoalChooser

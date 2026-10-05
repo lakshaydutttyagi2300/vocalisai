@@ -10,6 +10,7 @@ import GoalExplorer, { type GoalOption } from "@/components/landing/GoalExplorer
 import { FadeIn } from "@/components/cine/FadeIn";
 import { ClipFrame, Container, FinalCta, MediaSplit, PageHero, SectionIntro } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Personalised practice - VocalisAi",
@@ -40,8 +41,7 @@ export default async function PersonalisedPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="portrait"
-        alt="A woman speaking to the camera with a warm smile"
+        name={scene("personalised.hero")}
         eyebrow="Personalised practice"
         title={<>Practice that {accent("knows")} you.</>}
         text="Tell VocalisAi what you're preparing for. Your plan puts the skills that matter for it first, and every answer moves the next question closer to what you need."
@@ -77,7 +77,7 @@ export default async function PersonalisedPage() {
             text="Every answer updates a mastery score for the skill it tested, with recent and harder answers counting more. Weak-area practice then picks the questions you most need."
             points={["A mastery score for every skill", "Recent and harder answers count more", "Weak-area tests built for you", "Progress you can see week by week"]}
             media={
-              <ClipFrame name="headphones" alt="A man with headphones reading and speaking at his desk" ratio="aspect-[4/3]">
+              <ClipFrame name={scene("personalised.progress")} ratio="aspect-[4/3]">
                 <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
                   <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Your skills · Example</p>
                   <ul className="mt-3 grid gap-2.5 text-xs">
@@ -126,8 +126,7 @@ export default async function PersonalisedPage() {
       </section>
 
       <FinalCta
-        name="graduates"
-        alt="Graduates in caps and gowns smiling together"
+        name={scene("personalised.final")}
         title={<>Built around your {accent("next")} step.</>}
         text="Pick a goal and start free. No card needed."
         primary={{ href: session ? "/goal/choose" : "/signup", label: "Choose my goal" }}

@@ -113,7 +113,7 @@ export default function SignupPage() {
 
   if (step === "code") {
     return (
-      <AuthShell>
+      <AuthShell panel="signup">
         <h1 className="text-2xl font-semibold text-ink-950">Check your email</h1>
         <p className="mt-1 text-sm text-slate-600">
           We sent a 6-digit code to <span className="font-medium text-ink-900">{sentTo}</span>. Enter it below to finish creating your account.
@@ -181,7 +181,7 @@ export default function SignupPage() {
   }
 
   return (
-    <AuthShell>
+    <AuthShell panel="signup">
       <h1 className="text-2xl font-semibold text-ink-950">Create your account</h1>
       <p className="mt-1 text-sm text-slate-600">
         Start practicing for your English communication and Voice &amp; Accent assessment.

@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { CineVideo } from "./CineVideo";
 import { FadeIn } from "./FadeIn";
+import type { SceneName } from "@/config/mediaLibrary";
 
 // Building blocks for the cinematic pages: every section pairs words with a
 // picture or a demo (docs/UI_DESIGN_SYSTEM.md: never several text-only
@@ -78,7 +79,7 @@ export function MediaSplit({
 }
 
 /** A rounded frame holding a clip, optionally with something floating over it. */
-export function ClipFrame({ name, alt, ratio = "aspect-[4/3]", children, mode = "view", className = "" }: { name: string; alt: string; ratio?: string; children?: ReactNode; mode?: "view" | "hover"; className?: string }) {
+export function ClipFrame({ name, alt, ratio = "aspect-[4/3]", children, mode = "view", className = "" }: { name: SceneName; alt?: string; ratio?: string; children?: ReactNode; mode?: "view" | "hover"; className?: string }) {
   return (
     <div className={`cine-media ${ratio} ${className}`}>
       <CineVideo name={name} alt={alt} mode={mode} />
@@ -88,7 +89,7 @@ export function ClipFrame({ name, alt, ratio = "aspect-[4/3]", children, mode = 
 }
 
 /** Top of an inner page: a big clip with the page title over it. */
-export function PageHero({ name, alt, eyebrow, title, text, actions }: { name: string; alt: string; eyebrow: string; title: ReactNode; text: string; actions?: ReactNode }) {
+export function PageHero({ name, alt, eyebrow, title, text, actions }: { name: SceneName; alt?: string; eyebrow: string; title: ReactNode; text: string; actions?: ReactNode }) {
   return (
     <section className="px-2 pt-2 sm:px-3 sm:pt-3">
       <div className="relative h-[72svh] min-h-[30rem] max-h-[48rem] overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
@@ -113,7 +114,7 @@ export function PageHero({ name, alt, eyebrow, title, text, actions }: { name: s
 }
 
 /** Full-width clip with a closing call to action over it. */
-export function FinalCta({ name, alt, title, text, primary, secondary }: { name: string; alt: string; title: ReactNode; text: string; primary: { href: string; label: string }; secondary?: { href: string; label: string } }) {
+export function FinalCta({ name, alt, title, text, primary, secondary }: { name: SceneName; alt?: string; title: ReactNode; text: string; primary: { href: string; label: string }; secondary?: { href: string; label: string } }) {
   return (
     <section className="px-2 pb-2 sm:px-3 sm:pb-3">
       <div className="relative overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">

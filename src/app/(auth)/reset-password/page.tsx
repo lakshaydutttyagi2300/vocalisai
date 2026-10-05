@@ -124,7 +124,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <AuthShell>
+    <AuthShell panel="reset">
       <Suspense fallback={null}>
         <ResetPasswordForm />
       </Suspense>

@@ -7,6 +7,7 @@ import { CineVideo } from "@/components/cine/CineVideo";
 import { FadeIn } from "@/components/cine/FadeIn";
 import { ClipFrame, Container, FinalCta, MediaSplit, PageHero, SectionIntro } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "AI interviews and role-play - VocalisAi",
@@ -16,11 +17,11 @@ export const metadata: Metadata = {
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
 
 const SCENARIOS = [
-  { clip: "meeting", alt: "A laptop showing a man in an online meeting", title: "Job interview", text: "Tell me about yourself, your strengths, a time you solved a problem. Follow-ups based on your answer.", href: "/practice/interview" },
-  { clip: "agent", alt: "A customer-service agent listening on a headset", title: "Customer call", text: "An upset customer, a delayed order, a refund request. Stay calm, clear and polite.", href: "/practice/customer-service" },
-  { clip: "presenting", alt: "A professional presenting with a microphone", title: "Manager conversation", text: "Explain a delay, ask for help, give an update. The workplace conversations that matter.", href: "/practice/supervisor" },
-  { clip: "reading-mic", alt: "A woman with headphones reading aloud into a microphone", title: "Casual conversation", text: "Everyday small talk with a friendly AI partner, to build fluency and confidence.", href: "/practice/conversation-partner" },
-];
+  { id: "job", title: "Job interview", text: "Tell me about yourself, your strengths, a time you solved a problem. Follow-ups based on your answer.", href: "/practice/interview" },
+  { id: "customer", title: "Customer call", text: "An upset customer, a delayed order, a refund request. Stay calm, clear and polite.", href: "/practice/customer-service" },
+  { id: "manager", title: "Manager conversation", text: "Explain a delay, ask for help, give an update. The workplace conversations that matter.", href: "/practice/supervisor" },
+  { id: "casual", title: "Casual conversation", text: "Everyday small talk with a friendly AI partner, to build fluency and confidence.", href: "/practice/conversation-partner" },
+] as const;
 
 const STEPS = [
   ["Pick a scenario", "Interview, customer call, manager or casual conversation, at your level."],
@@ -32,8 +33,7 @@ export default function InterviewsPage() {
   return (
     <div className="cine overflow-x-hidden">
       <PageHero
-        name="interviewer"
-        alt="An interviewer on a laptop screen during a video interview"
+        name={scene("interviews.hero")}
         eyebrow="AI interviews and role-play"
         title={<>Rehearse the conversation {accent("before")} it counts.</>}
         text="Speak to an AI interviewer, customer or manager. It replies to what you actually said, so every round goes a little differently, just like the real thing."
@@ -59,8 +59,8 @@ export default function InterviewsPage() {
             points={STEPS.map(([t, d]) => `${t}: ${d}`)}
             media={
               <div className="relative">
-                <ClipFrame name="videocall" alt="A woman talking on a video call at her laptop" ratio="aspect-[4/3]" />
-                <ConversationDemo className="relative -mt-28 ml-auto w-[94%] sm:-mr-6 sm:w-[24rem]" />
+                <ClipFrame name={scene("interviews.conversation")} ratio="aspect-[4/3]" />
+                <ConversationDemo example="jobInterview" className="relative -mt-28 ml-auto w-[94%] sm:-mr-6 sm:w-[24rem]" />
               </div>
             }
           />
@@ -75,7 +75,7 @@ export default function InterviewsPage() {
               <FadeIn key={s.title} delay={(i % 2) * 110}>
                 <Link href={s.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-line">
                   <div className="relative aspect-[16/11]">
-                    <CineVideo name={s.clip} alt={s.alt} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
+                    <CineVideo name={scene(`interviews.scenario.${s.id}`)} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
                     <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
                     <div className="absolute inset-x-0 bottom-0 p-7">
                       <h3 className="cine-headline text-3xl text-fg">{s.title}</h3>
@@ -97,7 +97,7 @@ export default function InterviewsPage() {
             title={<>Mock exams that feel like the {accent("real")} one.</>}
             text="When you're ready, take a timed mock exam with the same rules as the real test: a fixed question order, timed sections and a camera and microphone check before you begin."
             media={
-              <ClipFrame name="office" alt="A young professional working at a laptop in a bright office" ratio="aspect-[4/3]">
+              <ClipFrame name={scene("interviews.prep")} ratio="aspect-[4/3]">
                 <ul className="absolute inset-x-4 bottom-4 grid gap-2 sm:inset-x-6 sm:bottom-6 sm:grid-cols-2">
                   {(
                     [
@@ -121,8 +121,7 @@ export default function InterviewsPage() {
       </section>
 
       <FinalCta
-        name="interview"
-        alt="A candidate smiling during a job interview"
+        name={scene("interviews.final")}
         title={<>Walk in having said it {accent("before")}.</>}
         text="Your first AI interview is free. No card needed."
         primary={{ href: "/signup", label: "Start practising" }}

@@ -6,7 +6,8 @@ import { questionCounts, subjectDetail } from "@/lib/catalog-queries";
 import { getEffectivePlan, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
 import { TestBuilder } from "@/components/explore/TestBuilder";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { subjectMedia } from "@/config/heroMedia";
+import { CatalogPreview } from "@/components/ui/ContentPreview";
+import { DIFFICULTIES, DIFFICULTY_LABELS } from "@/lib/practice-taxonomy";
 
 type Params = Promise<{ subject: string }>;
 
@@ -27,7 +28,7 @@ export default async function PracticeAreaPage({ params, searchParams }: { param
 
   return (
     <div className="pb-20">
-      <MediaHero back={{ label: "Practice by skill", href: "/explore/skills" }} eyebrow="Practice by skill" title={subject.name} subtitle={subject.description ?? `Practise ${subject.name.toLowerCase()} on its own or one skill at a time, at the level that suits you.`} stats={[`${subject.skills.length} skill${subject.skills.length === 1 ? "" : "s"}`, "Beginner to Expert"]} media={subjectMedia(subject.slug)} variant="full-bleed" size="md" />
+      <MediaHero back={{ label: "Practice by skill", href: "/explore/skills" }} eyebrow="Practice by skill" title={subject.name} subtitle={subject.description ?? `Practise ${subject.name.toLowerCase()} on its own or one skill at a time, at the level that suits you.`} stats={[`${subject.skills.length} skill${subject.skills.length === 1 ? "" : "s"}`, "Beginner to Expert"]} media={[]} visual={<CatalogPreview kicker="Practice by skill" title={subject.name} rows={subject.skills.map((k) => ({ name: k.name, detail: `${DIFFICULTIES.reduce((n, d) => n + (counts[`${subject.id}:${k.id}:${d}`] ?? 0), 0)} questions` }))} levels={DIFFICULTIES.map((d) => ({ label: DIFFICULTY_LABELS[d], count: counts[`${subject.id}:${d}`] ?? 0 }))} />} variant="split" size="md" />
     <div className="page-container mt-10">
       <div>
         <TestBuilder

@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { CineVideo } from "@/components/cine/CineVideo";
 import { Container } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Contact - VocalisAi",
@@ -53,7 +54,7 @@ export default function ContactPage() {
             </div>
           </div>
           <div className="cine-media aspect-[4/5]">
-            <CineVideo name="agent" alt="A customer-service agent listening on a headset" priority />
+            <CineVideo name={scene("contact.hero")} priority />
           </div>
         </Container>
       </section>

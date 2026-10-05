@@ -1,49 +1,35 @@
 # Media to-do
 
-Every page hero already has real, licensed media (Pexels clips and stills in
-`public/media/cine/` and `public/media/stills/`, credits in
-`docs/MEDIA_SOURCES.md`). Several pages reuse the same handful of shots, though,
-and a few topics have no fitting footage yet. This is the shopping list.
+Since 5 October 2026 every page and section has its own picture: 92 scenes,
+each used in exactly one place (see [docs/MEDIA_INVENTORY.md](docs/MEDIA_INVENTORY.md)).
+This list is what would make the visuals better still. Nothing here is a gap
+on the live site.
 
-Nothing here is a placeholder on the live site: until a file is added, each
-page keeps the media it shows today.
+## Upgrades worth making
+
+| What | Why | Where it would go |
+| --- | --- | --- |
+| 1920 px versions and 8-15 s loops of the hero clips | Today's loops are 6 s at 1280 / 640 px; large screens upscale them | Every clip in `public/media/cine/` |
+| A campus placement drive in India (candidates queueing, a hall of laptops) | Closer to the people preparing for TCS NQT, Infosys, AMCAT | Company & Hiring Assessments category, Explore |
+| An IELTS-style speaking test (examiner and candidate across a desk) | The English & Communication pages show reading and study, not the speaking test itself | English category, Speaking product page |
+| A customer-support agent on a call in an Indian BPO office | Matches the BPO goal track | Home use-case card, Use cases page |
+| A person chatting with an assistant on a laptop (no logos) | The AI coach page shows a tutor and a video call | AI coach |
+| Charts on a laptop with our own product UI | A real VocalisAi screen instead of a generic chart | Progress, Performance |
 
 ## File rules
 
 | | Videos | Images |
 | --- | --- | --- |
-| Sizes | 1920 px and 1280 px wide (plus 640 px for phones) | 1920 px and 800 px wide |
+| Sizes | 1920 px and 1280 px wide (plus 640 px for phones) | 1600 px and 800 px wide |
 | Length | 8-15 s, cut as a seamless loop, no audio | |
-| Formats | MP4 (H.264, `+faststart`) **and** WebM (VP9) | WebP (or AVIF) **and** a JPG fallback |
-| Weight | 3-4 MB at most for the 1920 version | under 400 KB for the 1920 WebP |
-| Poster | A WebP of the first frame (`<name>.webp`, `<name>-640.webp`) | |
+| Formats | MP4 (H.264, `+faststart`) **and** WebM (VP9) | WebP **and** a JPG fallback |
+| Weight | 3-4 MB at most for the largest version | under 400 KB for the large WebP |
 | Look | Bright, warm daylight; real people doing the task; nothing dark or moody | |
-| Never | Company logos or brand screens, robots, "AI brain" art, staged handshakes | |
+| Never | Company logos or brand screens, robots, "AI brain" art, staged handshakes, children | |
 
-Today's clips are 6-second loops at 1280 and 640 px (the 1920 size and 8-15 s
-length above are the target for new footage).
+## How to add one
 
-Where to put new files: `public/media/heroes/<category>/<name>...` using the
-names below, then point the page at them in `src/config/heroMedia.ts` (one
-line per file). Free sources with a commercial licence: Pexels, Pixabay,
-Unsplash (images). Ask the owner before downloading, and add a row to
-`docs/MEDIA_SOURCES.md` for each file.
-
-## By category
-
-| Category (folder) | Used now | Still wanted (search keywords) |
-| --- | --- | --- |
-| Dashboard (`dashboard/`) | reading-mic, office, graduates clips; teacher still | A learner at a laptop smiling at a result; a phone showing a streak or progress screen (no app logos) |
-| Practice (`practice/`) | office, videocall clips; teacher, reading-mic stills | Notebook and pen with handwritten working; a student with headphones doing an online exercise |
-| Company assessments (`companies/`) | interviewer, office clips; meeting, callcentre stills | Campus placement hall with candidates at laptops; a recruiter reviewing a test on screen (generic UI only) |
-| Quantitative aptitude (`skills/quant/`) | office, headphones clips; teacher, office stills | Hand-written maths in a notebook; calculator and graph paper on a desk |
-| Reasoning (`skills/reasoning/`) | teacher, meeting clips; office, teacher stills | Whiteboard with a logic puzzle or flowchart; a person solving a puzzle at a desk |
-| English (`skills/english/`) | reading-mic, videocall clips; portrait, headphones stills | Reading a book in a library; a language tutor on a video call |
-| Workplace judgement (`skills/sjt/`) | meeting, callcentre clips; presenting, office stills | A small team meeting around a table; a manager and employee in a calm one-to-one |
-| Mock exams (`mock-exams/`) | office, headphones clips; meeting, teacher stills | A quiet desk with a laptop and a timer; a candidate in an exam room with a webcam |
-| IELTS and study abroad (`ielts/`) | graduates, teacher clips; graduates, reading-mic stills | University campus; a library; airport or travel with a passport; a speaking-test style interview |
-| Speech analysis (`speech-analysis/`) | reading-mic, headphones clips; mic-macro, presenting stills | A sound waveform on a laptop screen (generic); someone recording on a phone |
-| Progress (`progress/`) | graduates, office clips; presenting, portrait stills | Charts on a laptop screen (generic, no brand); a learner ticking off a study plan |
-| AI coach (`ai-coach/`) | videocall, teacher clips; interviewer, portrait stills | A person chatting with an assistant on a laptop or phone (no logos); a mentor giving one-to-one advice |
-| Account (`account/`) | portrait still | One calm, bright workspace photo |
-| Admin | none (soft gradient by design) | - |
+1. Ask the owner before downloading (free sources with a commercial licence: Pexels, Pixabay, Unsplash).
+2. Encode with the recipe in `docs/MEDIA_SOURCES.md` into `public/media/cine/` (clips) or `public/media/stills/` (photos).
+3. Add the scene to `LIBRARY` in `src/config/mediaLibrary.ts` and give it **one** placement in `PLACEMENTS`. A scene already placed somewhere else can't be reused.
+4. Run `node scripts/media-inventory.mjs` and `npx vitest run tests/unit/media-library.test.ts`.

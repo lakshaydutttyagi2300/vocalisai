@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { getModeBySlug } from "@/lib/practice-taxonomy";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { practiceModeMedia } from "@/config/heroMedia";
+import { placed } from "@/config/mediaLibrary";
 
 // A small, curated set of fast entry points - not every category, per the
 // "don't overwhelm with choices" rule. Each still goes through the normal,
@@ -29,7 +29,7 @@ const SKILL_DRILLS = [
 export default function QuickPracticePage() {
   return (
     <div className="pb-20">
-      <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Practice" title="Quick Practice" subtitle="No full session, no browsing: jump straight into a short drill. Pick a difficulty on the next screen and go." stats={["5-10 minutes", "Beginner to Expert"]} media={practiceModeMedia("grammar")} variant="split" size="sm" />
+      <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Practice" title="Quick Practice" subtitle="No full session, no browsing: jump straight into a short drill. Pick a difficulty on the next screen and go." stats={["5-10 minutes", "Beginner to Expert"]} media={placed("app.quickPractice")} variant="split" size="sm" />
     <div className="page-container mt-10">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {QUICK_DRILLS.map((drill) => {

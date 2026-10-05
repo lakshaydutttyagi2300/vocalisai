@@ -34,27 +34,66 @@ function useTicker(length: number, ms = 100, start = 0) {
 
 const frame = "rounded-2xl border border-line bg-surface/90 shadow-[var(--shadow-float)] backdrop-blur-md";
 
-const ANSWER = "So, um, in my last role I handled, like, twenty customer calls a day, and I always made sure the customer felt heard.".split(" ");
-const FILLERS = new Set(["um,", "like,"]);
+// Each page that shows the analysis demo gets its own example, so the same
+// panel never repeats across the site.
+const ANALYSIS_EXAMPLES = {
+  interview: {
+    title: "Interview answer · Intermediate",
+    answer: "So, um, in my last role I handled, like, twenty customer calls a day, and I always made sure the customer felt heard.",
+    fillers: ["um,", "like,"],
+    seconds: 18,
+    scores: [
+      { name: "Pronunciation", band: "Strong", value: 86 },
+      { name: "Fluency", band: "Adequate · 2 fillers", value: 64 },
+      { name: "Grammar", band: "Strong", value: 90 },
+      { name: "Pace", band: "142 wpm · balanced", value: 78 },
+    ],
+    tip: "Tip: swap “um” for a half-second pause. It sounds more confident.",
+  },
+  presentation: {
+    title: "Presentation opening · Advanced",
+    answer: "Good morning, everyone. Today I'll walk you through, uh, three changes that cut our response time by a third.",
+    fillers: ["uh,"],
+    seconds: 14,
+    scores: [
+      { name: "Pronunciation", band: "Strong", value: 88 },
+      { name: "Fluency", band: "Strong · 1 filler", value: 81 },
+      { name: "Grammar", band: "Strong", value: 92 },
+      { name: "Pace", band: "171 wpm · a little fast", value: 58 },
+    ],
+    tip: "Tip: slow down on the number. Pause before “a third” so it lands.",
+  },
+  readAloud: {
+    title: "Read aloud · Beginner",
+    answer: "The meeting has been moved to Thursday, so, like, please bring the updated report and your questions.",
+    fillers: ["like,"],
+    seconds: 11,
+    scores: [
+      { name: "Pronunciation", band: "Adequate · “Thursday”", value: 68 },
+      { name: "Fluency", band: "Adequate · 1 filler", value: 70 },
+      { name: "Grammar", band: "Strong", value: 94 },
+      { name: "Pace", band: "128 wpm · balanced", value: 82 },
+    ],
+    tip: "Tip: say “Thurz-day” with the stress on the first part.",
+  },
+} as const;
 
 /** A spoken answer being analysed: recording, transcript, then ratings. 14 s loop. */
-export function AnalysisDemo({ className = "" }: { className?: string }) {
+export function AnalysisDemo({ className = "", example = "interview" }: { className?: string; example?: keyof typeof ANALYSIS_EXAMPLES }) {
   const { ref, tick } = useTicker(140, 100, 104);
+  const ex = ANALYSIS_EXAMPLES[example];
+  const ANSWER = ex.answer.split(" ");
+  const FILLERS = new Set<string>(ex.fillers);
   const recording = tick < 35;
   const words = recording ? 0 : Math.min(ANSWER.length, Math.floor((tick - 35) / 1.6));
   const rated = tick >= 75;
-  const scores = [
-    { name: "Pronunciation", band: "Strong", value: 86 },
-    { name: "Fluency", band: "Adequate · 2 fillers", value: 64 },
-    { name: "Grammar", band: "Strong", value: 90 },
-    { name: "Pace", band: "142 wpm · balanced", value: 78 },
-  ];
+  const scores = ex.scores;
   return (
     <div ref={ref} className={`${frame} p-5 text-left ${className}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Speech analysis</p>
-          <p className="mt-1 truncate text-sm font-semibold text-fg">Interview answer · Intermediate</p>
+          <p className="mt-1 truncate text-sm font-semibold text-fg">{ex.title}</p>
         </div>
         <span className="rounded-full border border-line px-2.5 py-1 text-[0.68rem] font-medium text-fg-muted">Example</span>
       </div>
@@ -63,7 +102,7 @@ export function AnalysisDemo({ className = "" }: { className?: string }) {
           <Icon as={Mic} />
         </span>
         <Waveform bars={36} paused={!recording} className={`h-10 flex-1 ${recording ? "" : "opacity-40"}`} />
-        <span className="num w-10 flex-none text-right text-xs text-fg-muted">0:{String(Math.min(18, Math.floor(tick / 2))).padStart(2, "0")}</span>
+        <span className="num w-10 flex-none text-right text-xs text-fg-muted">0:{String(Math.min(ex.seconds, Math.floor(tick / 2))).padStart(2, "0")}</span>
       </div>
       <p className="mt-4 min-h-[4.5rem] text-sm leading-relaxed text-fg-muted">
         {ANSWER.map((w, i) => (
@@ -87,25 +126,42 @@ export function AnalysisDemo({ className = "" }: { className?: string }) {
         ))}
       </ul>
       <p className={`mt-3 rounded-lg bg-surface-muted px-3 py-2 text-xs text-fg-muted transition-opacity duration-500 ${tick >= 100 ? "opacity-100" : "opacity-0"}`}>
-        Tip: swap &ldquo;um&rdquo; for a half-second pause. It sounds more confident.
+        {ex.tip}
       </p>
     </div>
   );
 }
 
-const QUESTION = "Tell me about a time you handled an upset customer.";
-const REPLY = "A customer's order arrived damaged. I apologised, sent a replacement the same day and followed up the next morning.".split(" ");
+const CONVERSATION_EXAMPLES = {
+  customer: {
+    label: "AI interview",
+    question: "Tell me about a time you handled an upset customer.",
+    reply: "A customer's order arrived damaged. I apologised, sent a replacement the same day and followed up the next morning.",
+    followUp: "Good. What would you do differently next time?",
+    notes: ["Clear structure", "Specific example", "Add the result"],
+  },
+  jobInterview: {
+    label: "AI interview",
+    question: "Why do you want to join our team?",
+    reply: "I've followed your product for two years, and the role uses exactly the data skills I built in my final-year project.",
+    followUp: "Tell me more about that project. What was your part?",
+    notes: ["Researched the company", "Links to the role", "Name one result"],
+  },
+} as const;
 
 /** Question -> your spoken answer -> a follow-up and feedback. 15 s loop. */
-export function ConversationDemo({ className = "" }: { className?: string }) {
+export function ConversationDemo({ className = "", example = "customer" }: { className?: string; example?: keyof typeof CONVERSATION_EXAMPLES }) {
   const { ref, tick } = useTicker(150, 100, 104);
+  const ex = CONVERSATION_EXAMPLES[example];
+  const QUESTION = ex.question;
+  const REPLY = ex.reply.split(" ");
   const words = Math.max(0, Math.min(REPLY.length, Math.floor((tick - 20) / 2)));
   const followUp = tick >= 80;
   const feedback = tick >= 100;
   return (
     <div ref={ref} className={`${frame} p-5 text-left ${className}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">AI interview</p>
+        <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">{ex.label}</p>
         <span className="rounded-full border border-line px-2.5 py-1 text-[0.68rem] font-medium text-fg-muted">Example</span>
       </div>
       <div className="mt-4 grid gap-3 text-sm">
@@ -115,11 +171,11 @@ export function ConversationDemo({ className = "" }: { className?: string }) {
           {words < REPLY.length && words > 0 && <span className="ml-0.5 inline-block h-3.5 w-[2px] translate-y-0.5 animate-pulse bg-bg" />}
         </p>
         <p className={`max-w-[88%] rounded-2xl rounded-bl-md bg-accent-softer px-4 py-3 text-fg transition-all duration-500 ${followUp ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
-          Good. What would you do differently next time?
+          {ex.followUp}
         </p>
       </div>
       <div className={`mt-4 flex flex-wrap gap-2 border-t border-line pt-4 transition-opacity duration-500 ${feedback ? "opacity-100" : "opacity-0"}`}>
-        {["Clear structure", "Specific example", "Add the result"].map((t, i) => (
+        {ex.notes.map((t, i) => (
           <span key={t} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs ${i < 2 ? "bg-accent-softer text-fg-muted" : "bg-accent-soft text-accent-strong"}`}>
             <Icon as={i < 2 ? Check : Sparkles} size="xs" />
             {t}

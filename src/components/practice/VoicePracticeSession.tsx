@@ -11,7 +11,7 @@ import { Icon } from "@/components/ui/Icon";
 import { AccentPicker, ListenButton } from "@/components/speech/ListenButton";
 import type { Stimulus } from "@/lib/question-stimulus";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { practiceModeMedia } from "@/config/heroMedia";
+import { ModePreview } from "@/components/ui/ContentPreview";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABELS,
@@ -279,7 +279,7 @@ export function VoicePracticeSession({ mode, suggestedLevel = null }: { mode: Pr
   if (stage === "pick-difficulty") {
     return (
       <div className="pb-20">
-        <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Speaking practice" title={mode.label} subtitle={mode.description} stats={["Beginner to Expert", "Needs a microphone", "Pronunciation and fluency feedback"]} media={practiceModeMedia(mode.slug)} variant="split" size="sm" />
+        <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="Speaking practice" title={mode.label} subtitle={mode.description} stats={["Beginner to Expert", "Needs a microphone", "Pronunciation and fluency feedback"]} media={[]} visual={<ModePreview mode={mode} />} variant="split" size="sm" />
       <div className="page-container mt-10">
         <p className="text-base font-semibold text-fg">Choose a difficulty</p>
         <div className="mt-3 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">

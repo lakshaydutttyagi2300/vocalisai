@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CONVERSATION_ROLES } from "@/lib/conversation-roles";
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from "@/lib/practice-taxonomy";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { practiceModeMedia } from "@/config/heroMedia";
+import { placed } from "@/config/mediaLibrary";
 
 function ConversationSetupForm() {
   const router = useRouter();
@@ -43,7 +43,7 @@ function ConversationSetupForm() {
 
   return (
     <div className="pb-20">
-      <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="AI voice conversation · Needs mic" title="AI Voice Conversation" subtitle="A real back-and-forth role-play: you speak, the AI replies in character, and you get feedback afterwards. Not a scripted quiz." media={practiceModeMedia("customer-service")} variant="split" size="sm" />
+      <MediaHero back={{ label: "Back to Practice", href: "/practice" }} eyebrow="AI voice conversation · Needs mic" title="AI Voice Conversation" subtitle="A real back-and-forth role-play: you speak, the AI replies in character, and you get feedback afterwards. Not a scripted quiz." media={placed("app.conversation")} variant="split" size="sm" />
     <div className="page-container mt-10">
       <p className="text-base font-semibold text-fg">Who do you want to talk to?</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">

@@ -6,7 +6,8 @@ import { currentExamCategory, examDetail, questionCountsForExam, sectionNames } 
 import { getEffectivePlan, PLAN_DIFFICULTY_ACCESS } from "@/lib/entitlements";
 import { TestBuilder } from "@/components/explore/TestBuilder";
 import { MediaHero } from "@/components/ui/MediaHero";
-import { categoryMedia } from "@/config/heroMedia";
+import { CatalogPreview } from "@/components/ui/ContentPreview";
+import { DIFFICULTIES, DIFFICULTY_LABELS } from "@/lib/practice-taxonomy";
 
 type Params = Promise<{ category: string; exam: string }>;
 
@@ -34,7 +35,7 @@ export default async function ExploreExamPage({ params }: { params: Params }) {
 
   return (
     <div className="pb-20">
-      <MediaHero back={{ label: exam.category.name, href: `/explore/${exam.category.slug}` }} eyebrow={exam.groupName ?? exam.category.name} title={exam.name} subtitle={exam.description ?? `Practise the ${sections.join(", ")} sections, skill by skill, at the level that suits you.`} stats={[`${sections.length} section${sections.length === 1 ? "" : "s"}`, `${exam.subjects.reduce((n, s) => n + s.subject.skills.length, 0)} skills`, "Beginner to Expert"]} media={categoryMedia(exam.category.slug)} variant="full-bleed" size="md" />
+      <MediaHero back={{ label: exam.category.name, href: `/explore/${exam.category.slug}` }} eyebrow={exam.groupName ?? exam.category.name} title={exam.name} subtitle={exam.description ?? `Practise the ${sections.join(", ")} sections, skill by skill, at the level that suits you.`} stats={[`${sections.length} section${sections.length === 1 ? "" : "s"}`, `${exam.subjects.reduce((n, s) => n + s.subject.skills.length, 0)} skills`, "Beginner to Expert"]} media={[]} visual={<CatalogPreview kicker={exam.groupName ?? exam.category.name} title={exam.name} rows={exam.subjects.map((s) => ({ name: s.sectionName ?? s.subject.name, detail: `${s.subject.skills.length} skill${s.subject.skills.length === 1 ? "" : "s"}` }))} levels={DIFFICULTIES.map((d) => ({ label: DIFFICULTY_LABELS[d], count: exam.subjects.reduce((n, s) => n + (counts[`${s.subject.id}:${d}`] ?? 0), 0) }))} />} variant="split" size="md" />
     <div className="page-container mt-10">
       <div>
         {exam.subjects.length === 0 ? (

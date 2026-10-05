@@ -14,6 +14,7 @@ import { ClipFrame, Container, FinalCta, MediaSplit, SectionIntro, TextLink } fr
 import { SiteFooter } from "@/components/cine/SiteFooter";
 import { Waveform } from "@/components/cine/Waveform";
 import { FEATURES, SPEECH_DIMENSIONS, USE_CASES } from "@/components/cine/content";
+import { LIBRARY, scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "VocalisAi - AI speaking, interview and hiring-test practice",
@@ -49,59 +50,59 @@ export default async function LandingPage() {
 
   const slides: CineSlide[] = [
     {
-      name: "reading-mic",
+      name: scene("home.hero.speaking"),
       label: "Speaking",
       eyebrow: "AI speaking practice",
       title: <>Give every answer a {accent("confident")} voice.</>,
       text: "Answer out loud and get feedback on pronunciation, fluency, grammar and pace that quotes your own words.",
       cta: { label: "Start speaking", href: signedIn ? "/practice/speaking" : "/signup" },
-      alt: "A woman with headphones reading aloud into a microphone",
+      alt: LIBRARY[scene("home.hero.speaking")].alt,
     },
     {
-      name: "interviewer",
+      name: scene("home.hero.interviews"),
       label: "Interviews",
       eyebrow: "AI interviews",
       title: <>Rehearse the interview {accent("before")} it&rsquo;s real.</>,
       text: "An AI interviewer listens to your answer and asks the next question, just like a real panel.",
       cta: { label: "Try an AI interview", href: signedIn ? "/practice/conversation" : "/product/interviews" },
-      alt: "An interviewer on a laptop screen during a video interview",
+      alt: LIBRARY[scene("home.hero.interviews")].alt,
     },
     {
-      name: "mic-macro",
+      name: scene("home.hero.analysis"),
       label: "Feedback",
       eyebrow: "Speech analysis",
       title: <>Hear how you {accent("really")} sound.</>,
       text: "Every recording is transcribed and rated on six dimensions, so you know exactly what to fix next.",
       cta: { label: "See speech analysis", href: "/product/speaking" },
-      alt: "A close-up of a studio microphone",
+      alt: LIBRARY[scene("home.hero.analysis")].alt,
       overlay: <AnalysisDemo />,
     },
     {
-      name: "office",
+      name: scene("home.hero.companyTests"),
       label: "Company tests",
       eyebrow: "Hiring assessments",
       title: <>Clear the {accent("aptitude")} round.</>,
       text: "Reasoning, aptitude and English for AMCAT, TCS NQT, Infosys and more, skill by skill.",
       cta: { label: "Explore exams", href: "/explore" },
-      alt: "A young professional working at a laptop in a bright office",
+      alt: LIBRARY[scene("home.hero.companyTests")].alt,
     },
     {
-      name: "agent",
+      name: scene("home.hero.customerService"),
       label: "Customer calls",
       eyebrow: "Role-play",
       title: <>Sound ready for the {accent("customer")} on the line.</>,
       text: "Practise real customer and workplace conversations with an AI that replies to what you said.",
       cta: { label: "See use cases", href: "/use-cases" },
-      alt: "A customer-service agent listening on a headset",
+      alt: LIBRARY[scene("home.hero.customerService")].alt,
     },
     {
-      name: "portrait",
+      name: scene("home.hero.spokenEnglish"),
       label: "Your plan",
       eyebrow: "Personalised practice",
       title: <>Practice that {accent("knows")} you.</>,
       text: "Pick your goal. Your weakest skills come first, at your level, with no repeated questions.",
       cta: { label: signedIn ? "Open my plan" : "Start free", href: signedIn ? "/goal" : "/signup" },
-      alt: "A woman speaking to the camera with a warm smile",
+      alt: LIBRARY[scene("home.hero.spokenEnglish")].alt,
     },
   ];
 
@@ -132,7 +133,7 @@ export default async function LandingPage() {
             {FEATURES.map((f, i) => (
               <FadeIn key={f.title} delay={(i % 2) * 120}>
                 <article className="group">
-                  <ClipFrame name={f.clip} alt={f.alt} ratio="aspect-[16/10]" mode="hover" />
+                  <ClipFrame name={scene(`home.feature.${f.id}`)} ratio="aspect-[16/10]" mode="hover" />
                   <h3 className="cine-headline mt-6 text-2xl text-fg">{f.title}</h3>
                   <p className="mt-2 max-w-md leading-relaxed text-fg-muted">{f.text}</p>
                 </article>
@@ -146,7 +147,7 @@ export default async function LandingPage() {
       <section className="px-2 sm:px-3">
         <div className="relative overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
           <div className="absolute inset-0">
-            <CineVideo name="presenting" alt="A professional presenting with a microphone" />
+            <CineVideo name={scene("home.voice")} />
           </div>
           <div aria-hidden="true" className="scrim-left absolute inset-0" />
           <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
@@ -186,7 +187,7 @@ export default async function LandingPage() {
             link={{ href: "/product/interviews", label: "See AI interviews" }}
             media={
               <div className="relative">
-                <ClipFrame name="interview" alt="A candidate smiling during a job interview" ratio="aspect-[4/3]" />
+                <ClipFrame name={scene("home.interviews")} ratio="aspect-[4/3]" />
                 <ConversationDemo className="relative -mt-24 ml-auto w-[92%] sm:-mr-6 sm:w-[24rem]" />
               </div>
             }
@@ -205,7 +206,7 @@ export default async function LandingPage() {
             points={["A plan for your goal", "Weakest skills first", "Beginner to Expert, at your level", "No repeated questions until a topic runs out"]}
             link={{ href: "/product/personalised", label: "See personalised practice" }}
             media={
-              <ClipFrame name="teacher" alt="A teacher helping a student at a desk" ratio="aspect-[4/5] sm:aspect-[4/3]">
+              <ClipFrame name={scene("home.practice")} ratio="aspect-[4/5] sm:aspect-[4/3]">
                 <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
                   <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent-strong">Your skills · Example</p>
                   <ul className="mt-3 grid gap-2.5 text-xs">
@@ -244,7 +245,7 @@ export default async function LandingPage() {
               <FadeIn key={u.id} delay={(i % 4) * 90} className={i < 2 ? "md:col-span-6" : "md:col-span-6 lg:col-span-3"}>
                 <Link href={u.href} className="group relative block overflow-hidden rounded-[1.5rem] ring-1 ring-line">
                   <div className={`relative ${i < 2 ? "aspect-[16/11]" : "aspect-[16/11] lg:aspect-[3/4]"}`}>
-                    <CineVideo name={u.clip} alt={u.alt} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
+                    <CineVideo name={scene(`home.useCase.${u.id}`)} mode="hover" className="transition-transform duration-700 group-hover:scale-[1.04]" />
                     <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
                     <div className="absolute inset-x-0 bottom-0 p-6">
                       <h3 className="cine-headline text-2xl text-fg">{u.title}</h3>
@@ -320,8 +321,7 @@ export default async function LandingPage() {
 
       {/* 9. Final call to action. */}
       <FinalCta
-        name="graduates"
-        alt="Graduates in caps and gowns smiling together"
+        name={scene("home.final")}
         title={<>Your next opportunity starts with your {accent("voice")}.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: start, label: signedIn ? "Go to your dashboard" : "Start practising" }}

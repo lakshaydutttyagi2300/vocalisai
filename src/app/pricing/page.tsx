@@ -10,6 +10,7 @@ import { FadeIn } from "@/components/cine/FadeIn";
 import { Container, FinalCta } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
 import { Waveform } from "@/components/cine/Waveform";
+import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Pricing - VocalisAi",
@@ -121,8 +122,7 @@ export default async function PricingPage() {
       </section>
 
       <FinalCta
-        name="portrait"
-        alt="A woman speaking to the camera with a warm smile"
+        name={scene("pricing.final")}
         title={<>Start with your {accent("voice")}.</>}
         text="Free to begin. Upgrade only when you want more."
         primary={{ href: session ? "/dashboard" : "/signup", label: session ? "Go to your dashboard" : "Start free" }}
