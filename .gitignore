@@ -36,3 +36,6 @@ tsconfig.tsbuildinfo
 
 # Local UI screenshots (scripts/ui-snap.mjs)
 ui-snaps/
+
+# Assessment content with answer keys and its audio - never committed (public repo)
+private/

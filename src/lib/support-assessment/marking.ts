@@ -163,19 +163,19 @@ async function mark(sessionId: string, questionIds: string[], state: SupportRepo
   // 1. Speech-to-text for every spoken answer not transcribed yet.
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
-  if (!groqKey || !geminiKey) throw new Error("AI keys are not configured");
-  const groq = createGroqWhisperProvider(groqKey);
   const spoken = questionIds.filter((id) => {
     const kind = itemKindOf(byId.get(id)?.tags ?? []);
     return kind && SPOKEN_KINDS.includes(kind) && !state.speech[id];
   });
   const recordingIds = spoken.map((id) => (answerOf(id) as { recordingId?: string } | null)?.recordingId).filter((r): r is string => !!r);
   const recordings = new Map((await db.practiceRecording.findMany({ where: { id: { in: recordingIds } } })).map((r) => [r.id, r]));
-  const queue = [...spoken];
+  const queue = spoken.filter((id) => recordings.has((answerOf(id) as { recordingId?: string } | null)?.recordingId ?? ""));
+  if (queue.length && !groqKey) throw new Error("GROQ_API_KEY is not configured");
+  const groq = queue.length ? createGroqWhisperProvider(groqKey!) : null;
   const worker = async () => {
     for (let id = queue.shift(); id; id = queue.shift()) {
       const recording = recordings.get((answerOf(id) as { recordingId?: string } | null)?.recordingId ?? "");
-      if (!recording) continue; // not answered: scored 0
+      if (!recording || !groq) continue;
       let audio: Buffer;
       try {
         audio = await readRecording(recording.filePath);
@@ -237,6 +237,7 @@ async function mark(sessionId: string, questionIds: string[], state: SupportRepo
       });
     }
     if (toRate.length) {
+      if (!geminiKey) throw new Error("GEMINI_API_KEY is not configured");
       const rated = await createGeminiAssessmentProvider(geminiKey).rateUnits(toRate);
       state.ratings = rated.ratings;
       state.costUsd += estimateAnalysisCostUsd(rated.inputTokens, rated.outputTokens);
