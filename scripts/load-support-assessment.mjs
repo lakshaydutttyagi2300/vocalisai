@@ -197,7 +197,7 @@ try {
         await tx.practiceQuestion.createMany({ data: g.questions.map((x, i) => ({ ...x, itemGroupId: group.id, orderInGroup: i + 1, examPartId: partId(g.part) })) });
       }
       await tx.practiceQuestion.createMany({ data: grammar.map((g) => ({ ...g.question, examPartId: partId(g.part) })) });
-    });
+    }, { maxWait: 10_000, timeout: 120_000 }); // a dozen round trips to a remote database
     console.log(`form ${f.name}: saved`);
   }
 } finally {
