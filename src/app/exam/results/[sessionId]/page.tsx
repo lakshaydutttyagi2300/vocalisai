@@ -10,6 +10,7 @@ import { TrademarkDisclaimer } from "@/components/exam/TrademarkDisclaimer";
 import { SupportAssessmentResults } from "@/components/exam/SupportAssessmentResults";
 import { isSupportAssessment } from "@/lib/support-assessment/config";
 import { parseSupportReport } from "@/lib/support-assessment/marking";
+import { getEffectivePlan } from "@/lib/entitlements";
 
 // Results for an exam-runner-v2 session (P1-E). Deliberately shows only
 // real, deterministic counts per section - how many auto-marked questions
@@ -40,7 +41,11 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Customer Support English Assessment</p>
         <h1 className="mt-1 font-display text-2xl font-bold text-ink-950">Your result</h1>
-        <SupportAssessmentResults sessionId={sessionId} initial={stored?.status === "done" ? stored.result : null} />
+        <SupportAssessmentResults
+          sessionId={sessionId}
+          initial={stored?.status === "done" ? stored.result : null}
+          freePlan={session.user.role !== "ADMIN" && (await getEffectivePlan(session.user.id)) === "FREE"}
+        />
       </div>
     );
   }

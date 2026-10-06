@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { guardExamSession } from "@/lib/exam-runner-guard";
-import { parsePlan, processExpiry } from "@/lib/exam-runner";
+import { hasUnlimitedPlays, parsePlan, processExpiry } from "@/lib/exam-runner";
 
 // Grants one play of an AUDIO item group, enforcing ItemGroup.playLimit
 // server-side - the count lives in ExamSessionState, not the browser, so
@@ -16,6 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = await req.json().catch(() => null);
   const itemGroupId = typeof body?.itemGroupId === "string" ? body.itemGroupId : "";
+  const unlimited = await hasUnlimitedPlays(id); // admins testing the site
 
   for (let attempt = 0; attempt < 3; attempt++) {
     const state = await processExpiry(id);
@@ -36,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const plays = JSON.parse(state.audioPlaysJson) as Record<string, number>;
     const used = plays[itemGroupId] ?? 0;
-    if (group.playLimit !== null && used >= group.playLimit) {
+    if (!unlimited && group.playLimit !== null && used >= group.playLimit) {
       return NextResponse.json({ error: "You've used all the plays allowed for this recording.", playsUsed: used, playLimit: group.playLimit }, { status: 403 });
     }
 
@@ -46,7 +47,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       data: { audioPlaysJson: JSON.stringify(plays) },
     });
     if (updated.count > 0) {
-      return NextResponse.json({ playsUsed: used + 1, playLimit: group.playLimit });
+      return NextResponse.json({ playsUsed: used + 1, playLimit: unlimited ? null : group.playLimit });
     }
   }
   return NextResponse.json({ error: "Please try again." }, { status: 409 });

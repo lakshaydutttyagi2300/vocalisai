@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useLiveProctoring, type LiveProctoringStatus } from "@/hooks/useLiveProctoring";
 import { describeProctoringEvent } from "@/lib/proctoring-events";
 import { MockTestQuestionRunner } from "@/components/mock-test/MockTestQuestionRunner";
@@ -47,6 +48,8 @@ export function MockTestSessionShell({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sections, setSections] = useState<TemplateSection[] | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  // The plan's allowance is used up: offer the plans, not "Try again".
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [ending, setEnding] = useState(false);
   // Decided server-side (api/mock-tests/sessions): "v2" only for a
   // template linked to an exam format with the exam_runner_v2 flag on.
@@ -110,6 +113,8 @@ export function MockTestSessionShell({
       const data = await res.json();
       if (!res.ok) {
         setStartError(data.error || "Couldn't start the mock test. Please try again.");
+        setNeedsUpgrade(data.upgrade === true);
+        if (data.upgrade === true) releaseDevices(); // nothing to proctor
         return;
       }
       setSessionId(data.sessionId);
@@ -213,10 +218,16 @@ export function MockTestSessionShell({
                 {startError}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <button onClick={startSession} className="btn-secondary btn-sm">
-                  <Icon as={RotateCcw} />
-                  Try again
-                </button>
+                {needsUpgrade ? (
+                  <Link href="/pricing" className="btn-primary btn-sm">
+                    See plans and pricing
+                  </Link>
+                ) : (
+                  <button onClick={startSession} className="btn-secondary btn-sm">
+                    <Icon as={RotateCcw} />
+                    Try again
+                  </button>
+                )}
                 <button onClick={endTest} className="btn-dark btn-sm">
                   Back to Mock Exams
                 </button>

@@ -14,6 +14,7 @@ let familyId = "";
 let variantId = "";
 let templateId = "";
 const ids = { mcq: "", dictation: "", repeat: "" };
+let groupId = "";
 let previousFlag: { enabled: boolean } | null = null;
 
 test.beforeAll(async () => {
@@ -48,7 +49,8 @@ test.beforeAll(async () => {
   variantId = variant.id;
   const part = (paper: number, order: number) => variant.papers.find((p) => p.order === paper)!.parts.find((p) => p.order === order)!.id;
   const base = { difficulty: "INTERMEDIATE", timeLimitSeconds: 60, source: "SEEDED" };
-  ids.mcq = (await db.practiceQuestion.create({ data: { ...base, category: "LISTENING", type: "MULTIPLE_CHOICE", prompt: `What is the account number? ${stamp}`, options: JSON.stringify(["5583", "5538"]), correctAnswer: "5583", tags: ["support:us-listening"], examPartId: part(1, 1) } })).id;
+  groupId = (await db.itemGroup.create({ data: { type: "AUDIO", title: "US call", assetKey: "item-groups/00000000-0000-4000-8000-000000000000.mp3", playLimit: 1 } })).id;
+  ids.mcq = (await db.practiceQuestion.create({ data: { ...base, category: "LISTENING", type: "MULTIPLE_CHOICE", prompt: `What is the account number? ${stamp}`, options: JSON.stringify(["5583", "5538"]), correctAnswer: "5583", tags: ["support:us-listening"], examPartId: part(1, 1), itemGroupId: groupId, orderInGroup: 1 } })).id;
   ids.dictation = (await db.practiceQuestion.create({ data: { ...base, category: "LISTENING", type: "DICTATION", prompt: "Type the sentence.", correctAnswer: "Your order is BK-4729.", tags: ["support:dictation"], examPartId: part(1, 2) } })).id;
   ids.repeat = (await db.practiceQuestion.create({ data: { ...base, category: "PRONUNCIATION", type: "TIMED_SPEAKING", prompt: "Repeat the sentence.", expectedAnswer: "Thank you for calling.", tags: ["support:repeat"], examPartId: part(2, 1) } })).id;
   templateId = (
@@ -72,6 +74,7 @@ test.afterAll(async () => {
   if (!variantId) return;
   await db.user.deleteMany({ where: { email: { startsWith: `e2e-support-${stamp}` } } });
   await db.practiceQuestion.deleteMany({ where: { id: { in: Object.values(ids).filter(Boolean) } } });
+  if (groupId) await db.itemGroup.deleteMany({ where: { id: groupId } });
   await db.mockTestTemplate.deleteMany({ where: { id: templateId } });
   await db.examVariant.deleteMany({ where: { id: variantId } });
   if (familyCreated) await db.examFamily.deleteMany({ where: { id: familyId } });
@@ -95,6 +98,11 @@ test("a Free user's one free try: take it, get a brief score out of 100, and can
   const started = await (await page.request.post(`/api/exam-sessions/${id}/start`)).json();
   expect(started.questions.map((q: { id: string }) => q.id).sort()).toEqual([ids.mcq, ids.dictation].sort());
   expect(JSON.stringify(started)).not.toContain("BK-4729");
+
+  // A candidate keeps the call's play limit (1 here).
+  expect(started.questions.find((q: { id: string }) => q.id === ids.mcq).itemGroup.playLimit).toBe(1);
+  expect((await page.request.post(`/api/exam-sessions/${id}/audio-play`, { data: { itemGroupId: groupId } })).status()).toBe(200);
+  expect((await page.request.post(`/api/exam-sessions/${id}/audio-play`, { data: { itemGroupId: groupId } })).status()).toBe(403);
 
   // Not finished yet: no result.
   expect((await page.request.post(`/api/exam-sessions/${id}/mark`)).status()).toBe(409);
@@ -125,15 +133,33 @@ test("a Free user's one free try: take it, get a brief score out of 100, and can
     await expect(page.getByRole("heading", { name: "Your result" })).toBeVisible();
     await expect(page.getByText("Your score by skill")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Practise these first" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "See plans and pricing" })).toHaveAttribute("href", "/pricing");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
 
   // The free try is used up.
   const again = await page.request.post("/api/mock-tests/sessions", { data: { templateId } });
   expect(again.status()).toBe(403);
-  expect((await again.json()).error).toContain("free Customer Support Assessment");
+  const refused = await again.json();
+  expect(refused.error).toContain("free Customer Support Assessment");
+  expect(refused.upgrade).toBe(true);
 
   // Its questions belong to the exam: never served in ordinary practice.
   const practice = await (await page.request.get("/api/practice/questions?category=LISTENING&difficulty=INTERMEDIATE&count=50")).json();
   expect(JSON.stringify(practice)).not.toContain(ids.mcq);
+});
+
+test("an admin testing the site can replay a call as often as they like", async ({ page }) => {
+  test.setTimeout(120_000);
+  const email = `e2e-support-${stamp}-admin@example.test`;
+  const admin = await createTestUser(email, password);
+  await db.user.update({ where: { id: admin.id }, data: { role: "ADMIN" } });
+  await page.goto("/");
+  await loginAs(page, email, password);
+  const session = await (await page.request.post("/api/mock-tests/sessions", { data: { templateId } })).json();
+  const started = await (await page.request.post(`/api/exam-sessions/${session.sessionId}/start`)).json();
+  expect(started.questions.find((q: { id: string }) => q.id === ids.mcq).itemGroup.playLimit).toBeNull();
+  for (let i = 0; i < 3; i++) {
+    expect((await page.request.post(`/api/exam-sessions/${session.sessionId}/audio-play`, { data: { itemGroupId: groupId } })).status()).toBe(200);
+  }
 });

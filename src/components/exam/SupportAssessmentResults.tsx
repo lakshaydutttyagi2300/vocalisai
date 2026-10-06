@@ -12,7 +12,7 @@ import { verdict } from "@/lib/support-assessment/scoring";
 // out of 100, its six parts, strengths, weaknesses and three things to
 // practise. Marking (speech-to-text + one AI rating call) runs the first
 // time this page opens; later visits show the stored result.
-export function SupportAssessmentResults({ sessionId, initial }: { sessionId: string; initial: SupportResult | null }) {
+export function SupportAssessmentResults({ sessionId, initial, freePlan = false }: { sessionId: string; initial: SupportResult | null; freePlan?: boolean }) {
   const [result, setResult] = useState<SupportResult | null>(initial);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,6 +126,19 @@ export function SupportAssessmentResults({ sessionId, initial }: { sessionId: st
               </li>
             ))}
           </ol>
+        </section>
+      )}
+
+      {freePlan && (
+        <section className="card border-accent p-6" aria-labelledby="upgrade-title">
+          <h2 id="upgrade-title" className="font-display font-bold text-ink-900">Want to take it again after practising?</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Your free plan includes one Customer Support Assessment. Upgrade to retake it with new questions, unlock every mock exam and get AI feedback on your practice.
+          </p>
+          <Link href="/pricing" className="btn-primary mt-4">
+            See plans and pricing
+            <Icon as={ArrowRight} />
+          </Link>
         </section>
       )}
 

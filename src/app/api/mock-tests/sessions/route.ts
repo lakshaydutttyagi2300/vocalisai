@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       feature === "SUPPORT_ASSESSMENT_TRY"
         ? "You've used your free Customer Support Assessment. Upgrade to take it again and unlock every mock exam."
         : upgradeMessage(usage, "MOCK_ASSESSMENT");
-    return NextResponse.json({ error }, { status: 403 });
+    return NextResponse.json({ error, upgrade: true }, { status: 403 });
   }
 
   // Uses whichever template an admin explicitly marked as the default -

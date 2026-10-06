@@ -470,6 +470,17 @@ function v2Stimulus(q: { id: string; type: string; category: string; passage: st
   return { passage, stimulus: media };
 }
 
+// Admins test the site: they can replay any recording as often as they like.
+// Candidates on every plan keep each recording's play limit.
+function withoutPlayLimit(v: Pick<QuestionView, "passage" | "stimulus">, unlimited: boolean): Pick<QuestionView, "passage" | "stimulus"> {
+  return unlimited && v.stimulus?.kind === "audio" ? { ...v, stimulus: { ...v.stimulus, playLimit: null } } : v;
+}
+
+export async function hasUnlimitedPlays(mockTestSessionId: string): Promise<boolean> {
+  const session = await db.mockTestSession.findUnique({ where: { id: mockTestSessionId }, select: { user: { select: { role: true } } } });
+  return session?.user.role === "ADMIN";
+}
+
 export async function buildStateView(mockTestSessionId: string): Promise<ExamStateView | null> {
   const state = await processExpiry(mockTestSessionId);
   if (!state) return null;
@@ -503,6 +514,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
   ]);
   const byId = new Map(rows.map((r) => [r.id, r]));
   const plays = JSON.parse(state.audioPlaysJson) as Record<string, number>;
+  const unlimited = await hasUnlimitedPlays(mockTestSessionId);
 
   const questions: QuestionView[] = paper.questions
     .map((pq) => {
@@ -521,7 +533,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
         id: q.id,
         type: examItemType(q),
         prompt: q.prompt,
-        ...v2Stimulus(q),
+        ...withoutPlayLimit(v2Stimulus(q), unlimited),
         options,
         partId: pq.partId,
         itemGroup: q.itemGroup
@@ -531,7 +543,7 @@ export async function buildStateView(mockTestSessionId: string): Promise<ExamSta
               title: q.itemGroup.title,
               text: q.itemGroup.text,
               hasAsset: !!q.itemGroup.assetKey,
-              playLimit: q.itemGroup.playLimit,
+              playLimit: unlimited ? null : q.itemGroup.playLimit,
               playsUsed: plays[q.itemGroup.id] ?? 0,
             }
           : null,
