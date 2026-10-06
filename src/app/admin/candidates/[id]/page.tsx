@@ -54,6 +54,26 @@ export default function AdminCandidateDetailPage() {
   const [roleError, setRoleError] = useState<string | null>(null);
   const [savingActive, setSavingActive] = useState(false);
   const [activeError, setActiveError] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetNote, setResetNote] = useState<string | null>(null);
+
+  async function resetUsage() {
+    setResetting(true);
+    setResetNote(null);
+    try {
+      const res = await fetch(`/api/admin/candidates/${params.id}/reset-usage`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Couldn't reset the limits.");
+      setDetail(data);
+      setResetNote("Limits reset: every allowance is available again for this period.");
+    } catch (err) {
+      setResetNote((err as Error).message);
+    } finally {
+      setResetting(false);
+      setConfirmReset(false);
+    }
+  }
 
   function load() {
     fetch(`/api/admin/candidates/${params.id}`)
@@ -295,6 +315,28 @@ export default function AdminCandidateDetailPage() {
             </div>
           ))}
         </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {confirmReset ? (
+            <>
+              <span className="text-sm text-slate-700">Reset every limit for this period to zero used?</span>
+              <button onClick={resetUsage} disabled={resetting} data-loading={resetting || undefined} className="btn-primary btn-sm">
+                {resetting ? "Resetting..." : "Yes, reset limits"}
+              </button>
+              <button onClick={() => setConfirmReset(false)} className="btn-secondary btn-sm">
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setConfirmReset(true)} className="btn-secondary btn-sm">
+              Reset usage limits
+            </button>
+          )}
+        </div>
+        {resetNote && (
+          <p role="status" className="mt-2 text-sm text-slate-700">
+            {resetNote}
+          </p>
+        )}
       </div>
 
       {cp.sessionsCompleted === 0 ? (

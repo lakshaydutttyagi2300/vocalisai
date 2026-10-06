@@ -175,7 +175,7 @@ const ADMIN_NAV: ({ kind: "link" } & AdminLink | { kind: "group"; label: string;
     items: [
       { href: "/admin/features", label: "Features", hint: "Switch features on or off" },
       { href: "/admin/scoring", label: "Scoring", hint: "Scoring weights and rules" },
-      { href: "/admin/password", label: "Change password", hint: "Your admin sign-in password" },
+      { href: "/admin/password", label: "Sign-in details", hint: "Change your admin sign-in email (username) or password" },
     ],
   },
   { kind: "link", href: "/admin/audit-log", label: "Activity Log" },
