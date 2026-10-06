@@ -159,15 +159,29 @@ export function MockTestSessionShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function endTest() {
-    if (endingRef.current || !sessionId) return;
-    endingRef.current = true;
-    setEnding(true);
+  function releaseDevices() {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
-    await fetch(`/api/mock-tests/sessions/${sessionId}`, { method: "PATCH" });
-    if (runner === "v2") forgetActiveV2Session();
     cameraStream?.getTracks().forEach((t) => t.stop());
     micStream?.getTracks().forEach((t) => t.stop());
+  }
+
+  async function endTest() {
+    if (endingRef.current) return;
+    endingRef.current = true;
+    setEnding(true);
+    // The test never started (e.g. the plan's allowance is used up): there is
+    // nothing to save, so just leave - never a button that silently does nothing.
+    if (!sessionId) {
+      releaseDevices();
+      router.push("/mock-tests");
+      return;
+    }
+    // Saves the end time (and, for a timed exam, submits the open section)
+    // before showing the results; a network failure still leaves the
+    // candidate on their results page, which finishes the session itself.
+    await fetch(`/api/mock-tests/sessions/${sessionId}`, { method: "PATCH" }).catch(() => null);
+    if (runner === "v2") forgetActiveV2Session();
+    releaseDevices();
     router.push(runner === "v2" ? `/exam/results/${sessionId}` : `/mock-tests/results/${sessionId}`);
   }
 
@@ -198,10 +212,15 @@ export function MockTestSessionShell({
               <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger-strong">
                 {startError}
               </p>
-              <button onClick={startSession} className="btn-dark btn-sm mt-4">
-                <Icon as={RotateCcw} />
-                Try again
-              </button>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button onClick={startSession} className="btn-secondary btn-sm">
+                  <Icon as={RotateCcw} />
+                  Try again
+                </button>
+                <button onClick={endTest} className="btn-dark btn-sm">
+                  Back to Mock Exams
+                </button>
+              </div>
             </div>
           ) : runner === "v2" && sessionId ? (
             // v2 gets its questions from its own server-held plan, not

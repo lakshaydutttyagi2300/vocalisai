@@ -201,12 +201,15 @@ export async function checkAndRecordUsage(userId: string, feature: Feature): Pro
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`usage:${userId}:${feature}`}))`;
       const used = await tx.usageEvent.count({ where: { userId, feature, createdAt: { gte: since } } });
 
-      if (used >= limit) {
+      // Staff test the product all day: an admin is never stopped by a plan
+      // limit. Their uses are still recorded (stats, refunds) as for anyone.
+      const admin = (await tx.user.findUnique({ where: { id: userId }, select: { role: true } }))?.role === "ADMIN";
+      if (used >= limit && !admin) {
         return { allowed: false, plan, limit, used, remaining: 0 };
       }
 
       const event = await tx.usageEvent.create({ data: { userId, feature } });
-      return { allowed: true, plan, limit, used: used + 1, remaining: limit - used - 1, usageEventId: event.id };
+      return { allowed: true, plan, limit, used: used + 1, remaining: Math.max(0, limit - used - 1), usageEventId: event.id };
     },
     { maxWait: 10_000, timeout: 20_000 }
   );
@@ -228,6 +231,10 @@ export function upgradeMessage(check: UsageCheck, feature: Feature): string {
   const label = FEATURE_LABELS[feature];
   if (check.limit === 0) {
     return `${label[0].toUpperCase()}${label.slice(1)}s aren't included on your current plan. Upgrade to unlock this feature.`;
+  }
+  // Premium is the top plan: there is nothing to upgrade to, only a renewal.
+  if (check.plan === "PREMIUM") {
+    return `You've used all ${check.limit} ${label}${check.limit === 1 ? "" : "s"} included in your plan this month. Your allowance renews at the start of your next billing period.`;
   }
   const periodText = check.plan === "FREE" ? "your free sample" : "this month";
   return `You've used all ${check.limit} ${label}${check.limit === 1 ? "" : "s"} included in ${periodText === "this month" ? "your plan this month" : periodText}. Upgrade for more.`;

@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { checkAndRecordUsage, getEffectivePlan, refundUsage, setPlan, PLAN_LIMITS } from "@/lib/entitlements";
+import { checkAndRecordUsage, getEffectivePlan, refundUsage, setPlan, upgradeMessage, PLAN_LIMITS } from "@/lib/entitlements";
 
 const RUN_ID = Date.now();
 const createdUserIds: string[] = [];
@@ -96,6 +96,25 @@ describe("checkAndRecordUsage", () => {
     const result = await checkAndRecordUsage(user.id, "MOCK_ASSESSMENT");
     expect(result.allowed).toBe(true);
     expect(result.limit).toBe(PLAN_LIMITS.PREMIUM.MOCK_ASSESSMENT);
+  });
+});
+
+describe("staff and the top plan", () => {
+  it("never stops an admin at a plan limit, but still records the use", async () => {
+    const user = await makeUser();
+    await db.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
+    expect(PLAN_LIMITS.FREE.MOCK_ASSESSMENT).toBe(0);
+    const result = await checkAndRecordUsage(user.id, "MOCK_ASSESSMENT");
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(0);
+    expect(await db.usageEvent.count({ where: { userId: user.id, feature: "MOCK_ASSESSMENT" } })).toBe(1);
+  });
+
+  it("doesn't tell a Premium user to upgrade when their allowance is used up", () => {
+    const msg = upgradeMessage({ allowed: false, plan: "PREMIUM", limit: 12, used: 12, remaining: 0 }, "MOCK_ASSESSMENT");
+    expect(msg).toContain("renews");
+    expect(msg).not.toMatch(/upgrade/i);
+    expect(upgradeMessage({ allowed: false, plan: "STARTER", limit: 2, used: 2, remaining: 0 }, "MOCK_ASSESSMENT")).toMatch(/Upgrade/);
   });
 });
 
