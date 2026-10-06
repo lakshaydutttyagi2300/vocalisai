@@ -33,6 +33,7 @@ export function servableWhere(): Prisma.PracticeQuestionWhereInput {
   return {
     isActive: true,
     archivedAt: null,
+    examPartId: null, // pinned to an exam part: only that exam serves it
     type: { in: TEST_QUESTION_TYPES },
     AND: [
       { OR: [{ bankStatus: null }, { bankStatus: "live" }] },

@@ -57,6 +57,7 @@ async function drillableFilters(userId: string | null): Promise<Prisma.PracticeQ
     { OR: [{ bankStatus: null }, { bankStatus: "live" }] },
     {
       isActive: true,
+      examPartId: null, // pinned to an exam part: only that exam serves it
       type: { in: DRILLABLE_TYPES },
       correctAnswer: { not: null },
       options: { not: null },

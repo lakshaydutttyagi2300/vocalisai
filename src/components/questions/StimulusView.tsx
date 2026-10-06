@@ -49,10 +49,12 @@ type AudioStimulus = Extract<Stimulus, { kind: "audio" }>;
 // difference either way, so a two-person conversation sounds like two people.
 const PITCHES = [1, 0.8, 1.2, 0.9];
 
-function pickVoices(speakers: string[]): Map<string, { voice: SpeechSynthesisVoice | null; pitch: number }> {
+function pickVoices(speakers: string[], lang?: string): Map<string, { voice: SpeechSynthesisVoice | null; pitch: number }> {
   const all = typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.getVoices() : [];
   const english = all.filter((v) => v.lang?.toLowerCase().startsWith("en"));
-  const pool = english.length > 0 ? english : all;
+  // A clip with an accent (e.g. a UK caller) uses that accent's voices when the device has them.
+  const accented = lang ? english.filter((v) => v.lang?.toLowerCase().replace("_", "-") === lang.toLowerCase()) : [];
+  const pool = accented.length > 0 ? accented : english.length > 0 ? english : all;
   const map = new Map<string, { voice: SpeechSynthesisVoice | null; pitch: number }>();
   speakers.forEach((s, i) => map.set(s, { voice: pool.length ? pool[i % pool.length] : null, pitch: PITCHES[i % PITCHES.length] }));
   return map;
@@ -101,7 +103,7 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
     const synth = window.speechSynthesis;
     synth.cancel();
     cancelledRef.current = false;
-    const voices = pickVoices(speakers);
+    const voices = pickVoices(speakers, stimulus.lang);
     const speakTurn = (i: number) => {
       if (cancelledRef.current) return;
       if (i >= stimulus.turns.length) {
@@ -112,6 +114,7 @@ function ListeningPlayer({ stimulus }: { stimulus: AudioStimulus }) {
       const u = new SpeechSynthesisUtterance(turn.text);
       const v = voices.get(turn.speaker);
       if (v?.voice) u.voice = v.voice;
+      if (stimulus.lang) u.lang = stimulus.lang;
       u.pitch = v?.pitch ?? 1;
       u.rate = stimulus.rate;
       u.onend = () => {

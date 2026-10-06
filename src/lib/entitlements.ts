@@ -28,6 +28,9 @@ export const FEATURES = [
   "MOCK_ASSESSMENT",
   "INTERVIEW_SIMULATION",
   "AI_SCENARIO",
+  // Free plan only: one go at the Customer Support (BPO) English Assessment.
+  // Paid plans take it from their MOCK_ASSESSMENT allowance instead.
+  "SUPPORT_ASSESSMENT_TRY",
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 
@@ -40,6 +43,7 @@ export const FEATURE_LABELS: Record<Feature, string> = {
   MOCK_ASSESSMENT: "Full Mock Assessment",
   INTERVIEW_SIMULATION: "Interview Simulation",
   AI_SCENARIO: "AI-Generated Scenario",
+  SUPPORT_ASSESSMENT_TRY: "free Customer Support Assessment",
 };
 
 // Plain "+s" breaks on irregular plurals ("Analysis" -> "Analyses", not
@@ -55,6 +59,7 @@ export const FEATURE_LABELS_PLURAL: Record<Feature, string> = {
   MOCK_ASSESSMENT: "Full Mock Assessments",
   INTERVIEW_SIMULATION: "Interview Simulations",
   AI_SCENARIO: "AI-Generated Scenarios",
+  SUPPORT_ASSESSMENT_TRY: "free Customer Support Assessments",
 };
 
 // FREE limits are lifetime (all-time), never resetting - deliberately a
@@ -79,6 +84,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     MOCK_ASSESSMENT: 0,
     INTERVIEW_SIMULATION: 1,
     AI_SCENARIO: 0,
+    SUPPORT_ASSESSMENT_TRY: 1,
   },
   STARTER: {
     PRACTICE_SESSION: 60,
@@ -89,6 +95,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     MOCK_ASSESSMENT: 2,
     INTERVIEW_SIMULATION: 5,
     AI_SCENARIO: 10,
+    SUPPORT_ASSESSMENT_TRY: 0,
   },
   PROFESSIONAL: {
     PRACTICE_SESSION: 150,
@@ -99,6 +106,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     MOCK_ASSESSMENT: 5,
     INTERVIEW_SIMULATION: 15,
     AI_SCENARIO: 30,
+    SUPPORT_ASSESSMENT_TRY: 0,
   },
   PREMIUM: {
     PRACTICE_SESSION: 300,
@@ -109,6 +117,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     MOCK_ASSESSMENT: 12,
     INTERVIEW_SIMULATION: 40,
     AI_SCENARIO: 80,
+    SUPPORT_ASSESSMENT_TRY: 0,
   },
 };
 
@@ -294,7 +303,8 @@ export async function getUsageSummary(userId: string): Promise<UsageSummary> {
   return {
     plan,
     periodEnd: sub?.currentPeriodEnd?.toISOString() ?? null,
-    features: FEATURES.map((feature) => ({
+    // The free-try counter only means something on the Free plan.
+    features: FEATURES.filter((feature) => feature !== "SUPPORT_ASSESSMENT_TRY" || plan === "FREE").map((feature) => ({
       feature,
       label: FEATURE_LABELS[feature],
       pluralLabel: FEATURE_LABELS_PLURAL[feature],

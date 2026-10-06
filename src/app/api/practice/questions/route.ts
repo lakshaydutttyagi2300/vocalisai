@@ -39,8 +39,8 @@ export async function GET(req: Request) {
     // (solo practice, the v1 mock-test runner) can render. Newer types
     // (P1-C/G) are served exclusively by exam runner v2. Every question
     // that existed before P1-G is one of these 4, so this changes nothing
-    // for existing data.
-    where: { category, difficulty, isActive: true, type: { in: LEGACY_QUESTION_TYPES } },
+    // for existing data. A question pinned to an exam part belongs to that exam only.
+    where: { category, difficulty, isActive: true, examPartId: null, type: { in: LEGACY_QUESTION_TYPES } },
     select: {
       id: true,
       category: true,

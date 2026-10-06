@@ -460,10 +460,13 @@ export interface ExamStateView {
 // A question's own passage for the v2 screen, via the shared parser: plain
 // text stays `passage` (read in the passage panel), an audio/picture spec
 // becomes `stimulus` (played / described), and nothing raw is ever sent.
-// Questions with an item group use the group's stimulus instead.
-function v2Stimulus(q: { id: string; type: string; category: string; passage: string | null; itemGroup: unknown }): Pick<QuestionView, "passage" | "stimulus"> {
+// Questions with an item group use the group's stimulus instead - unless the
+// group has no file of its own (e.g. a role-play call, where each of the
+// customer's lines is its own question's audio and the group only keeps the
+// lines together and in order).
+function v2Stimulus(q: { id: string; type: string; category: string; passage: string | null; itemGroup: { assetKey: string | null } | null }): Pick<QuestionView, "passage" | "stimulus"> {
   const { stimulus, passage } = candidateStimulus(q.passage, q);
-  const media = !q.itemGroup && (stimulus.kind === "audio" || stimulus.kind === "image") ? stimulus : null;
+  const media = !q.itemGroup?.assetKey && (stimulus.kind === "audio" || stimulus.kind === "image") ? stimulus : null;
   return { passage, stimulus: media };
 }
 

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { checkAndRecordUsage, upgradeMessage } from "@/lib/entitlements";
+import { checkAndRecordUsage, getEffectivePlan, upgradeMessage } from "@/lib/entitlements";
+import { isSupportAssessment } from "@/lib/support-assessment/config";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { runnerForTemplate } from "@/lib/exam-runner";
 import { findOption, listMockTestOptions, pickVersion } from "@/lib/mock-test-options";
@@ -33,9 +34,19 @@ export async function POST(req: Request) {
     if (body?.anyVersion === true) chosenId = await pickVersion(session.user.id, option.versionTemplateIds);
   }
 
-  const usage = await checkAndRecordUsage(session.user.id, "MOCK_ASSESSMENT");
+  // The Customer Support Assessment is the Free plan's one free mock exam;
+  // paid plans take it from their normal mock-exam allowance.
+  const chosenVariant = chosenId
+    ? (await db.mockTestTemplate.findUnique({ where: { id: chosenId }, select: { examVariant: { select: { slug: true, family: { select: { slug: true } } } } } }))?.examVariant
+    : null;
+  const feature = isSupportAssessment(chosenVariant) && (await getEffectivePlan(session.user.id)) === "FREE" ? "SUPPORT_ASSESSMENT_TRY" : "MOCK_ASSESSMENT";
+  const usage = await checkAndRecordUsage(session.user.id, feature);
   if (!usage.allowed) {
-    return NextResponse.json({ error: upgradeMessage(usage, "MOCK_ASSESSMENT") }, { status: 403 });
+    const error =
+      feature === "SUPPORT_ASSESSMENT_TRY"
+        ? "You've used your free Customer Support Assessment. Upgrade to take it again and unlock every mock exam."
+        : upgradeMessage(usage, "MOCK_ASSESSMENT");
+    return NextResponse.json({ error }, { status: 403 });
   }
 
   // Uses whichever template an admin explicitly marked as the default -

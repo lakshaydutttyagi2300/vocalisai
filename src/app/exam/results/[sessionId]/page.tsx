@@ -7,6 +7,9 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parsePlan, processExpiry } from "@/lib/exam-runner";
 import { TrademarkDisclaimer } from "@/components/exam/TrademarkDisclaimer";
+import { SupportAssessmentResults } from "@/components/exam/SupportAssessmentResults";
+import { isSupportAssessment } from "@/lib/support-assessment/config";
+import { parseSupportReport } from "@/lib/support-assessment/marking";
 
 // Results for an exam-runner-v2 session (P1-E). Deliberately shows only
 // real, deterministic counts per section - how many auto-marked questions
@@ -21,7 +24,7 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
   const { sessionId } = await params;
   const mockTestSession = await db.mockTestSession.findUnique({
     where: { id: sessionId },
-    include: { template: { include: { examVariant: { include: { family: true } } } } },
+    include: { template: { include: { examVariant: { include: { family: true } } } }, scoreReport: true },
   });
   if (!mockTestSession || mockTestSession.userId !== session.user.id) notFound();
 
@@ -29,6 +32,18 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
   // assessment", or time ran out while they were away).
   const state = await processExpiry(sessionId);
   if (!state) notFound();
+
+  // The Customer Support Assessment has its own brief, scored result.
+  if (isSupportAssessment(mockTestSession.template?.examVariant) && state.status === "COMPLETED") {
+    const stored = parseSupportReport(mockTestSession.scoreReport?.categoryScoresJson);
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Customer Support English Assessment</p>
+        <h1 className="mt-1 font-display text-2xl font-bold text-ink-950">Your result</h1>
+        <SupportAssessmentResults sessionId={sessionId} initial={stored?.status === "done" ? stored.result : null} />
+      </div>
+    );
+  }
 
   const plan = parsePlan(state.planJson);
   const responses = await db.itemResponse.findMany({ where: { mockTestSessionId: sessionId } });

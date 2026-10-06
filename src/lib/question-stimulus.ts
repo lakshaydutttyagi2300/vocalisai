@@ -17,6 +17,7 @@
 // Admin screens keep reading/writing the raw column unchanged.
 
 import { audioScriptHash } from "@/lib/audio-script-hash";
+import { accentLang, isAccentCode } from "@/lib/tts/accents";
 
 export interface AudioTurn {
   speaker: string;
@@ -34,6 +35,8 @@ export type Stimulus =
   // (or it no longer matches the script), in which case the browser speaks
   // `turns` instead. transcript: only when the spec explicitly allows it
   // (transcriptVisibleToCandidate: true), with neutral speaker labels.
+  // lang: the spec's accent ("US", "UK", "IN") as a BCP-47 tag, so the
+  // browser fallback picks a voice with that accent; absent = any English.
   | {
       kind: "audio";
       turns: AudioTurn[];
@@ -42,6 +45,7 @@ export type Stimulus =
       playLimit: number | null;
       audioUrl: string | null;
       transcript: { label: string; text: string }[] | null;
+      lang?: string;
     }
   // A picture task whose image hasn't been produced yet: the candidate gets
   // a written scene description instead of the illustrator's brief.
@@ -86,7 +90,8 @@ function audioFromSpec(audio: Record<string, unknown>, questionId: string | null
   // "Speaker 1", "Speaker 2" in order of appearance.
   const order = [...new Set(turns.map((t) => t.speaker))];
   const transcript = audio.transcriptVisibleToCandidate === true ? turns.map((t) => ({ label: `Speaker ${order.indexOf(t.speaker) + 1}`, text: t.text })) : null;
-  return { kind: "audio", turns, rate, pauseMs, playLimit, audioUrl, transcript };
+  const lang = isAccentCode(audio.accent) ? accentLang(audio.accent) : null;
+  return { kind: "audio", turns, rate, pauseMs, playLimit, audioUrl, transcript, ...(lang ? { lang } : {}) };
 }
 
 // Server-only: the storage key the audio route may stream for a question's
