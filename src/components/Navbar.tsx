@@ -125,7 +125,7 @@ function CandidateDropdown({ entry, pathname }: { entry: Extract<CandidateEntry,
         {active && <span className="absolute -bottom-[17px] left-0 right-0 h-px bg-accent" />}
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-4 w-72 -translate-x-1/2 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
+        <div className="absolute left-1/2 top-full z-50 mt-4 w-72 -translate-x-1/2 max-h-[calc(100svh-6rem)] overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
           {entry.items.map((item) => {
             const itemActive = pathname === item.href;
             return (
@@ -229,7 +229,7 @@ function AdminDropdown({ label, items, pathname }: { label: string; items: Admin
         <Icon as={ChevronDown} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
+        <div className="absolute left-1/2 top-full z-50 mt-3 w-72 -translate-x-1/2 max-h-[calc(100svh-6rem)] overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
           {items.map((item) => {
             const itemActive = isActiveAdmin(pathname, item.href);
             return (
