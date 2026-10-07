@@ -16,11 +16,11 @@ test.afterAll(async () => {
 });
 
 async function finishedTest(userId: string) {
-  const questions = await db.practiceQuestion.findMany({ where: { isActive: true, category: "GRAMMAR" }, take: 2, select: { id: true } });
+  const questions = await db.practiceQuestion.findMany({ where: { isActive: true, category: "GRAMMAR" }, take: 2, select: { id: true, skillId: true, level: true } });
   if (!templateId) templateId = (await db.mockTestTemplate.create({ data: { name: `E2E Certificate Assessment ${stamp}`, sections: { create: [{ order: 1, category: "GRAMMAR", difficulty: "BEGINNER", questionCount: 2 }] } } })).id;
   const session = await db.mockTestSession.create({ data: { userId, templateId, endedAt: new Date() } });
   for (const q of questions) {
-    await db.practiceAttempt.create({ data: { userId, questionId: q.id, category: "GRAMMAR", difficulty: "BEGINNER", timeTakenSeconds: 9, mockTestSessionId: session.id, responseText: "answer" } });
+    await db.practiceAttempt.create({ data: { userId, questionId: q.id, skillId: q.skillId, level: q.level, category: "GRAMMAR", difficulty: "BEGINNER", timeTakenSeconds: 9, mockTestSessionId: session.id, responseText: "answer" } });
   }
   await db.scoreReport.create({ data: { mockTestSessionId: session.id, overallScore: 78, categoryScoresJson: "{}" } });
   return session.id;

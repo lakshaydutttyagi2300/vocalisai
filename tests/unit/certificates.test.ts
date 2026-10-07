@@ -26,13 +26,13 @@ async function user(plan: "FREE" | "STARTER", name = "Asha Raman") {
 
 /** A finished section-by-section mock exam with `answered` of 2 questions answered and a saved score. */
 async function finishedTest(userId: string, opts: { answered?: number; ended?: boolean; score?: number | null } = {}) {
-  const questions = await db.practiceQuestion.findMany({ where: { isActive: true, category: "GRAMMAR" }, take: 2, select: { id: true } });
+  const questions = await db.practiceQuestion.findMany({ where: { isActive: true, category: "GRAMMAR" }, take: 2, select: { id: true, skillId: true, level: true } });
   const template = await db.mockTestTemplate.create({ data: { name: `Certificate test ${RUN}`, sections: { create: [{ order: 1, category: "GRAMMAR", difficulty: "BEGINNER", questionCount: 2 }] } } });
   templates.push(template.id);
   const session = await db.mockTestSession.create({ data: { userId, templateId: template.id, endedAt: opts.ended === false ? null : new Date() } });
   for (const [i, q] of questions.entries()) {
     await db.practiceAttempt.create({
-      data: { userId, questionId: q.id, category: "GRAMMAR", difficulty: "BEGINNER", timeTakenSeconds: 10, mockTestSessionId: session.id, responseText: i < (opts.answered ?? 2) ? "an answer" : "" },
+      data: { userId, questionId: q.id, skillId: q.skillId, level: q.level, category: "GRAMMAR", difficulty: "BEGINNER", timeTakenSeconds: 10, mockTestSessionId: session.id, responseText: i < (opts.answered ?? 2) ? "an answer" : "" },
     });
   }
   if (opts.score !== null) await db.scoreReport.create({ data: { mockTestSessionId: session.id, overallScore: opts.score ?? 82, categoryScoresJson: "{}" } });
