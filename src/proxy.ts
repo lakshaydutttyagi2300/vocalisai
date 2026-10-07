@@ -79,6 +79,7 @@ export const config = {
     "/practice-tests/:path*", // catalogue tests, history and review
     "/bookmarks/:path*",
     "/performance/:path*",
+    "/certificates/:path*", // a candidate's own certificates (the public check is /verify)
     // API equivalents - a suspended account or a candidate probing for
     // admin access must be blocked by calling the endpoint directly, not
     // just by the page around it being unreachable. /api/auth/*,
@@ -98,5 +99,6 @@ export const config = {
     "/api/goal/:path*",
     "/api/practice-tests/:path*",
     "/api/bookmarks/:path*",
+    "/api/certificates/:path*",
   ],
 };

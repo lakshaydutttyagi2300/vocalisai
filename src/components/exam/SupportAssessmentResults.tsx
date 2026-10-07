@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import type { SupportResult } from "@/lib/support-assessment/scoring";
 import { verdict } from "@/lib/support-assessment/scoring";
+import { CertificatePanel } from "@/components/certificates/CertificatePanel";
 
 // The Customer Support Assessment's result, kept brief on purpose: the score
 // out of 100, its six parts, strengths, weaknesses and three things to
@@ -128,6 +129,9 @@ export function SupportAssessmentResults({ sessionId, initial, freePlan = false 
           </ol>
         </section>
       )}
+
+      {/* Marking is done, so the score is final: the server can check for a certificate. */}
+      <CertificatePanel sessionId={sessionId} />
 
       {freePlan && (
         <section className="card border-accent p-6" aria-labelledby="upgrade-title">

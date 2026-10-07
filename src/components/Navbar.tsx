@@ -82,6 +82,7 @@ const CANDIDATE_NAV: CandidateEntry[] = [
     items: [
       { href: "/profile", label: "Profile", hint: "Your details and password" },
       { href: "/billing", label: "Plan & billing", hint: "Your plan and what's included" },
+      { href: "/certificates", label: "My certificates", hint: "Certificates for the mock exams you completed" },
     ],
   },
 ];

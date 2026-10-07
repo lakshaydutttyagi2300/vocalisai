@@ -42,6 +42,7 @@ model User {
   questionsSeen       QuestionSeen[]
   bookmarks           QuestionBookmark[]
   practiceTests       PracticeTest[]
+  certificates        Certificate[]
 }
 
 // ---------------------------------------------------------------------------
@@ -451,6 +452,7 @@ model MockTestSession {
   // Relation fields only - no new columns on this table.
   examSessionState ExamSessionState?
   itemResponses    ItemResponse[]
+  certificate      Certificate?
 
   @@index([userId, startedAt])
 }
@@ -1110,4 +1112,30 @@ model PracticeTest {
   attempts PracticeAttempt[]
 
   @@index([userId, startedAt])
+}
+
+// A certificate for one fully completed mock exam (docs/DECISION_LOG.md #30).
+// Issued only after the server checks: a paid plan, every question answered,
+// and the session belongs to the user. One per session (duplicate
+// prevention). The PDF is drawn from these saved facts on each view, so the
+// name, test, score and date never change after issue; only the design can.
+model Certificate {
+  id                String          @id @default(cuid())
+  code              String          @unique // public certificate ID, e.g. VAI-7K2M-9Q4X-T8RD; used in /verify/{code}
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mockTestSessionId String          @unique
+  mockTestSession   MockTestSession @relation(fields: [mockTestSessionId], references: [id], onDelete: Cascade)
+
+  recipientName String
+  testName      String
+  kind          String // ACHIEVEMENT | COMPLETION
+  score         Int? // 0-100, only for tests with an overall score
+  completedAt   DateTime
+  design        String // "<layout>:<palette>", see src/lib/certificates/designs
+
+  issuedAt  DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId, issuedAt])
 }

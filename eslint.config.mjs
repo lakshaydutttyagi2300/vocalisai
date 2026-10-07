@@ -20,7 +20,7 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "warn",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "test-results/**", "playwright-report/**", "ui-snaps/**"]),
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "test-results/**", "playwright-report/**", "ui-snaps/**", ".claude/**", "private/**"]), // .claude: other sessions' worktrees; private: git-ignored content
 ]);
 
 export default eslintConfig;

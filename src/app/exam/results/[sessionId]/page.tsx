@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { parsePlan, processExpiry } from "@/lib/exam-runner";
 import { TrademarkDisclaimer } from "@/components/exam/TrademarkDisclaimer";
 import { SupportAssessmentResults } from "@/components/exam/SupportAssessmentResults";
+import { CertificatePanel } from "@/components/certificates/CertificatePanel";
 import { isSupportAssessment } from "@/lib/support-assessment/config";
 import { parseSupportReport } from "@/lib/support-assessment/marking";
 import { getEffectivePlan } from "@/lib/entitlements";
@@ -125,6 +126,12 @@ export default async function ExamResultsPage({ params }: { params: Promise<{ se
           </div>
         ))}
       </div>
+
+      {state.status === "COMPLETED" && (
+        <div className="mt-6">
+          <CertificatePanel sessionId={sessionId} />
+        </div>
+      )}
 
       <div className="mt-8 flex gap-3">
         <Link href="/dashboard" className="btn-primary">

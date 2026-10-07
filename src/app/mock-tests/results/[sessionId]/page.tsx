@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getModeByCategory } from "@/lib/practice-taxonomy";
 import { SCORE_CATEGORIES, CATEGORY_LABELS, type ScoreCategory } from "@/lib/scoring-engine";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { CertificatePanel } from "@/components/certificates/CertificatePanel";
 import { CircleCheck } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 
@@ -191,6 +192,10 @@ export default function MockTestResultsPage() {
 
       {scoreReport && (
         <>
+          {/* The score is saved by now, so the server can check for a certificate. */}
+          <div className="mt-6">
+            <CertificatePanel sessionId={params.sessionId} />
+          </div>
           <div className="card mt-6 grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
             <div className="flex justify-center">
               <ScoreRing value={scoreReport.overallScore} label="Readiness" />
