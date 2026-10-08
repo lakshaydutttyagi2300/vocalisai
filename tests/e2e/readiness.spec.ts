@@ -53,6 +53,9 @@ test("a new candidate is invited to take the assessment", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Let's find your starting point" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Take the Customer Support English Assessment/ })).toHaveAttribute("href", `/mock-tests?template=${templateId}`);
   await expect(page.getByText(/not an official Versant, SVAR or employer score/)).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "phone: no sideways scrolling").toBe(true);
 });
 
 test("a candidate with a marked assessment sees their % on a laptop and a phone", async ({ page }, testInfo) => {

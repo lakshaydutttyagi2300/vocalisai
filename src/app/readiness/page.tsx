@@ -53,7 +53,7 @@ export default async function ReadinessPage() {
                 : `${r.verdict} Based on areas worth ${r.coverage}% of the score${r.coverage < 100 ? "; practise the areas with no score to complete it" : ""}.`}
             </p>
             {!fromAssessment && (
-              <Link href={assessmentHref} className="btn-primary mt-4">
+              <Link href={assessmentHref} className="btn-primary mt-4 w-full whitespace-normal text-center sm:w-auto">
                 <Icon as={ClipboardCheck} />
                 Take the Customer Support English Assessment
               </Link>
