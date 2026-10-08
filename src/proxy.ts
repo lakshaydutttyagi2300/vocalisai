@@ -76,6 +76,7 @@ export const config = {
     "/exam/:path*", // P1-E exam runner v2 results
     "/skills/:path*", // Skills platform: dashboard, drills, diagnostics
     "/goal/:path*", // Goal Tracks: choose a goal, goal plan
+    "/readiness/:path*", // International Process readiness score
     "/practice-tests/:path*", // catalogue tests, history and review
     "/bookmarks/:path*",
     "/performance/:path*",

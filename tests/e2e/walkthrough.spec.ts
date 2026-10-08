@@ -21,7 +21,7 @@ const VIEWPORTS = [
   { name: "phone", width: 390, height: 844 },
 ];
 
-const PUBLIC = ["/", "/product/speaking", "/product/interviews", "/product/personalised", "/use-cases", "/pricing", "/about", "/contact", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/terms", "/refund-policy"];
+const PUBLIC = ["/", "/product/speaking", "/product/interviews", "/product/personalised", "/use-cases", "/pricing", "/roles", "/roles/phone-banking-officer", "/about", "/contact", "/login", "/signup", "/forgot-password", "/reset-password", "/privacy", "/terms", "/refund-policy"];
 
 function watch(page: Page) {
   const found: string[] = [];
@@ -99,6 +99,7 @@ test("every page opens cleanly on a laptop and a phone", async ({ page }) => {
       "/dashboard",
       "/goal/choose",
       "/goal",
+      "/readiness",
       "/practice",
       "/practice/quick",
       "/practice/grammar",

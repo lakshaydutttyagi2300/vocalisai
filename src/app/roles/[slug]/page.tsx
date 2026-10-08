@@ -32,6 +32,15 @@ export default async function RolePage({ params }: { params: Params }) {
       <p className="eyebrow mt-6 text-slate-500">{group?.name}</p>
       <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-fg sm:text-4xl">{role.title}</h1>
       <p className="mt-3 max-w-2xl text-fg-muted">{role.summary}</p>
+      {role.group === "bpo" && (
+        <Link href="/readiness" className="sheet group mt-6 flex items-center justify-between gap-4 p-5 transition-colors hover:border-brand-200">
+          <span className="min-w-0">
+            <span className="block font-semibold text-ink-950 group-hover:text-brand-700">How ready are you? See your International Process readiness score</span>
+            <span className="mt-1 block text-sm text-slate-500">One score from your test and practice results, with the areas to work on next.</span>
+          </span>
+          <Icon as={ArrowUpRight} className="flex-none text-fg-muted transition-colors group-hover:text-brand-600" />
+        </Link>
+      )}
 
       <h2 className="mt-10 font-display text-xl font-semibold text-fg">Your preparation plan</h2>
       <p className="mt-1 text-sm text-fg-muted">Work through these in order. Each one opens the practice for that step.</p>
