@@ -37,7 +37,7 @@ const SITE_NAV: CandidateEntry[] = [
     label: "Resources",
     match: ["/explore", "/about", "/contact"],
     items: [
-      { href: "/roles", label: "Prepare by job role", hint: "Customer support, phone banking, retention and 45 more" },
+      { href: "/roles", label: "Prepare by job role", hint: "Customer support, phone banking, retention and 60 more" },
       { href: "/explore", label: "Exam library", hint: "AMCAT, TCS NQT, reasoning, English and more" },
       { href: "/about", label: "About VocalisAi", hint: "Why we built it and how it works" },
       { href: "/contact", label: "Contact", hint: "Questions, schools and companies" },

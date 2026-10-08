@@ -91,6 +91,11 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "telecaller", title: "Telecaller (service and follow-up calls)", group: "bpo", summary: "Make follow-up, reminder and confirmation calls clearly and politely.", steps: voice([S.fluency]) },
   { slug: "bpo-quality-analyst", title: "Quality Analyst, BPO", group: "bpo", summary: "Listen to calls, score them and coach agents to improve.", steps: [S.listening, S.judgement, S.serviceRoleplay, S.writing, S.supervisor, S.mockSupport, S.interview] },
   { slug: "bpo-team-leader", title: "Team Leader, BPO", group: "bpo", summary: "Lead a team of agents: targets, feedback and difficult conversations.", steps: [S.supervisor, S.judgement, S.workplaceComms, S.customerCall, S.speaking, S.mockSupport, S.interview] },
+  { slug: "onboarding-executive", title: "Customer Onboarding / Welcome Call Executive", group: "bpo", summary: "Welcome new customers, explain the product and set them up.", steps: voice([S.speaking]) },
+  { slug: "ecommerce-support-executive", title: "E-commerce / Order Support Executive", group: "bpo", summary: "Help shoppers with orders, deliveries, returns and refunds.", steps: voice([S.writing]) },
+  { slug: "travel-call-centre-agent", title: "Travel and Airline Call Centre Agent", group: "bpo", summary: "Book, change and cancel travel for callers, and handle delays.", steps: voice([S.fluency]) },
+  { slug: "telecom-support-executive", title: "Telecom Customer Support Executive", group: "bpo", summary: "Help mobile and broadband customers with plans, bills and faults.", steps: voice([S.reasoning]) },
+  { slug: "billing-support-executive", title: "Utility / Billing Support Executive", group: "bpo", summary: "Explain bills, take payments and sort out billing complaints.", steps: voice([S.quant]) },
 
   // Banking and finance
   { slug: "phone-banking-officer", title: "Phone Banking Officer", group: "banking", summary: "Help bank customers by phone with accounts, cards and transactions.", steps: voice([S.bankingOps]) },
@@ -101,12 +106,18 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "credit-card-support-executive", title: "Credit Card Customer Support Executive", group: "banking", summary: "Help card holders with bills, limits, disputes and blocked cards.", steps: voice([S.bankingOps]) },
   { slug: "collections-executive", title: "Collections Executive (soft collections)", group: "banking", summary: "Remind customers about payments politely and agree a plan.", steps: voice([S.speaking]) },
   { slug: "demat-support-executive", title: "Stock-broking / Demat Support Executive", group: "banking", summary: "Help investors with demat accounts, orders and market basics.", steps: voice([S.markets]) },
+  { slug: "loan-processing-officer", title: "Loan Processing Officer", group: "banking", summary: "Check loan applications and documents, and keep customers updated.", steps: [S.bankingOps, S.detail, S.quant, S.customerCall, S.writing, S.interview] },
+  { slug: "kyc-verification-executive", title: "KYC / Verification Executive", group: "banking", summary: "Verify customer documents and details accurately.", steps: [S.bankingOps, S.detail, S.reading, S.customerCall, S.judgement, S.interview] },
+  { slug: "mutual-fund-support-executive", title: "Mutual Fund / Investment Support Executive", group: "banking", summary: "Help investors with SIPs, redemptions and statements.", steps: voice([S.markets]) },
+  { slug: "branch-operations-executive", title: "Branch Operations Executive", group: "banking", summary: "Run daily branch work: cash, accounts, records and customers.", steps: [S.bankingOps, S.detail, S.serviceRoleplay, S.workplaceComms, S.judgement, S.interview] },
 
   // Insurance
   { slug: "insurance-advisor", title: "Insurance Advisor / Agent", group: "insurance", summary: "Explain policies, find the right cover and support clients.", steps: [S.insurance, S.customerCall, S.speaking, S.judgement, S.interviewQs, S.interview] },
   { slug: "insurance-customer-support", title: "Insurance Customer Support Executive", group: "insurance", summary: "Answer policy holders' questions about cover, premiums and renewals.", steps: voice([S.insurance]) },
   { slug: "claims-support-associate", title: "Claims Support Associate", group: "insurance", summary: "Guide customers through claims and check documents carefully.", steps: [S.insurance, S.detail, S.customerCall, S.writing, S.judgement, S.interview] },
   { slug: "policy-servicing-executive", title: "Policy Servicing Executive", group: "insurance", summary: "Update policies, process changes and reply to customers.", steps: [S.insurance, S.detail, S.writing, S.workplaceComms, S.judgement, S.interview] },
+  { slug: "health-insurance-support", title: "Health Insurance Support / TPA Executive", group: "insurance", summary: "Help policy holders and hospitals with cashless claims and approvals.", steps: voice([S.insurance]) },
+  { slug: "insurance-renewals-executive", title: "Insurance Renewals Executive", group: "insurance", summary: "Call customers before their policy ends and help them renew.", steps: voice([S.insurance, S.speaking]) },
 
   // Non-voice and back office
   { slug: "email-support-executive", title: "Email Support Executive", group: "nonvoice", summary: "Answer customers by email: clear, correct and polite.", steps: office([S.reading]) },
@@ -115,6 +126,9 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "data-entry-operator", title: "Data Entry Operator", group: "nonvoice", summary: "Enter and check data accurately and fast.", steps: [S.detail, S.reading, S.grammar, S.quant, S.judgement, S.interview] },
   { slug: "admin-executive", title: "Admin / Office Executive", group: "nonvoice", summary: "Run the office: emails, schedules, records and people.", steps: office([S.detail]) },
   { slug: "front-office-receptionist", title: "Front Office / Receptionist", group: "nonvoice", summary: "Greet visitors, answer calls and keep the front desk running.", steps: spoken([S.customerCall]) },
+  { slug: "executive-assistant", title: "Executive Assistant / Personal Assistant", group: "nonvoice", summary: "Manage a manager's emails, calendar, calls and documents.", steps: office([S.detail, S.supervisor]) },
+  { slug: "mis-executive", title: "MIS Executive", group: "nonvoice", summary: "Prepare reports from data and spot the numbers that matter.", steps: [S.dataInterp, S.detail, S.quant, S.workplaceComms, S.interview] },
+  { slug: "content-moderator", title: "Content Moderator", group: "nonvoice", summary: "Review posts and content against rules, quickly and fairly.", steps: [S.reading, S.judgement, S.critical, S.detail, S.writing, S.interview] },
 
   // Accounts
   { slug: "accounts-assistant", title: "Accounts Assistant / Junior Accountant", group: "accounts", summary: "Keep the books: entries, ledgers, reconciliation and reports.", steps: [S.accounting, S.laws, S.economics, S.quant, S.detail, S.interview] },
@@ -128,6 +142,7 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "process-associate", title: "Process Associate (Genpact, WNS, EXL...)", group: "graduate", summary: "The aptitude, English and communication rounds of process hiring.", steps: graduate([S.detail, S.workplaceComms]) },
   { slug: "operations-executive", title: "Operations Executive / Associate", group: "graduate", summary: "Keep work moving accurately, with numbers and clear communication.", steps: graduate([S.detail, S.dataInterp]) },
   { slug: "graduate-trainee", title: "Graduate Trainee", group: "graduate", summary: "Any corporate graduate hiring: aptitude, English and interview.", steps: graduate([S.abstract, S.judgement]) },
+  { slug: "customer-success-associate", title: "Customer Success Associate", group: "graduate", summary: "Help business customers get value from a software product.", steps: [S.customerCall, S.workplaceComms, S.writing, S.dataInterp, S.judgement, S.interviewQs, S.interview] },
 
   // Communication-heavy jobs
   { slug: "guest-relations-executive", title: "Hospitality / Guest Relations Executive", group: "communication", summary: "Welcome guests, handle requests and solve problems with a smile.", steps: spoken([S.customerCall]) },
