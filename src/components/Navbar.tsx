@@ -37,6 +37,7 @@ const SITE_NAV: CandidateEntry[] = [
     label: "Resources",
     match: ["/explore", "/about", "/contact"],
     items: [
+      { href: "/roles", label: "Prepare by job role", hint: "Customer support, phone banking, retention and 45 more" },
       { href: "/explore", label: "Exam library", hint: "AMCAT, TCS NQT, reasoning, English and more" },
       { href: "/about", label: "About VocalisAi", hint: "Why we built it and how it works" },
       { href: "/contact", label: "Contact", hint: "Questions, schools and companies" },
@@ -51,6 +52,7 @@ const CANDIDATE_NAV: CandidateEntry[] = [
     label: "Practice",
     match: ["/practice", "/skills", "/explore", "/bookmarks", "/performance"],
     items: [
+      { href: "/roles", label: "Prepare by job role", hint: "Pick your job, get the practice that matters for it" },
       { href: "/explore", label: "Explore exams", hint: "Company assessments and skills: AMCAT, TCS NQT, reasoning and more" },
       { href: "/explore/skills", label: "Practice by skill", hint: "Critical thinking, data interpretation, reasoning, English and more" },
       { href: "/practice-tests", label: "Test history", hint: "Every exam practice test, with review" },
