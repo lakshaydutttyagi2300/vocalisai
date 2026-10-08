@@ -102,6 +102,7 @@ test("every page opens cleanly on a laptop and a phone", async ({ page }) => {
       "/readiness",
       "/practice",
       "/practice/quick",
+      "/practice/typing",
       "/practice/grammar",
       "/practice/reading-comprehension",
       "/practice/listening",

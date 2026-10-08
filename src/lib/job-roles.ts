@@ -7,7 +7,8 @@ export type RoleStep =
   | { kind: "mode"; slug: string; label: string; why: string } // /practice/<slug>
   | { kind: "subject"; slug: string; label: string; why: string } // /explore/skills/<slug>
   | { kind: "talk"; role: "CUSTOMER" | "INTERVIEWER" | "SUPERVISOR"; label: string; why: string } // live AI conversation
-  | { kind: "mock"; label: string; why: string }; // the mock exam page
+  | { kind: "mock"; label: string; why: string } // the mock exam page
+  | { kind: "typing"; label: string; why: string }; // /practice/typing
 
 export type JobRole = { slug: string; title: string; group: RoleGroupId; summary: string; steps: RoleStep[] };
 
@@ -32,6 +33,8 @@ export function stepHref(step: RoleStep): string {
       return `/practice/conversation?role=${step.role}`;
     case "mock":
       return "/mock-tests";
+    case "typing":
+      return "/practice/typing";
   }
 }
 
@@ -68,12 +71,13 @@ const S = {
   supervisor: { kind: "talk", role: "SUPERVISOR", label: "Conversation with an AI manager", why: "Handle updates, feedback and difficult talks with a manager." },
   mockSupport: { kind: "mock", label: "Customer Support English Assessment", why: "A full timed test like a BPO hiring round, with a score report." },
   mockAptitude: { kind: "mock", label: "Aptitude Screening or Graduate Recruitment Assessment", why: "A full timed aptitude test like a company's first round." },
+  typing: { kind: "typing", label: "Typing test", why: "Chat, email and back-office jobs test typing speed and accuracy." },
   mockWorkplace: { kind: "mock", label: "Workplace Communication Assessment", why: "A full timed English test for office jobs, with a score report." },
 } satisfies Record<string, RoleStep>;
 
 const voice = (extra: RoleStep[] = []): RoleStep[] => [S.customerCall, S.serviceRoleplay, ...extra, S.listening, S.pronunciation, S.judgement, S.mockSupport, S.interview];
 const graduate = (extra: RoleStep[] = []): RoleStep[] => [S.quant, S.reasoning, S.verbal, ...extra, S.mockAptitude, S.interviewQs, S.interview];
-const office = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.workplaceComms, S.writing, S.grammar, S.judgement, S.mockWorkplace, S.interview];
+const office = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.typing, S.workplaceComms, S.writing, S.grammar, S.judgement, S.mockWorkplace, S.interview];
 const spoken = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.speaking, S.fluency, S.pronunciation, S.judgement, S.interviewQs, S.interview];
 
 export const JOB_ROLES: JobRole[] = [
@@ -123,11 +127,11 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "email-support-executive", title: "Email Support Executive", group: "nonvoice", summary: "Answer customers by email: clear, correct and polite.", steps: office([S.reading]) },
   { slug: "chat-support-executive", title: "Chat Support Executive", group: "nonvoice", summary: "Help customers by live chat, quickly and in correct English.", steps: office([S.reading, S.vocabulary]) },
   { slug: "back-office-executive", title: "Back-Office Executive", group: "nonvoice", summary: "Process records and requests accurately behind the scenes.", steps: office([S.detail, S.dataInterp]) },
-  { slug: "data-entry-operator", title: "Data Entry Operator", group: "nonvoice", summary: "Enter and check data accurately and fast.", steps: [S.detail, S.reading, S.grammar, S.quant, S.judgement, S.interview] },
+  { slug: "data-entry-operator", title: "Data Entry Operator", group: "nonvoice", summary: "Enter and check data accurately and fast.", steps: [S.typing, S.detail, S.reading, S.grammar, S.quant, S.judgement, S.interview] },
   { slug: "admin-executive", title: "Admin / Office Executive", group: "nonvoice", summary: "Run the office: emails, schedules, records and people.", steps: office([S.detail]) },
   { slug: "front-office-receptionist", title: "Front Office / Receptionist", group: "nonvoice", summary: "Greet visitors, answer calls and keep the front desk running.", steps: spoken([S.customerCall]) },
   { slug: "executive-assistant", title: "Executive Assistant / Personal Assistant", group: "nonvoice", summary: "Manage a manager's emails, calendar, calls and documents.", steps: office([S.detail, S.supervisor]) },
-  { slug: "mis-executive", title: "MIS Executive", group: "nonvoice", summary: "Prepare reports from data and spot the numbers that matter.", steps: [S.dataInterp, S.detail, S.quant, S.workplaceComms, S.interview] },
+  { slug: "mis-executive", title: "MIS Executive", group: "nonvoice", summary: "Prepare reports from data and spot the numbers that matter.", steps: [S.dataInterp, S.detail, S.typing, S.quant, S.workplaceComms, S.interview] },
   { slug: "content-moderator", title: "Content Moderator", group: "nonvoice", summary: "Review posts and content against rules, quickly and fairly.", steps: [S.reading, S.judgement, S.critical, S.detail, S.writing, S.interview] },
 
   // Accounts

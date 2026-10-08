@@ -66,8 +66,8 @@ describe("International Process readiness (database)", () => {
     expect(found?.components.listening).toEqual({ points: 20, max: 25 });
 
     const r = await loadInternationalReadiness(me);
-    expect(r.overall).toBe(76);
-    expect(r.coverage).toBe(85);
+    expect(r.overall).toBe(78);
+    expect(r.coverage).toBe(80);
   });
 
   it("never reads someone else's assessment", async ({ skip }) => {

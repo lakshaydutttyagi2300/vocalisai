@@ -78,8 +78,8 @@ test("a candidate with a marked assessment sees their % on a laptop and a phone"
   for (const [name, size] of [["laptop", { width: 1280, height: 900 }], ["phone", { width: 390, height: 844 }]] as const) {
     await page.setViewportSize(size);
     await page.goto("/readiness");
-    await expect(page.getByRole("heading", { name: "You are 76% International Process Ready" })).toBeVisible();
-    await expect(page.getByText("76", { exact: true }).first()).toBeVisible(); // the score ring
+    await expect(page.getByRole("heading", { name: "You are 78% International Process Ready" })).toBeVisible();
+    await expect(page.getByText("78", { exact: true }).first()).toBeVisible(); // the score ring
     await expect(page.getByText("Fluency", { exact: true }).first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${name}: no sideways scrolling`).toBe(true);
     await expect(page.getByRole("heading", { name: "Your readiness score" })).toBeVisible();

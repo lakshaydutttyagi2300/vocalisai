@@ -101,5 +101,6 @@ export const config = {
     "/api/practice-tests/:path*",
     "/api/bookmarks/:path*",
     "/api/certificates/:path*",
+    "/api/typing-results/:path*",
   ],
 };

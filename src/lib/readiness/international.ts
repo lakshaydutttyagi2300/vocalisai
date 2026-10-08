@@ -23,12 +23,13 @@ export interface ReadinessArea {
 export const READINESS_AREAS: readonly ReadinessArea[] = [
   { key: "listening", label: "Listening", weight: 20, skillIds: ["ENG.LST"], component: "listening", practice: { href: "/explore/skills/listening", label: "Listening practice" } },
   { key: "pronunciation", label: "Pronunciation and clarity", weight: 15, skillIds: ["SPK.PRN"], component: "pronunciation", practice: { href: "/practice/pronunciation", label: "Pronunciation practice" } },
-  { key: "fluency", label: "Fluency", weight: 15, skillIds: ["SPK.FLU"], component: "fluency", practice: { href: "/practice/fluency", label: "Fluency practice" } },
+  { key: "fluency", label: "Fluency", weight: 10, skillIds: ["SPK.FLU"], component: "fluency", practice: { href: "/practice/fluency", label: "Fluency practice" } },
   { key: "customerHandling", label: "Customer handling", weight: 15, skillIds: ["CSV"], component: "customerHandling", practice: { href: "/practice/customer-service", label: "Customer-service role-play" } },
   { key: "speaking", label: "Spoken answers", weight: 10, skillIds: ["SPK.SPN"], component: "speaking", practice: { href: "/practice/speaking", label: "Speaking practice" } },
   { key: "grammarVocabulary", label: "Grammar and vocabulary", weight: 10, skillIds: ["ENG.GRM", "ENG.VOC"], component: "grammarVocabulary", practice: { href: "/practice/grammar", label: "Grammar practice" } },
   { key: "writing", label: "Written English (emails and chats)", weight: 10, skillIds: ["ENG.WRT"], component: null, practice: { href: "/practice/writing", label: "Writing practice" } },
   { key: "judgement", label: "Workplace judgement", weight: 5, skillIds: ["SJT"], component: null, practice: { href: "/explore/skills/situational-judgement", label: "Workplace judgement practice" } },
+  { key: "typing", label: "Typing speed and accuracy", weight: 5, skillIds: [], component: null, practice: { href: "/practice/typing", label: "Typing test" } },
 ];
 
 /** An assessment result counts for this long; after that, practice decides again. */
@@ -49,7 +50,13 @@ export interface MasteryEvidence {
   attempts: number;
 }
 
-export type AreaSource = { kind: "assessment"; at: Date } | { kind: "practice"; attempts: number };
+/** The candidate's recent typing tests: the average of their latest few, already 0-100. */
+export interface TypingEvidence {
+  score: number;
+  tests: number;
+}
+
+export type AreaSource = { kind: "assessment"; at: Date } | { kind: "practice"; attempts: number } | { kind: "typing"; tests: number };
 
 export interface AreaResult extends ReadinessArea {
   score: number | null;
@@ -78,11 +85,13 @@ export function readinessVerdict(overall: number | null): string {
 export function computeInternationalReadiness(
   assessment: AssessmentEvidence | null,
   mastery: ReadonlyMap<string, MasteryEvidence>,
-  now = new Date()
+  now = new Date(),
+  typing: TypingEvidence | null = null
 ): InternationalReadiness {
   const fresh = assessment && now.getTime() - assessment.completedAt.getTime() <= ASSESSMENT_FRESH_DAYS * 86_400_000 ? assessment : null;
 
   const areas: AreaResult[] = READINESS_AREAS.map((area) => {
+    if (area.key === "typing") return { ...area, score: typing ? typing.score : null, source: typing ? { kind: "typing", tests: typing.tests } : null };
     const part = fresh && area.component ? fresh.components[area.component] : undefined;
     if (part && part.max > 0) {
       return { ...area, score: Math.round((part.points / part.max) * 100), source: { kind: "assessment", at: fresh!.completedAt } };

@@ -11,13 +11,15 @@ import { loadInternationalReadiness, supportAssessmentTemplateId } from "@/lib/r
 
 export const metadata = { title: "International Process readiness - VocalisAi" };
 
-const COMING_SOON = ["Typing speed and accuracy", "Live chat simulation", "Ticket and email handling"];
+const COMING_SOON = ["Email writing, marked by AI", "Live chat simulation", "Ticket handling"];
 
 const dateText = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function sourceText(a: AreaResult): string {
   if (!a.source) return "No score yet";
-  return a.source.kind === "assessment" ? `From your assessment on ${dateText(a.source.at)}` : `From your practice (${a.source.attempts} answers)`;
+  if (a.source.kind === "assessment") return `From your assessment on ${dateText(a.source.at)}`;
+  if (a.source.kind === "typing") return `From your last ${a.source.tests === 1 ? "typing test" : `${a.source.tests} typing tests`}`;
+  return `From your practice (${a.source.attempts} answers)`;
 }
 
 export default async function ReadinessPage() {
@@ -49,7 +51,7 @@ export default async function ReadinessPage() {
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {r.overall === null
-                ? `Your score appears once areas worth ${MIN_COVERAGE}% of it have a result (now ${r.coverage}%). The quickest way: take the Customer Support English Assessment, which covers six of the eight areas in one test.`
+                ? `Your score appears once areas worth ${MIN_COVERAGE}% of it have a result (now ${r.coverage}%). The quickest way: take the Customer Support English Assessment, which covers six of the nine areas in one test.`
                 : `${r.verdict} Based on areas worth ${r.coverage}% of the score${r.coverage < 100 ? "; practise the areas with no score to complete it" : ""}.`}
             </p>
             {!fromAssessment && (

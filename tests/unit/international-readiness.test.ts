@@ -39,9 +39,9 @@ describe("International Process readiness", () => {
 
   it("uses a recent assessment for its six areas: that alone gives a score", () => {
     const r = computeInternationalReadiness(assessment(daysAgo(3)), new Map(), NOW);
-    expect(r.coverage).toBe(85); // writing (10) and judgement (5) need practice
-    // (20*80 + 15*80 + 15*60 + 15*80 + 10*70 + 10*90) / 85 = 6500 / 85 = 76.5
-    expect(r.overall).toBe(76);
+    expect(r.coverage).toBe(80); // writing (10), judgement (5) and typing (5) come from elsewhere
+    // (20*80 + 15*80 + 10*60 + 15*80 + 10*70 + 10*90) / 80 = 6200 / 80 = 77.5
+    expect(r.overall).toBe(78);
     expect(r.verdict).toMatch(/^Nearly ready/);
     expect(r.areas.find((a) => a.key === "fluency")).toMatchObject({ score: 60, source: { kind: "assessment" } });
   });
@@ -50,7 +50,7 @@ describe("International Process readiness", () => {
     const r = computeInternationalReadiness(assessment(daysAgo(3)), new Map([["ENG.LST", rated(30)], ["ENG.WRT", rated(50, 12)], ["SJT", rated(90)]]), NOW);
     expect(r.areas.find((a) => a.key === "listening")!.score).toBe(80);
     expect(r.areas.find((a) => a.key === "writing")).toMatchObject({ score: 50, source: { kind: "practice", attempts: 12 } });
-    expect(r.coverage).toBe(100);
+    expect(r.coverage).toBe(95); // typing (5) comes from the typing test
   });
 
   it("an old assessment stops counting; practice decides again", () => {
@@ -66,9 +66,9 @@ describe("International Process readiness", () => {
 
   it("next steps: the weak areas that cost most first, then the biggest unmeasured areas", () => {
     const r = computeInternationalReadiness(assessment(daysAgo(3)), new Map(), NOW);
-    // Below 80: fluency (gap 15*40=600), speaking (10*30=300); then the unmeasured writing (10).
+    // Below 80: fluency (gap 10*40=400), speaking (10*30=300); then the unmeasured writing (10).
     expect(r.nextSteps.map((a) => a.key)).toEqual(["fluency", "speaking", "writing"]);
     const empty = computeInternationalReadiness(null, new Map(), NOW);
-    expect(empty.nextSteps.map((a) => a.key)).toEqual(["listening", "pronunciation", "fluency"]);
+    expect(empty.nextSteps.map((a) => a.key)).toEqual(["listening", "pronunciation", "customerHandling"]);
   });
 });

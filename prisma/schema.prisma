@@ -43,6 +43,7 @@ model User {
   bookmarks           QuestionBookmark[]
   practiceTests       PracticeTest[]
   certificates        Certificate[]
+  typingResults       TypingResult[]
 }
 
 // ---------------------------------------------------------------------------
@@ -1138,4 +1139,24 @@ model Certificate {
   revokedAt DateTime?
 
   @@index([userId, issuedAt])
+}
+
+// One finished typing test (practice/typing). The server works out every
+// figure from the passage and what was typed; the browser only sends the text
+// and the time taken. Used for the typing page's history and the
+// International Process readiness score.
+model TypingResult {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passageKey      String // src/lib/typing/passages.ts
+  durationSeconds Int // time actually spent typing
+  typedWords      Int
+  correctWords    Int
+  grossWpm        Int
+  netWpm          Int
+  accuracy        Int // 0-100, % of typed words that were right
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
