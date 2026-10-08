@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useSession } from "next-auth/react";
 import { Check, Lock } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { PLAN_OFFERS } from "@/lib/plans-and-roles";
 import { MediaHero } from "@/components/ui/MediaHero";
 import { HEROES } from "@/config/heroMedia";
 
@@ -16,26 +17,20 @@ interface UsageSummary {
 
 type PlanFeatures = Record<string, { label: string; limit: number }[]>;
 
-const PLAN_NAMES: Record<string, string> = { FREE: "Free", STARTER: "Starter", PROFESSIONAL: "Professional", PREMIUM: "Premium" };
+const PLAN_NAMES: Record<string, string> = Object.fromEntries(Object.entries(PLAN_OFFERS).map(([k, v]) => [k, v.name]));
 
 const UPGRADE_PLANS = [
   {
     plan: "STARTER",
-    name: "Starter",
+    name: PLAN_OFFERS.STARTER.name,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_STARTER,
-    blurb: "More practice, voice recordings, and AI Speech Analysis every month.",
+    blurb: `${PLAN_OFFERS.STARTER.price}. ${PLAN_OFFERS.STARTER.blurb}`,
   },
   {
     plan: "PROFESSIONAL",
-    name: "Professional",
+    name: PLAN_OFFERS.PROFESSIONAL.name,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_PROFESSIONAL,
-    blurb: "Higher limits across every feature, including Full Mock Assessments.",
-  },
-  {
-    plan: "PREMIUM",
-    name: "Premium",
-    priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM,
-    blurb: "The highest limits on every feature, for serious, sustained practice.",
+    blurb: `${PLAN_OFFERS.PROFESSIONAL.price}. ${PLAN_OFFERS.PROFESSIONAL.blurb}`,
   },
 ];
 
@@ -150,7 +145,7 @@ export function BillingView({ planFeatures }: { planFeatures: PlanFeatures }) {
           <h2 id="plans-heading" className="headline text-2xl text-ink-950">
             {usage && usage.plan !== "FREE" ? "Change plan" : "Choose a plan"}
           </h2>
-          <div className="mt-6 grid overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white lg:grid-cols-3">
+          <div className="mt-6 grid overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white lg:grid-cols-2">
             {UPGRADE_PLANS.map((p) => {
               const current = usage?.plan === p.plan;
               const featured = p.plan === "PROFESSIONAL";
