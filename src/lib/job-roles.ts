@@ -9,7 +9,8 @@ export type RoleStep =
   | { kind: "talk"; role: "CUSTOMER" | "INTERVIEWER" | "SUPERVISOR"; label: string; why: string } // live AI conversation
   | { kind: "mock"; label: string; why: string } // the mock exam page
   | { kind: "typing"; label: string; why: string } // /practice/typing
-  | { kind: "email"; label: string; why: string }; // /practice/email
+  | { kind: "email"; label: string; why: string } // /practice/email
+  | { kind: "chat"; label: string; why: string }; // /practice/chat
 
 export type JobRole = { slug: string; title: string; group: RoleGroupId; summary: string; steps: RoleStep[] };
 
@@ -38,6 +39,8 @@ export function stepHref(step: RoleStep): string {
       return "/practice/typing";
     case "email":
       return "/practice/email";
+    case "chat":
+      return "/practice/chat";
   }
 }
 
@@ -74,6 +77,7 @@ const S = {
   supervisor: { kind: "talk", role: "SUPERVISOR", label: "Conversation with an AI manager", why: "Handle updates, feedback and difficult talks with a manager." },
   mockSupport: { kind: "mock", label: "Customer Support English Assessment", why: "A full timed test like a BPO hiring round, with a score report." },
   mockAptitude: { kind: "mock", label: "Aptitude Screening or Graduate Recruitment Assessment", why: "A full timed aptitude test like a company's first round." },
+  chat: { kind: "chat", label: "Live chat simulation", why: "Chat with an AI customer who reacts to what you write, then get marked." },
   email: { kind: "email", label: "Email writing (AI-marked)", why: "Reply to a real customer email and get marked on tone, structure and grammar." },
   typing: { kind: "typing", label: "Typing test", why: "Chat, email and back-office jobs test typing speed and accuracy." },
   mockWorkplace: { kind: "mock", label: "Workplace Communication Assessment", why: "A full timed English test for office jobs, with a score report." },
@@ -95,12 +99,12 @@ export const JOB_ROLES: JobRole[] = [
   { slug: "escalations-executive", title: "Customer Complaints / Escalations Executive", group: "bpo", summary: "Handle upset customers and complaints others could not solve.", steps: voice([S.supervisor]) },
   { slug: "inbound-call-centre-agent", title: "Inbound Call Centre Agent", group: "bpo", summary: "Take incoming calls and solve each one on the first call.", steps: voice() },
   { slug: "help-desk-associate", title: "Help Desk / Service Desk Associate", group: "bpo", summary: "Log, solve and route requests from customers or staff.", steps: voice([S.writing]) },
-  { slug: "customer-experience-associate", title: "Customer Experience Associate", group: "bpo", summary: "Make every customer contact smooth, by phone and in writing.", steps: voice([S.writing]) },
+  { slug: "customer-experience-associate", title: "Customer Experience Associate", group: "bpo", summary: "Make every customer contact smooth, by phone and in writing.", steps: voice([S.chat, S.writing]) },
   { slug: "telecaller", title: "Telecaller (service and follow-up calls)", group: "bpo", summary: "Make follow-up, reminder and confirmation calls clearly and politely.", steps: voice([S.fluency]) },
   { slug: "bpo-quality-analyst", title: "Quality Analyst, BPO", group: "bpo", summary: "Listen to calls, score them and coach agents to improve.", steps: [S.listening, S.judgement, S.serviceRoleplay, S.writing, S.supervisor, S.mockSupport, S.interview] },
   { slug: "bpo-team-leader", title: "Team Leader, BPO", group: "bpo", summary: "Lead a team of agents: targets, feedback and difficult conversations.", steps: [S.supervisor, S.judgement, S.workplaceComms, S.customerCall, S.speaking, S.mockSupport, S.interview] },
   { slug: "onboarding-executive", title: "Customer Onboarding / Welcome Call Executive", group: "bpo", summary: "Welcome new customers, explain the product and set them up.", steps: voice([S.speaking]) },
-  { slug: "ecommerce-support-executive", title: "E-commerce / Order Support Executive", group: "bpo", summary: "Help shoppers with orders, deliveries, returns and refunds.", steps: voice([S.writing]) },
+  { slug: "ecommerce-support-executive", title: "E-commerce / Order Support Executive", group: "bpo", summary: "Help shoppers with orders, deliveries, returns and refunds.", steps: voice([S.chat, S.writing]) },
   { slug: "travel-call-centre-agent", title: "Travel and Airline Call Centre Agent", group: "bpo", summary: "Book, change and cancel travel for callers, and handle delays.", steps: voice([S.fluency]) },
   { slug: "telecom-support-executive", title: "Telecom Customer Support Executive", group: "bpo", summary: "Help mobile and broadband customers with plans, bills and faults.", steps: voice([S.reasoning]) },
   { slug: "billing-support-executive", title: "Utility / Billing Support Executive", group: "bpo", summary: "Explain bills, take payments and sort out billing complaints.", steps: voice([S.quant]) },
@@ -129,7 +133,7 @@ export const JOB_ROLES: JobRole[] = [
 
   // Non-voice and back office
   { slug: "email-support-executive", title: "Email Support Executive", group: "nonvoice", summary: "Answer customers by email: clear, correct and polite.", steps: office([S.reading]) },
-  { slug: "chat-support-executive", title: "Chat Support Executive", group: "nonvoice", summary: "Help customers by live chat, quickly and in correct English.", steps: office([S.reading, S.vocabulary]) },
+  { slug: "chat-support-executive", title: "Chat Support Executive", group: "nonvoice", summary: "Help customers by live chat, quickly and in correct English.", steps: office([S.chat, S.reading, S.vocabulary]) },
   { slug: "back-office-executive", title: "Back-Office Executive", group: "nonvoice", summary: "Process records and requests accurately behind the scenes.", steps: office([S.detail, S.dataInterp]) },
   { slug: "data-entry-operator", title: "Data Entry Operator", group: "nonvoice", summary: "Enter and check data accurately and fast.", steps: [S.typing, S.detail, S.reading, S.grammar, S.quant, S.judgement, S.interview] },
   { slug: "admin-executive", title: "Admin / Office Executive", group: "nonvoice", summary: "Run the office: emails, schedules, records and people.", steps: office([S.detail]) },

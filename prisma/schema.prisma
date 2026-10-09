@@ -45,6 +45,7 @@ model User {
   certificates        Certificate[]
   typingResults       TypingResult[]
   emailReviews        EmailReview[]
+  chatSimulations     ChatSimulation[]
 }
 
 // ---------------------------------------------------------------------------
@@ -823,7 +824,7 @@ model UsageEvent {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO | SUPPORT_ASSESSMENT_TRY | EMAIL_REVIEW
+  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO | SUPPORT_ASSESSMENT_TRY | EMAIL_REVIEW | CHAT_SIMULATION
 
   createdAt DateTime @default(now())
 
@@ -1176,6 +1177,27 @@ model EmailReview {
   feedbackJson String // criteria, strengths, fixes, model reply
   costUsd      Float    @default(0)
   createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// One live text chat with an AI customer (practice/chat). Turns are stored
+// with server times so reply speed can be measured; the marking comes from
+// one AI call at the end, checked with a schema, and the score is worked out
+// in code.
+model ChatSimulation {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioKey  String // src/lib/chat-simulation/scenarios.ts
+  status       String    @default("ACTIVE") // ACTIVE | DONE
+  turnsJson    String // [{ from, text, at }]
+  score        Int? // 0-100 once marked
+  replySeconds Int? // average seconds to answer the customer
+  feedbackJson String? // ratings, strengths, fixes, better line
+  costUsd      Float     @default(0)
+  createdAt    DateTime  @default(now())
+  endedAt      DateTime?
 
   @@index([userId, createdAt])
 }

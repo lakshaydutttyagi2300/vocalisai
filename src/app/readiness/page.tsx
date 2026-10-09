@@ -11,13 +11,14 @@ import { loadInternationalReadiness, supportAssessmentTemplateId } from "@/lib/r
 
 export const metadata = { title: "International Process readiness - VocalisAi" };
 
-const COMING_SOON = ["Live chat simulation", "Ticket handling"];
+const COMING_SOON = ["Ticket handling"];
 
 const dateText = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function sourceText(a: AreaResult): string {
   if (!a.source) return "No score yet";
   if (a.source.kind === "assessment") return `From your assessment on ${dateText(a.source.at)}`;
+  if (a.source.kind === "chat") return `From your last ${a.source.chats === 1 ? "marked chat" : `${a.source.chats} marked chats`}`;
   if (a.source.kind === "email") return `From your last ${a.source.emails === 1 ? "marked email" : `${a.source.emails} marked emails`}`;
   if (a.source.kind === "typing") return `From your last ${a.source.tests === 1 ? "typing test" : `${a.source.tests} typing tests`}`;
   return `From your practice (${a.source.attempts} answers)`;
@@ -113,7 +114,7 @@ export default async function ReadinessPage() {
 
         <section className="mt-8">
           <h2 className="font-display text-lg font-bold text-ink-950">Coming soon</h2>
-          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-3 grid gap-3">
             {COMING_SOON.map((c) => (
               <li key={c} className="card flex items-center gap-3 p-4 text-sm text-slate-600">
                 <IconBadge as={Clock} />

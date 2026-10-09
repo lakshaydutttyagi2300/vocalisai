@@ -34,8 +34,10 @@ export function TypingTest() {
   const box = useRef<HTMLTextAreaElement>(null);
 
   // A random passage after the first render (the server and browser must agree on the first one).
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- one-off random choice after hydration
-  useEffect(() => setPassage(pickPassage()), []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-off random choice after hydration
+    setPassage(pickPassage());
+  }, []);
 
   const loadHistory = useCallback(async () => {
     const res = await fetch("/api/typing-results").catch(() => null);

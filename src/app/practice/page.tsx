@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Layers3, Mail, Mic, Keyboard, Timer, Target } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers3, Mail, MessageSquare, Mic, Keyboard, Timer, Target } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 import { MediaHero } from "@/components/ui/MediaHero";
@@ -131,6 +131,15 @@ export default async function PracticeHubPage() {
             <span className="min-w-0">
               <span className="block font-semibold text-ink-950">Email writing</span>
               <span className="mt-1 block text-sm text-slate-600">Reply to a customer, marked by AI &rarr;</span>
+            </span>
+          </Link>
+          <Link href="/practice/chat" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <Icon as={MessageSquare} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-950">Chat simulation</span>
+              <span className="mt-1 block text-sm text-slate-600">A live chat with an AI customer &rarr;</span>
             </span>
           </Link>
           <Link href="/goal" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">

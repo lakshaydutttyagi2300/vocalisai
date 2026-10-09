@@ -33,6 +33,8 @@ export const FEATURES = [
   "SUPPORT_ASSESSMENT_TRY",
   // One AI marking of a written customer-service email reply (practice/email).
   "EMAIL_REVIEW",
+  // One live text chat with an AI customer, marked at the end (practice/chat).
+  "CHAT_SIMULATION",
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 
@@ -47,6 +49,7 @@ export const FEATURE_LABELS: Record<Feature, string> = {
   AI_SCENARIO: "AI-Generated Scenario",
   SUPPORT_ASSESSMENT_TRY: "free Customer Support Assessment",
   EMAIL_REVIEW: "AI email review",
+  CHAT_SIMULATION: "chat simulation",
 };
 
 // Plain "+s" breaks on irregular plurals ("Analysis" -> "Analyses", not
@@ -64,6 +67,7 @@ export const FEATURE_LABELS_PLURAL: Record<Feature, string> = {
   AI_SCENARIO: "AI-Generated Scenarios",
   SUPPORT_ASSESSMENT_TRY: "free Customer Support Assessments",
   EMAIL_REVIEW: "AI email reviews",
+  CHAT_SIMULATION: "chat simulations",
 };
 
 // FREE limits are lifetime (all-time), never resetting - deliberately a
@@ -90,6 +94,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     AI_SCENARIO: 0,
     SUPPORT_ASSESSMENT_TRY: 1,
     EMAIL_REVIEW: 2,
+    CHAT_SIMULATION: 1,
   },
   STARTER: {
     PRACTICE_SESSION: 60,
@@ -102,6 +107,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     AI_SCENARIO: 10,
     SUPPORT_ASSESSMENT_TRY: 0,
     EMAIL_REVIEW: 15,
+    CHAT_SIMULATION: 10,
   },
   PROFESSIONAL: {
     PRACTICE_SESSION: 150,
@@ -114,6 +120,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     AI_SCENARIO: 30,
     SUPPORT_ASSESSMENT_TRY: 0,
     EMAIL_REVIEW: 40,
+    CHAT_SIMULATION: 25,
   },
   PREMIUM: {
     PRACTICE_SESSION: 300,
@@ -126,6 +133,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     AI_SCENARIO: 80,
     SUPPORT_ASSESSMENT_TRY: 0,
     EMAIL_REVIEW: 100,
+    CHAT_SIMULATION: 60,
   },
 };
 

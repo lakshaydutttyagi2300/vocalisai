@@ -46,7 +46,7 @@ describe("typing scoring", () => {
     expect(typingReadinessScore(40)).toBe(100);
     expect(typingReadinessScore(80)).toBe(100);
     expect(typingReadinessScore(20)).toBe(50);
-    const r = computeInternationalReadiness(null, new Map(), new Date(), { score: 50, tests: 2 });
+    const r = computeInternationalReadiness(null, new Map(), new Date(), { typing: { score: 50, tests: 2 } });
     expect(r.areas.find((a) => a.key === "typing")).toMatchObject({ score: 50, source: { kind: "typing", tests: 2 } });
     expect(r.coverage).toBe(5);
   });

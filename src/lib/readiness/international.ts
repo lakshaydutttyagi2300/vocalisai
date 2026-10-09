@@ -62,11 +62,25 @@ export interface EmailEvidence {
   emails: number;
 }
 
+/** The candidate's recent marked chat simulations: the average of their latest few, 0-100. */
+export interface ChatEvidence {
+  score: number;
+  chats: number;
+}
+
+/** Evidence from the dedicated practice tools; each is null until the candidate has used it. */
+export interface ToolEvidence {
+  typing?: TypingEvidence | null;
+  email?: EmailEvidence | null;
+  chat?: ChatEvidence | null;
+}
+
 export type AreaSource =
   | { kind: "assessment"; at: Date }
   | { kind: "practice"; attempts: number }
   | { kind: "typing"; tests: number }
-  | { kind: "email"; emails: number };
+  | { kind: "email"; emails: number }
+  | { kind: "chat"; chats: number };
 
 export interface AreaResult extends ReadinessArea {
   score: number | null;
@@ -96,8 +110,7 @@ export function computeInternationalReadiness(
   assessment: AssessmentEvidence | null,
   mastery: ReadonlyMap<string, MasteryEvidence>,
   now = new Date(),
-  typing: TypingEvidence | null = null,
-  email: EmailEvidence | null = null
+  { typing = null, email = null, chat = null }: ToolEvidence = {}
 ): InternationalReadiness {
   const fresh = assessment && now.getTime() - assessment.completedAt.getTime() <= ASSESSMENT_FRESH_DAYS * 86_400_000 ? assessment : null;
 
@@ -109,6 +122,8 @@ export function computeInternationalReadiness(
     if (part && part.max > 0) {
       return { ...area, score: Math.round((part.points / part.max) * 100), source: { kind: "assessment", at: fresh!.completedAt } };
     }
+    // Customer handling: after a recent assessment, marked live chats beat role-play practice.
+    if (area.key === "customerHandling" && chat) return { ...area, score: chat.score, source: { kind: "chat", chats: chat.chats } };
     const rated = area.skillIds.map((id) => mastery.get(id)).filter((m): m is MasteryEvidence => !!m && m.band !== "UNRATED");
     if (rated.length) {
       const score = Math.round(rated.reduce((s, m) => s + m.score, 0) / rated.length);

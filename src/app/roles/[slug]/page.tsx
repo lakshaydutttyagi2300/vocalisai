@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return role ? { title: `${role.title} preparation - VocalisAi`, description: `Prepare for a ${role.title} job: ${role.summary}` } : {};
 }
 
-const KIND_LABEL: Record<RoleStep["kind"], string> = { mode: "Practice", subject: "Skill practice", talk: "Live AI conversation", mock: "Mock exam", typing: "Typing test", email: "AI-marked writing" };
+const KIND_LABEL: Record<RoleStep["kind"], string> = { mode: "Practice", subject: "Skill practice", talk: "Live AI conversation", mock: "Mock exam", typing: "Typing test", email: "AI-marked writing", chat: "AI chat practice" };
 
 export default async function RolePage({ params }: { params: Params }) {
   const role = getJobRole((await params).slug);

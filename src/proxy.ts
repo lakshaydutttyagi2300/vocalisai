@@ -103,5 +103,6 @@ export const config = {
     "/api/certificates/:path*",
     "/api/typing-results/:path*",
     "/api/email-reviews/:path*",
+    "/api/chat-simulations/:path*",
   ],
 };

@@ -46,7 +46,7 @@ describe("email marking", () => {
   });
 
   it("marked emails decide Written English in the readiness score", () => {
-    const r = computeInternationalReadiness(null, new Map([["ENG.WRT", { score: 30, band: "WEAK", attempts: 9 }]]), new Date(), null, { score: 72, emails: 2 });
+    const r = computeInternationalReadiness(null, new Map([["ENG.WRT", { score: 30, band: "WEAK", attempts: 9 }]]), new Date(), { email: { score: 72, emails: 2 } });
     expect(r.areas.find((a) => a.key === "writing")).toMatchObject({ score: 72, source: { kind: "email", emails: 2 }, practice: { href: "/practice/email" } });
   });
 });
