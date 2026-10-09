@@ -44,6 +44,7 @@ model User {
   practiceTests       PracticeTest[]
   certificates        Certificate[]
   typingResults       TypingResult[]
+  emailReviews        EmailReview[]
 }
 
 // ---------------------------------------------------------------------------
@@ -822,7 +823,7 @@ model UsageEvent {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO
+  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO | SUPPORT_ASSESSMENT_TRY | EMAIL_REVIEW
 
   createdAt DateTime @default(now())
 
@@ -1157,6 +1158,24 @@ model TypingResult {
   netWpm          Int
   accuracy        Int // 0-100, % of typed words that were right
   createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// One AI-marked reply to a customer email (practice/email). The marks come
+// from one text-only AI call, checked with a schema; the overall score is
+// worked out in code from the five criteria, never taken from the AI.
+model EmailReview {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskKey      String // src/lib/email-writing/tasks.ts
+  reply        String
+  wordCount    Int
+  score        Int // 0-100
+  feedbackJson String // criteria, strengths, fixes, model reply
+  costUsd      Float    @default(0)
+  createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
 }

@@ -1,13 +1,13 @@
 // Loads a candidate's evidence for the International Process Readiness score
 // (./international.ts): their latest marked Customer Support English
-// Assessment, their skill mastery and their recent typing tests. Server only.
+// Assessment, their skill mastery, and their recent typing tests and marked emails. Server only.
 
 import { db } from "@/lib/db";
 import { reconcileUserMastery } from "@/lib/skills/mastery-store";
 import { parseSupportReport } from "@/lib/support-assessment/marking";
 import { SUPPORT_FAMILY_SLUG, SUPPORT_VARIANT_SLUG } from "@/lib/support-assessment/config";
 import { typingReadinessScore } from "@/lib/typing/scoring";
-import { ASSESSMENT_FRESH_DAYS, computeInternationalReadiness, type AssessmentEvidence, type InternationalReadiness, type TypingEvidence } from "./international";
+import { ASSESSMENT_FRESH_DAYS, computeInternationalReadiness, type AssessmentEvidence, type EmailEvidence, type InternationalReadiness, type TypingEvidence } from "./international";
 
 const SUPPORT_VARIANT = { slug: SUPPORT_VARIANT_SLUG, family: { slug: SUPPORT_FAMILY_SLUG } };
 
@@ -42,7 +42,15 @@ export async function recentTyping(userId: string): Promise<TypingEvidence | nul
   return { score: Math.round(rows.reduce((s, r) => s + typingReadinessScore(r.netWpm), 0) / rows.length), tests: rows.length };
 }
 
+/** The average score of the candidate's latest 3 AI-marked emails from the last 90 days. */
+export async function recentEmails(userId: string): Promise<EmailEvidence | null> {
+  const since = new Date(Date.now() - ASSESSMENT_FRESH_DAYS * 86_400_000);
+  const rows = await db.emailReview.findMany({ where: { userId, createdAt: { gte: since } }, orderBy: { createdAt: "desc" }, take: 3, select: { score: true } });
+  if (!rows.length) return null;
+  return { score: Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length), emails: rows.length };
+}
+
 export async function loadInternationalReadiness(userId: string): Promise<InternationalReadiness> {
-  const [assessment, mastery, typing] = await Promise.all([latestSupportAssessment(userId), reconcileUserMastery(userId), recentTyping(userId)]);
-  return computeInternationalReadiness(assessment, mastery, new Date(), typing);
+  const [assessment, mastery, typing, email] = await Promise.all([latestSupportAssessment(userId), reconcileUserMastery(userId), recentTyping(userId), recentEmails(userId)]);
+  return computeInternationalReadiness(assessment, mastery, new Date(), typing, email);
 }
