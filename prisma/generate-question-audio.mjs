@@ -17,22 +17,32 @@
 //   npm run generate:question-audio -- --dry-run     # list what would be generated
 //   npm run generate:question-audio -- --limit 5
 //   npm run generate:question-audio -- --production  # REQUIRED for the live database
+//   ... --kokoro <tools dir>   natural Kokoro voices (US + UK) as MP3 instead of Windows voices
+//   ... --cache <file.json>    remember uploaded clips by script, so another database
+//                              with the same questions reuses them instead of re-making them
 //
-// Needs Windows (its built-in voices). Refuses unknown databases.
+// Needs Windows (its built-in voices) unless --kokoro is given. Refuses unknown databases.
 
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { assertDevDatabase } from "./exam-demo/seed.mjs";
 import { canGenerateAssets, generateListeningWav, uploadAsset } from "./exam-demo/assets.mjs";
 import { audioScriptHash } from "./question-audio/script-hash.mjs";
+import { createKokoroSpeaker } from "./question-audio/kokoro.mjs";
 
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
+const option = (name) => (args.indexOf(name) >= 0 ? args[args.indexOf(name) + 1] : null);
 const limitArg = args.indexOf("--limit");
 const limit = limitArg >= 0 ? Number(args[limitArg + 1]) : Infinity;
+const kokoroTools = option("--kokoro");
+const cachePath = option("--cache");
+const cache = cachePath && existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : {};
+const engine = kokoroTools ? "kokoro" : "windows";
 
 const host = assertDevDatabase(process.env.DATABASE_URL, { allowProduction: flag("--production") });
 console.log(`Database: ${host}${flag("--production") ? "  (PRODUCTION)" : ""}`);
@@ -53,7 +63,7 @@ function needsAudio(audio) {
 }
 
 async function main() {
-  if (!flag("--dry-run") && !canGenerateAssets()) {
+  if (!flag("--dry-run") && engine === "windows" && !canGenerateAssets()) {
     throw new Error("Audio generation needs Windows (its built-in voices). Nothing was changed.");
   }
 
@@ -82,18 +92,33 @@ async function main() {
 
   let ok = 0;
   let failed = 0;
+  let reused = 0;
+  const speakKokoro = engine === "kokoro" ? await createKokoroSpeaker(kokoroTools) : null;
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "question-audio-"));
   try {
     for (const [i, { q, spec }] of todo.slice(0, limit).entries()) {
       const audio = spec.audio;
       const turns = turnsOf(audio);
+      const speechRate = typeof audio.speechRate === "number" ? audio.speechRate : 0.9;
+      const pauseMs = typeof audio.pauseBetweenTurnsMs === "number" ? audio.pauseBetweenTurnsMs : 400;
+      const cacheKey = `${engine}:${audioScriptHash(turns, audio.speechRate)}`;
       try {
-        const buf = await generateListeningWav(
-          turns.map((t) => [t.speaker, t.text]),
-          path.join(dir, `${q.id}.wav`),
-          { speechRate: typeof audio.speechRate === "number" ? audio.speechRate : 0.9, pauseMs: typeof audio.pauseBetweenTurnsMs === "number" ? audio.pauseBetweenTurnsMs : 400 }
-        );
-        const key = await uploadAsset(buf, "wav", "audio/wav", "question-audio");
+        let key = cache[cacheKey] ?? null;
+        let buf = null;
+        if (key) {
+          reused++;
+        } else if (speakKokoro) {
+          // The seed is the script itself, so the same conversation gets the same voices in every database.
+          buf = (await speakKokoro(turns, { seed: cacheKey.slice(7, 39), speechRate, pauseMs, workDir: dir })).buffer;
+          key = await uploadAsset(buf, "mp3", "audio/mpeg", "question-audio");
+        } else {
+          buf = await generateListeningWav(turns.map((t) => [t.speaker, t.text]), path.join(dir, `${q.id}.wav`), { speechRate, pauseMs });
+          key = await uploadAsset(buf, "wav", "audio/wav", "question-audio");
+        }
+        if (cachePath && !cache[cacheKey]) {
+          cache[cacheKey] = key;
+          writeFileSync(cachePath, JSON.stringify(cache, null, 1));
+        }
         const next = {
           ...spec,
           audio: {
@@ -107,7 +132,7 @@ async function main() {
         };
         await db.practiceQuestion.update({ where: { id: q.id }, data: { passage: JSON.stringify(next) } });
         ok++;
-        console.log(`  [${i + 1}/${Math.min(todo.length, limit)}] generated ${Math.round(buf.length / 1024)} KB - ${q.prompt.slice(0, 50)}`);
+        console.log(`  [${i + 1}/${Math.min(todo.length, limit)}] ${buf ? `generated ${Math.round(buf.length / 1024)} KB` : "reused an uploaded clip"} - ${q.prompt.slice(0, 50)}`);
       } catch (err) {
         failed++;
         const message = err instanceof Error ? err.message.split("\n")[0].slice(0, 200) : String(err);
@@ -119,7 +144,7 @@ async function main() {
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
-  console.log(`Done: ${ok} generated, ${failed} failed.`);
+  console.log(`Done: ${ok} with audio (${reused} reused from earlier uploads), ${failed} failed.`);
   if (failed > 0) process.exitCode = 1;
 }
 

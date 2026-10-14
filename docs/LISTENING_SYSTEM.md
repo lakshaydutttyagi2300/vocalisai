@@ -53,6 +53,8 @@ Admin screens read and write the raw value unchanged. Only the candidate side co
    - `npm run generate:question-audio` (`prisma/generate-question-audio.mjs`) speaks each spec's script with **Windows built-in voices**, one per speaker, at the spec's rate and pauses.
    - It uploads the WAV to R2 under `question-audio/`, then writes `generationStatus`, `audioAssetKey` and `audioScriptHash` back into the spec.
    - Needs a Windows PC. Use `--production` for the live database, `--dry-run` to preview.
+   - **Natural voices (used since 14 Oct 2026):** add `--kokoro <tools dir>` to use Kokoro (free, Apache-2.0) instead: one US and one UK voice of different genders per conversation, always the same for a given script, saved as a 64 kbps MP3 (`prisma/question-audio/kokoro.mjs`). Kokoro and ffmpeg are not app dependencies; the tools folder needs `kokoro/` (with `kokoro-js`) and `node_modules/ffmpeg-static`. About 35 seconds per clip on a laptop CPU.
+   - Add `--cache private/question-audio/kokoro-uploads.json` to remember uploaded clips by script: a second database with the same questions (dev, then live) reuses them in seconds instead of making them again.
    - `npm run generate:listening-voices` does the same with **ElevenLabs** voices. It's paid and needs `ELEVENLABS_API_KEY`, so it's **not used now**.
 2. **Serving:**
    - `GET /api/questions/[id]/audio` streams the file only when the stored key matches the expected pattern and the script hash still matches.
