@@ -143,6 +143,36 @@ test("a practice session can be done entirely by clicking, and shows up on the d
   }
 });
 
+test("a result page whose status request fails tries again, and never claims a recording was saved", async ({ page }) => {
+  test.setTimeout(120_000);
+  const user = await candidate(page, "result-load");
+  try {
+    const question = await db.practiceQuestion.findFirstOrThrow({ where: { category: "GRAMMAR", type: "MULTIPLE_CHOICE", isActive: true } });
+    const attempt = await db.practiceAttempt.create({
+      data: { userId: user.id, questionId: question.id, category: "GRAMMAR", difficulty: question.difficulty, responseText: question.correctAnswer, isCorrect: true, timeTakenSeconds: 9, skillId: question.skillId, level: question.level },
+    });
+    let failNext = 1;
+    await page.route(`**/api/practice/attempts/${attempt.id}/analyze`, (route) => (failNext-- > 0 ? route.abort("failed") : route.continue()));
+    const noRecording = page.getByRole("heading", { name: "No recording for this answer" });
+
+    // One dropped request: the candidate never sees it.
+    await page.goto(`/practice/results/${attempt.id}`);
+    await expect(noRecording).toBeVisible({ timeout: 30_000 });
+
+    // Still failing: says so plainly - not "analysis failed, your recording was saved" - and Try again re-checks.
+    failNext = 2;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "We couldn't load this result" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("main").getByText(/recording was saved|analyze/i)).toHaveCount(0);
+    await page.screenshot({ path: "test-results/candidate/result-load-error-phone.png" });
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(noRecording).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await db.user.delete({ where: { id: user.id } }); // cascades the attempt
+  }
+});
+
 test("speech analyses and mock exams each appear in their own candidate section and open", async ({ page }) => {
   test.setTimeout(180_000);
   const user = await candidate(page, "history");

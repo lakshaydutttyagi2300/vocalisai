@@ -818,3 +818,14 @@ Applied to **development and test only**; production waits for "ship to producti
   - 8 plain-text monologues on the browser voice.
 
   New `prisma/convert-listening-monologues.mjs` turns those 8 into standard audio specs (preview by default, `--apply`, `--production`). `generate:question-audio` then records them; the generator was re-verified on this PC.
+
+## Two intermittent browser-test failures in the full suite (branch `feat/skills-platform`)
+
+Both passed alone and failed now and then in the full suite (~45 min), which runs them late, in the same browser as the camera tests.
+
+- **`exam-runner-v2-ui.spec.ts` ("Your results" not visible):** the URL changes as soon as the loading skeleton (`src/app/loading.tsx`) shows. The results are rendered on the server after several more round trips to the remote test database. In a full run they arrived 4.98 s after the URL changed, against a 5 s default wait. The heading now gets its own 30 s wait, like the test's other server steps. No product change: on Vercel the database is in the next region.
+- **`walkthrough.spec.ts` ("No recording for this answer" not visible):** the page asks for the answer's status once. On this 8 GB PC a full run left 0 MB of memory free at times (sampled every 5 s), and Chromium then drops requests (`net::ERR_INSUFFICIENT_RESOURCES`, seen in a run). The 120 pages visited before this check ignore a dropped background request; this page did not.
+- **Bug fixed on the speech-analysis results page** (`src/app/practice/results/[attemptId]/page.tsx`): when that status request failed, the page said "We couldn't analyze your recording... Your recording was saved successfully" and offered "Try Analysis Again", even for a typed answer with no recording. A non-OK reply showed "Recording ready to analyze". Now:
+  - a failed status request is tried once more after 1.5 s;
+  - if it still fails, the page says "We couldn't load this result" with a Try again button that re-checks the status (it never starts an analysis).
+- **Test:** `candidate-experience.spec.ts` drops the request once (nothing shows), then twice (the honest message, no recording claim, Try again recovers), with a phone-width screenshot.

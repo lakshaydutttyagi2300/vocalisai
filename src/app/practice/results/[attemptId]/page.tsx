@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -47,7 +47,7 @@ interface ImprovedAnswer {
   summary: string;
 }
 
-type Stage = "loading" | "not-analyzed" | "analyzing" | "ready" | "error" | "no-recording" | "not-found";
+type Stage = "loading" | "load-error" | "not-analyzed" | "analyzing" | "ready" | "error" | "no-recording" | "not-found";
 
 const IMPROVEMENT_LABELS: Record<keyof ImprovedAnswer["improvements"], string> = {
   grammar: "Grammar",
@@ -62,21 +62,42 @@ export default function AttemptResultsPage() {
   const [stage, setStage] = useState<Stage>("loading");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadRound, setLoadRound] = useState(0);
 
+  // Only reads this answer's status. A request that fails (a phone losing
+  // signal for a moment, a busy server) is tried once more before anything
+  // is said, and a status that still can't be read is reported as exactly
+  // that - never as a failed analysis of a recording that may not exist.
   useEffect(() => {
-    fetch(`/api/practice/attempts/${params.attemptId}/analyze`)
-      .then(async (res) => {
-        if (res.status === 404) return setStage("not-found");
-        const data = await res.json();
-        if (data.analyzed) {
-          setResult(data.result);
-          setStage("ready");
-        } else {
-          setStage(data.hasRecording === false ? "no-recording" : "not-analyzed");
+    let cancelled = false;
+    (async () => {
+      for (let attempt = 0; attempt < 2 && !cancelled; attempt++) {
+        if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+          const res = await fetch(`/api/practice/attempts/${params.attemptId}/analyze`);
+          if (cancelled) return;
+          if (res.status === 404) return setStage("not-found");
+          if (res.ok) {
+            const data = await res.json();
+            if (cancelled) return;
+            if (data.analyzed) {
+              setResult(data.result);
+              setStage("ready");
+            } else {
+              setStage(data.hasRecording === false ? "no-recording" : "not-analyzed");
+            }
+            return;
+          }
+        } catch {
+          // No answer, or not one we can read: tried again below.
         }
-      })
-      .catch(() => setStage("error"));
-  }, [params.attemptId]);
+      }
+      if (!cancelled) setStage("load-error");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.attemptId, loadRound]);
 
   async function runAnalysis() {
     setStage("analyzing");
@@ -102,6 +123,25 @@ export default function AttemptResultsPage() {
       <div className="mx-auto max-w-2xl px-6 py-16">
         <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
         <div className="mt-6 h-32 animate-pulse rounded-lg bg-slate-200" />
+      </div>
+    );
+  }
+
+  if (stage === "load-error") {
+    return (
+      <div className="mx-auto max-w-lg px-6 py-16 text-center">
+        <h1 className="font-display text-xl font-bold text-ink-950">We couldn&apos;t load this result</h1>
+        <p className="mt-2 text-sm text-slate-600">Check your connection and try again.</p>
+        <button
+          onClick={() => {
+            setStage("loading");
+            setLoadRound((n) => n + 1);
+          }}
+          className="btn-secondary mt-4"
+        >
+          <Icon as={RotateCcw} />
+          Try again
+        </button>
       </div>
     );
   }
