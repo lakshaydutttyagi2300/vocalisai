@@ -47,6 +47,7 @@ model User {
   emailReviews        EmailReview[]
   chatSimulations     ChatSimulation[]
   ticketReviews       TicketReview[]
+  deskShifts          DeskShift[]
 }
 
 // ---------------------------------------------------------------------------
@@ -1221,4 +1222,19 @@ model TicketReview {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// One practice shift on the support desk (practice/tickets): a queue of
+// tickets, each with a due time, worked through like a real help-desk
+// shift. Each ticket's status and the review that resolved it live in
+// ticketsJson; the marking itself is a TicketReview.
+model DeskShift {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketsJson String // [{ key, receivedAt, dueAt, status: open | on_hold | resolved, reviewId?, resolvedAt? }]
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+
+  @@index([userId, startedAt])
 }

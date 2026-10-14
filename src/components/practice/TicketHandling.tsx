@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Inbox, RotateCcw, Send } from "lucide-react";
+import { ArrowLeft, Inbox, RotateCcw, Send } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { NOTE_WORDS, REPLY_WORDS, TICKETS, TICKET_CATEGORIES, TICKET_PRIORITIES, countWords, type SupportTicket } from "@/lib/ticket-handling/tickets";
@@ -32,8 +32,14 @@ function pickTicket(previous?: string): SupportTicket {
 const ticketSubject = (key: string) => TICKETS.find((t) => t.key === key)?.subject ?? "Ticket";
 const inRange = (n: number, r: { min: number; max: number }) => n >= r.min && n <= r.max;
 
-export function TicketHandling() {
-  const [ticket, setTicket] = useState<SupportTicket>(TICKETS[0]);
+/**
+ * One ticket to handle. On its own it picks a random ticket; on the support
+ * desk it is given the queue's ticket and shift, and "Back to the queue"
+ * replaces "Try another ticket".
+ */
+export function TicketHandling({ ticketKey, shiftId, onBack }: { ticketKey?: string; shiftId?: string; onBack?: () => void } = {}) {
+  const fixed = ticketKey ? TICKETS.find((t) => t.key === ticketKey) : undefined;
+  const [ticket, setTicket] = useState<SupportTicket>(fixed ?? TICKETS[0]);
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("");
   const [reply, setReply] = useState("");
@@ -46,9 +52,10 @@ export function TicketHandling() {
 
   // A random ticket after the first render (the server and browser must agree on the first one).
   useEffect(() => {
+    if (fixed) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-off random choice after hydration
     setTicket(pickTicket());
-  }, []);
+  }, [fixed]);
 
   const loadHistory = useCallback(async () => {
     const res = await fetch("/api/ticket-reviews").catch(() => null);
@@ -66,7 +73,7 @@ export function TicketHandling() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/ticket-reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticketKey: ticket.key, category, priority, reply, note }) });
+      const res = await fetch("/api/ticket-reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticketKey: ticket.key, category, priority, reply, note, shiftId }) });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? "We couldn't mark your ticket this time. Please try again in a moment.");
       setReview(body.review);
@@ -93,6 +100,12 @@ export function TicketHandling() {
   const locked = busy || !!review;
   return (
     <div className="grid gap-6">
+      {onBack && !review && (
+        <button type="button" onClick={onBack} disabled={busy} className="btn-ghost btn-sm -ml-3 justify-self-start">
+          <Icon as={ArrowLeft} />
+          Back to the queue
+        </button>
+      )}
       <section className="card p-5 sm:p-6">
         <p className="eyebrow text-slate-500">
           {ticket.channel} · from {ticket.customerName}
@@ -211,14 +224,21 @@ export function TicketHandling() {
             <h3 className="text-sm font-semibold text-ink-900">A strong internal note</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-900">{review.modelNote}</p>
           </div>
-          <button type="button" onClick={another} className="btn-primary mt-5 w-full sm:w-auto">
-            <Icon as={RotateCcw} />
-            Try another ticket
-          </button>
+          {onBack ? (
+            <button type="button" onClick={onBack} className="btn-primary mt-5 w-full sm:w-auto">
+              <Icon as={ArrowLeft} />
+              Back to the queue
+            </button>
+          ) : (
+            <button type="button" onClick={another} className="btn-primary mt-5 w-full sm:w-auto">
+              <Icon as={RotateCcw} />
+              Try another ticket
+            </button>
+          )}
         </section>
       )}
 
-      {history.length > 0 && (
+      {!onBack && history.length > 0 && (
         <section>
           <h2 className="font-display text-lg font-bold text-ink-950">Your recent tickets</h2>
           <ul className="card mt-3 divide-y divide-slate-100">
