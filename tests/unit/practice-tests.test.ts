@@ -144,9 +144,15 @@ describe("practice test engine", { timeout: 180_000 }, () => {
   });
 
   it("revision repeats seen questions, wrong answers first", async () => {
-    const wrong = await db.questionSeen.findFirst({ where: { userId, lastCorrect: false }, select: { questionId: true } });
     const view = await practiceTestView(userId, await start({ mode: "REVISION" }));
-    expect(view.questions[0].id).toBe(wrong!.questionId);
+    const ids = view.questions.map((q) => q.id);
+    const seen = await db.questionSeen.findMany({ where: { userId, questionId: { in: ids } }, select: { questionId: true, lastCorrect: true, timesAttempted: true, lastSeenAt: true } });
+    const wrong = new Set(seen.filter((s) => s.timesAttempted > 0 && s.lastCorrect === false).map((s) => s.questionId));
+    // Wrong answers fill the first places. (Among several, the order follows when they were last seen -
+    // starting this test re-stamps that time, so it can't be checked here.)
+    expect(wrong.size).toBeGreaterThan(0);
+    expect(wrong.has(ids[0])).toBe(true);
+    expect(new Set(ids.slice(0, wrong.size))).toEqual(wrong);
   });
 
   it("weak areas practises the lowest-accuracy skill", async () => {
