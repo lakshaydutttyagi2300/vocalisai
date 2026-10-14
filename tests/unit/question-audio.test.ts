@@ -155,7 +155,7 @@ describe("Kokoro voices for generated listening audio", () => {
     const { kokoroVoicesFor } = await import("../../prisma/question-audio/kokoro.mjs");
     for (const seed of ["a1b2c3d4", "ffff0000", "12345678", "deadbeef"]) {
       const v = kokoroVoicesFor(seed, ["S1", "S2"]);
-      const [a, b] = [v.get("S1"), v.get("S2")];
+      const [a, b] = [v.get("S1")!, v.get("S2")!];
       expect(a[0], seed).not.toBe(b[0]); // a = US, b = UK (or the other way round)
       expect(a[1], seed).not.toBe(b[1]); // f = female, m = male
       expect(kokoroVoicesFor(seed, ["S1", "S2"])).toEqual(v);
