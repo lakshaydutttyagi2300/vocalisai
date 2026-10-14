@@ -28,7 +28,7 @@ export const READINESS_AREAS: readonly ReadinessArea[] = [
   { key: "speaking", label: "Spoken answers", weight: 10, skillIds: ["SPK.SPN"], component: "speaking", practice: { href: "/practice/speaking", label: "Speaking practice" } },
   { key: "grammarVocabulary", label: "Grammar and vocabulary", weight: 10, skillIds: ["ENG.GRM", "ENG.VOC"], component: "grammarVocabulary", practice: { href: "/practice/grammar", label: "Grammar practice" } },
   { key: "writing", label: "Written English (emails and chats)", weight: 10, skillIds: ["ENG.WRT"], component: null, practice: { href: "/practice/email", label: "Email writing" } },
-  { key: "judgement", label: "Workplace judgement", weight: 5, skillIds: ["SJT"], component: null, practice: { href: "/explore/skills/situational-judgement", label: "Workplace judgement practice" } },
+  { key: "judgement", label: "Workplace judgement", weight: 5, skillIds: ["SJT"], component: null, practice: { href: "/practice/tickets", label: "Ticket handling" } },
   { key: "typing", label: "Typing speed and accuracy", weight: 5, skillIds: [], component: null, practice: { href: "/practice/typing", label: "Typing test" } },
 ];
 
@@ -68,11 +68,18 @@ export interface ChatEvidence {
   chats: number;
 }
 
+/** The candidate's recent AI-marked support tickets: the average of their latest few, 0-100. */
+export interface TicketEvidence {
+  score: number;
+  tickets: number;
+}
+
 /** Evidence from the dedicated practice tools; each is null until the candidate has used it. */
 export interface ToolEvidence {
   typing?: TypingEvidence | null;
   email?: EmailEvidence | null;
   chat?: ChatEvidence | null;
+  ticket?: TicketEvidence | null;
 }
 
 export type AreaSource =
@@ -80,7 +87,8 @@ export type AreaSource =
   | { kind: "practice"; attempts: number }
   | { kind: "typing"; tests: number }
   | { kind: "email"; emails: number }
-  | { kind: "chat"; chats: number };
+  | { kind: "chat"; chats: number }
+  | { kind: "ticket"; tickets: number };
 
 export interface AreaResult extends ReadinessArea {
   score: number | null;
@@ -110,7 +118,7 @@ export function computeInternationalReadiness(
   assessment: AssessmentEvidence | null,
   mastery: ReadonlyMap<string, MasteryEvidence>,
   now = new Date(),
-  { typing = null, email = null, chat = null }: ToolEvidence = {}
+  { typing = null, email = null, chat = null, ticket = null }: ToolEvidence = {}
 ): InternationalReadiness {
   const fresh = assessment && now.getTime() - assessment.completedAt.getTime() <= ASSESSMENT_FRESH_DAYS * 86_400_000 ? assessment : null;
 
@@ -124,6 +132,8 @@ export function computeInternationalReadiness(
     }
     // Customer handling: after a recent assessment, marked live chats beat role-play practice.
     if (area.key === "customerHandling" && chat) return { ...area, score: chat.score, source: { kind: "chat", chats: chat.chats } };
+    // Workplace judgement: handling real tickets (category, priority, next steps) beats multiple-choice practice.
+    if (area.key === "judgement" && ticket) return { ...area, score: ticket.score, source: { kind: "ticket", tickets: ticket.tickets } };
     const rated = area.skillIds.map((id) => mastery.get(id)).filter((m): m is MasteryEvidence => !!m && m.band !== "UNRATED");
     if (rated.length) {
       const score = Math.round(rated.reduce((s, m) => s + m.score, 0) / rated.length);

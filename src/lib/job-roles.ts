@@ -10,7 +10,8 @@ export type RoleStep =
   | { kind: "mock"; label: string; why: string } // the mock exam page
   | { kind: "typing"; label: string; why: string } // /practice/typing
   | { kind: "email"; label: string; why: string } // /practice/email
-  | { kind: "chat"; label: string; why: string }; // /practice/chat
+  | { kind: "chat"; label: string; why: string } // /practice/chat
+  | { kind: "ticket"; label: string; why: string }; // /practice/tickets
 
 export type JobRole = { slug: string; title: string; group: RoleGroupId; summary: string; steps: RoleStep[] };
 
@@ -41,6 +42,8 @@ export function stepHref(step: RoleStep): string {
       return "/practice/email";
     case "chat":
       return "/practice/chat";
+    case "ticket":
+      return "/practice/tickets";
   }
 }
 
@@ -77,6 +80,7 @@ const S = {
   supervisor: { kind: "talk", role: "SUPERVISOR", label: "Conversation with an AI manager", why: "Handle updates, feedback and difficult talks with a manager." },
   mockSupport: { kind: "mock", label: "Customer Support English Assessment", why: "A full timed test like a BPO hiring round, with a score report." },
   mockAptitude: { kind: "mock", label: "Aptitude Screening or Graduate Recruitment Assessment", why: "A full timed aptitude test like a company's first round." },
+  ticket: { kind: "ticket", label: "Ticket handling (AI-marked)", why: "Choose the category and priority, reply, and leave a note for your team." },
   chat: { kind: "chat", label: "Live chat simulation", why: "Chat with an AI customer who reacts to what you write, then get marked." },
   email: { kind: "email", label: "Email writing (AI-marked)", why: "Reply to a real customer email and get marked on tone, structure and grammar." },
   typing: { kind: "typing", label: "Typing test", why: "Chat, email and back-office jobs test typing speed and accuracy." },
@@ -85,7 +89,7 @@ const S = {
 
 const voice = (extra: RoleStep[] = []): RoleStep[] => [S.customerCall, S.serviceRoleplay, ...extra, S.listening, S.pronunciation, S.judgement, S.mockSupport, S.interview];
 const graduate = (extra: RoleStep[] = []): RoleStep[] => [S.quant, S.reasoning, S.verbal, ...extra, S.mockAptitude, S.interviewQs, S.interview];
-const office = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.email, S.typing, S.workplaceComms, S.writing, S.grammar, S.judgement, S.mockWorkplace, S.interview];
+const office = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.email, S.ticket, S.typing, S.workplaceComms, S.writing, S.grammar, S.judgement, S.mockWorkplace, S.interview];
 const spoken = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.speaking, S.fluency, S.pronunciation, S.judgement, S.interviewQs, S.interview];
 
 export const JOB_ROLES: JobRole[] = [

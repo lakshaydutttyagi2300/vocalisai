@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { ArrowRight, ClipboardCheck, Clock, Target } from "lucide-react";
-import { Icon, IconBadge } from "@/components/ui/Icon";
+import { ArrowRight, ClipboardCheck, Target } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { MediaHero } from "@/components/ui/MediaHero";
 import { HEROES } from "@/config/heroMedia";
@@ -11,13 +11,13 @@ import { loadInternationalReadiness, supportAssessmentTemplateId } from "@/lib/r
 
 export const metadata = { title: "International Process readiness - VocalisAi" };
 
-const COMING_SOON = ["Ticket handling"];
 
 const dateText = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function sourceText(a: AreaResult): string {
   if (!a.source) return "No score yet";
   if (a.source.kind === "assessment") return `From your assessment on ${dateText(a.source.at)}`;
+  if (a.source.kind === "ticket") return `From your last ${a.source.tickets === 1 ? "marked ticket" : `${a.source.tickets} marked tickets`}`;
   if (a.source.kind === "chat") return `From your last ${a.source.chats === 1 ? "marked chat" : `${a.source.chats} marked chats`}`;
   if (a.source.kind === "email") return `From your last ${a.source.emails === 1 ? "marked email" : `${a.source.emails} marked emails`}`;
   if (a.source.kind === "typing") return `From your last ${a.source.tests === 1 ? "typing test" : `${a.source.tests} typing tests`}`;
@@ -107,18 +107,6 @@ export default async function ReadinessPage() {
                   Practise
                   <Icon as={ArrowRight} />
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mt-8">
-          <h2 className="font-display text-lg font-bold text-ink-950">Coming soon</h2>
-          <ul className="mt-3 grid gap-3">
-            {COMING_SOON.map((c) => (
-              <li key={c} className="card flex items-center gap-3 p-4 text-sm text-slate-600">
-                <IconBadge as={Clock} />
-                {c}
               </li>
             ))}
           </ul>

@@ -46,6 +46,7 @@ model User {
   typingResults       TypingResult[]
   emailReviews        EmailReview[]
   chatSimulations     ChatSimulation[]
+  ticketReviews       TicketReview[]
 }
 
 // ---------------------------------------------------------------------------
@@ -824,7 +825,7 @@ model UsageEvent {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO | SUPPORT_ASSESSMENT_TRY | EMAIL_REVIEW | CHAT_SIMULATION
+  feature String // PRACTICE_SESSION | VOICE_RECORDING | SPEECH_ANALYSIS | IMPROVE_ANSWER | COACH_MESSAGE | MOCK_ASSESSMENT | INTERVIEW_SIMULATION | AI_SCENARIO | SUPPORT_ASSESSMENT_TRY | EMAIL_REVIEW | CHAT_SIMULATION | TICKET_REVIEW
 
   createdAt DateTime @default(now())
 
@@ -1198,6 +1199,26 @@ model ChatSimulation {
   costUsd      Float     @default(0)
   createdAt    DateTime  @default(now())
   endedAt      DateTime?
+
+  @@index([userId, createdAt])
+}
+
+// One AI-marked handled ticket (practice/tickets): the category and priority
+// chosen, the reply and the internal note. The marks come from one AI call,
+// checked with a schema; the overall score is worked out in code.
+model TicketReview {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketKey    String // src/lib/ticket-handling/tickets.ts
+  category     String
+  priority     String
+  reply        String
+  note         String
+  score        Int // 0-100
+  feedbackJson String // ratings, best category and priority, strengths, fixes, model note
+  costUsd      Float    @default(0)
+  createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
 }
