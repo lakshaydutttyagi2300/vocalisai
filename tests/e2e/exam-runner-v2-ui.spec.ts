@@ -123,8 +123,11 @@ test("a candidate takes a v2 exam through the real proctored flow, including res
   await page.getByRole("button", { name: "Submit section" }).click();
   await page.getByRole("button", { name: "Yes, submit section" }).click();
 
-  // Finished -> the v2 results page.
+  // Finished -> the v2 results page. The URL changes as soon as the loading
+  // skeleton (src/app/loading.tsx) shows; the results are rendered on the
+  // server after several more round trips to the remote test database
+  // (measured at ~5 s in a full run), so they get their own wait.
   await expect(page).toHaveURL(/\/exam\/results\//, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "Your results" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your results" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("Correct (auto-marked)").first()).toBeVisible();
 });
