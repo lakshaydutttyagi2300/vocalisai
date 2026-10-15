@@ -43,6 +43,7 @@ export function ExamRunnerV2({
 
   const pendingRef = useRef(new Map<string, LocalAnswer>());
   const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const inFlightRef = useRef(0);
   const paperIndexRef = useRef<number | null>(null);
   const completedRef = useRef(false);
   // The parent shell re-renders every second (its elapsed clock) and
@@ -107,29 +108,41 @@ export function ExamRunnerV2({
     const pending = pendingRef.current.get(questionId);
     if (!pending) return;
     pendingRef.current.delete(questionId);
+    inFlightRef.current += 1;
     setSaveStatus("saving");
+    let res: Response | null = null;
     try {
-      const res = await fetch(`/api/exam-sessions/${sessionId}/response`, {
+      res = await fetch(`/api/exam-sessions/${sessionId}/response`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId, answer: pending.answer, flagged: pending.flagged }),
       });
-      if (res.status === 409) {
-        // Section closed (time up) or moved on - the server's view wins.
-        await load();
-        setSaveStatus("idle");
-        return;
-      }
-      setSaveStatus(res.ok ? "saved" : "error");
     } catch {
-      setSaveStatus("error");
       // Keep it queued so the next save or flush retries it.
       if (!pendingRef.current.has(questionId)) pendingRef.current.set(questionId, pending);
     }
+    inFlightRef.current -= 1;
+    if (res?.status === 409) {
+      // Section closed (time up) or moved on - the server's view wins.
+      await load();
+      setSaveStatus("idle");
+      return;
+    }
+    if (!res?.ok) {
+      setSaveStatus("error");
+      return;
+    }
+    // "All changes saved" only once nothing is waiting or on its way: with
+    // several answers in quick succession, the first reply must not vouch
+    // for the others (a candidate who then closes the tab would lose them).
+    // An answer still queued with nothing on its way is one that failed.
+    const onItsWay = timersRef.current.size > 0 || inFlightRef.current > 0;
+    setSaveStatus(pendingRef.current.size === 0 && !onItsWay ? "saved" : onItsWay ? "saving" : "error");
   }
 
   function queueSave(questionId: string, next: LocalAnswer) {
     setAnswers((a) => ({ ...a, [questionId]: next }));
+    setSaveStatus("saving");
     pendingRef.current.set(questionId, next);
     const existing = timersRef.current.get(questionId);
     if (existing) clearTimeout(existing);
