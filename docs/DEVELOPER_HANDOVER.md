@@ -41,6 +41,13 @@ To get an admin login locally, sign up normally, then set your `role` to `ADMIN`
 
 Check it works: http://localhost:3000/api/health returns `{"ok":true,"database":"reachable"}`.
 
+### Moving to another laptop
+
+The code is on GitHub. What is not (on purpose) is the `.env` files, `private/` (question source files and the audio upload cache), the Neon and Vercel project links, and Claude's memory for this project.
+- `scripts/backup-laptop.ps1` puts them in one dated zip: in Google Drive (`My Drive\VocalisAI-backup`) when Google Drive for desktop is installed, otherwise on the Desktop. Add `-Schedule` for a daily 6 pm copy. The zip holds secrets, so keep it private.
+- On the new laptop: install Git and Node 24, clone the repository, and run `scripts/restore-laptop.ps1 -Zip <the zip>`. It copies everything back, never overwrites a file without `-Force`, and installs the packages.
+- Then sign in again to the CLIs (`npx vercel login`, `neon auth`). Reinstall the Kokoro voice tools only for audio generation ([LISTENING_SYSTEM.md](LISTENING_SYSTEM.md)).
+
 ## 4. Commands
 
 | Command | What it does |
