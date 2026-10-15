@@ -4,7 +4,7 @@
 
 import { parseGeminiJson } from "./gemini-json";
 import { ticketReviewAiSchema, type TicketReviewAi } from "@/lib/ticket-handling/review";
-import { TICKET_CATEGORIES, TICKET_PRIORITIES, type SupportTicket } from "@/lib/ticket-handling/tickets";
+import { TICKET_CATEGORIES, type SupportTicket } from "@/lib/ticket-handling/tickets";
 
 const PINNED_MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite";
