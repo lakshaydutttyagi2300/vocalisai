@@ -60,6 +60,10 @@ test("My Skills dashboard, a quick drill, and the updated score", async ({ page 
 });
 
 test("'I'm weak in' diagnostic ends with results and recommended drills", async ({ page }) => {
+  // Twelve answers against the remote test database: on an idle PC the run
+  // took 58 s (starting the check 13.6 s, each answer ~2 s); in a full suite
+  // each answer takes 4-5 s, so the default 60 s isn't enough.
+  test.setTimeout(180_000);
   await page.goto("/skills");
   await page.getByRole("link", { name: "Logical Reasoning", exact: true }).first().click();
   await expect(page).toHaveURL(/\/skills\/diagnostic\/rea$/);

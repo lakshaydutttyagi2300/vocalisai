@@ -27,7 +27,10 @@ test("start a chat, carry on after a refresh, chat and see the result on a phone
   await page.goto("/practice/chat");
 
   await page.getByRole("button", { name: "Start a chat" }).click();
-  await expect(page.getByText(/replies left/)).toBeVisible();
+  // Starting a chat is several round trips to the remote test database
+  // (the plan check's locked transaction, then the insert): 3.7 s on an idle
+  // PC and over 5 s in a full suite, so it gets its own wait.
+  await expect(page.getByText(/replies left/)).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("button", { name: "End chat and get my score" })).toBeDisabled();
   const stored = await db.chatSimulation.findFirstOrThrow({ where: { userId: u.id } });
   const opening = (JSON.parse(stored.turnsJson) as { text: string }[])[0].text;
