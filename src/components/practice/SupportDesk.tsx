@@ -155,13 +155,13 @@ export function SupportDesk() {
                         <Icon as={CHANNEL_ICON[info.channel] ?? Inbox} />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-ink-900">{info.subject}</span>
+                        <span className="block text-sm font-semibold text-ink-900">{info.subject}</span>
                         <span className="block text-xs text-slate-500">
                           {info.customerName} · {info.channel}
                           {t.status === "on_hold" ? " · On hold" : ""}
                         </span>
                       </span>
-                      <span className={`flex items-center gap-1 text-xs font-medium ${t.status === "resolved" ? "text-green-700" : overdue ? "text-red-700" : soon ? "text-amber-700" : "text-slate-600"}`}>
+                      <span className={`flex w-full items-center gap-1 pl-12 text-xs font-medium sm:w-auto sm:pl-0 ${t.status === "resolved" ? "text-green-700" : overdue ? "text-red-700" : soon ? "text-amber-700" : "text-slate-600"}`}>
                         <Icon as={t.status === "resolved" ? CheckCircle2 : AlarmClock} />
                         {dueLabel(t, now)}
                         {t.status === "resolved" && typeof t.score === "number" ? ` · ${t.score}/100` : ""}
