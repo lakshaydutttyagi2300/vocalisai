@@ -28,21 +28,22 @@ test("work a shift on the support desk, on a laptop and a phone", async ({ page 
 
   await page.getByRole("button", { name: "Start my shift" }).click();
   const tiles = page.getByRole("list", { name: "Your queue at a glance" });
-  await expect(tiles.getByText("Waiting")).toBeVisible();
+  // Server steps (several round trips to the remote test database) get their own wait.
+  await expect(tiles.getByText("Waiting")).toBeVisible({ timeout: 30_000 });
   await expect(tiles).toContainText("5Waiting");
   await expect(page.getByRole("button", { name: "Open" })).toHaveCount(5);
 
   // Hold and resume the first ticket.
   await page.getByRole("button", { name: "Hold" }).first().click();
-  await expect(tiles).toContainText("1On hold");
+  await expect(tiles).toContainText("1On hold", { timeout: 30_000 });
   await page.getByRole("button", { name: "Resume" }).click();
-  await expect(tiles).toContainText("0On hold");
+  await expect(tiles).toContainText("0On hold", { timeout: 30_000 });
 
   // Open a ticket, then go back without submitting.
   await page.getByRole("button", { name: "Open" }).first().click();
   await expect(page.getByLabel("Internal note for your colleagues")).toBeVisible();
   await page.getByRole("button", { name: "Back to the queue" }).click();
-  await expect(page.getByRole("heading", { name: "Your queue" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your queue" })).toBeVisible({ timeout: 30_000 });
 
   // Resolve one ticket as the marking would, then reload.
   const shift = await db.deskShift.findFirstOrThrow({ where: { userId: u.id, endedAt: null } });
@@ -56,7 +57,7 @@ test("work a shift on the support desk, on a laptop and a phone", async ({ page 
   for (const [name, size] of [["laptop", { width: 1280, height: 900 }], ["phone", { width: 390, height: 844 }]] as const) {
     await page.setViewportSize(size);
     await page.goto("/practice/tickets");
-    await expect(tiles).toContainText("1Resolved");
+    await expect(tiles).toContainText("1Resolved", { timeout: 30_000 });
     await expect(page.getByText("Resolved on time · 85/100")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Customer happiness" })).toBeVisible();
     await expect(page.getByRole("img", { name: "100% happy, 0% neutral, 0% unhappy" })).toBeVisible();

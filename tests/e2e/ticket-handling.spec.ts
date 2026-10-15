@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { PLAN_LIMITS } from "@/lib/entitlements";
 import { createTestUser, loginAs } from "./helpers";
 
-// The ticket handling page through the real server: the submit button waits
+// Handling one ticket from the support desk through the real server: the submit button waits
 // for every part; a used-up allowance shows a plain sentence and never
 // reaches the AI; a marked result is laid out well on a phone (that one
 // result is supplied by the test, so no AI is called).
@@ -16,6 +16,13 @@ const note = "Checked the account, explained the next step to the customer and s
 test.afterAll(async () => {
   await db.user.deleteMany({ where: { email: { startsWith: `e2e-ticket-${stamp}` } } });
 });
+
+// The tickets page is the support desk: start a shift and open the first ticket.
+async function openTicket(page: import("@playwright/test").Page) {
+  await page.goto("/practice/tickets");
+  await page.getByRole("button", { name: "Start my shift" }).click();
+  await page.getByRole("button", { name: "Open" }).first().click({ timeout: 30_000 });
+}
 
 async function fill(page: import("@playwright/test").Page) {
   await page.getByLabel("Category").selectOption("Complaint");
@@ -30,7 +37,7 @@ test("waits for every part, and a used-up allowance is explained without calling
   for (let i = 0; i < PLAN_LIMITS.FREE.TICKET_REVIEW; i++) await db.usageEvent.create({ data: { userId: u.id, feature: "TICKET_REVIEW" } });
   await page.goto("/");
   await loginAs(page, email, password);
-  await page.goto("/practice/tickets");
+  await openTicket(page);
   const submit = page.getByRole("button", { name: "Submit ticket for marking" });
   await fill(page);
   await expect(submit).toBeDisabled(); // no internal note yet
@@ -77,7 +84,7 @@ test("a marked ticket is laid out well on a phone", async ({ page }, testInfo) =
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/practice/tickets");
+  await openTicket(page);
   await fill(page);
   await page.getByLabel("Internal note for your colleagues").fill(note);
   await page.getByRole("button", { name: "Submit ticket for marking" }).click();
