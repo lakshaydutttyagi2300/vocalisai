@@ -35,10 +35,26 @@ function watch(page: Page) {
   return found;
 }
 
+// Late in a full run on an 8 GB PC, Chromium itself can run short of memory
+// (0 MB free was measured): it then refuses a navigation with
+// net::ERR_INSUFFICIENT_RESOURCES, or can't produce a full-page screenshot.
+// Those are the browser's limits, not the page's, so each gets one more try
+// after a pause; any other error, and every check below, still fails as before.
+async function browserRetry<T>(what: string, run: () => Promise<T>, isBrowserLimit: RegExp): Promise<T> {
+  try {
+    return await run();
+  } catch (e) {
+    if (!isBrowserLimit.test(String(e))) throw e;
+    console.log(`browser short of resources (${what}) - trying again`);
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    return run();
+  }
+}
+
 async function visit(page: Page, found: string[], problems: string[], vp: string, path: string) {
   found.length = 0;
   const before = problems.length;
-  const res = await page.goto(path, { waitUntil: "domcontentloaded" });
+  const res = await browserRetry(`opening ${path}`, () => page.goto(path, { waitUntil: "domcontentloaded" }), /ERR_INSUFFICIENT_RESOURCES/);
   await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
   await page.waitForTimeout(300); // let late client renders settle
   const where = `${vp} ${path}`;
@@ -61,7 +77,7 @@ async function visit(page: Page, found: string[], problems: string[], vp: string
   for (const f of found) problems.push(`${where}: ${f}`);
   for (const p of problems.slice(before)) console.log(`PROBLEM ${p}`); // live, so a crash can't hide them
   const file = path === "/" ? "home" : path.replace(/^\//, "").replace(/[/?=&]/g, "_").slice(0, 80);
-  await page.screenshot({ path: `${SHOTS}/${vp}/${file}.png`, fullPage: true });
+  await browserRetry(`screenshot of ${where}`, () => page.screenshot({ path: `${SHOTS}/${vp}/${file}.png`, fullPage: true }), /Unable to capture screenshot/);
 }
 
 test("every page opens cleanly on a laptop and a phone", async ({ page }) => {
