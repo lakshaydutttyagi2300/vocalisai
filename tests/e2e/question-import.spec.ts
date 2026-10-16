@@ -76,9 +76,11 @@ test("an admin imports CSV, XLSX and JSON question files into the question bank"
     expect(await db.practiceQuestion.findFirstOrThrow({ where: { prompt: { contains: `since 2020. ${tag}` } } })).toMatchObject({ category: "GRAMMAR", correctAnswer: "has lived", isActive: true });
 
     // The imported questions are in the bank list.
+    // (Each bank-list row has a "Select: <prompt>" checkbox; the import
+    // preview above can still show the same prompt, so look only at the list.)
     await page.getByLabel("Search prompt").fill(tag);
-    await expect(page.getByText(`What is 10% of 250? ${tag}`)).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(`She ___ here since 2020. ${tag}`)).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: `Select: What is 10% of 250? ${tag}` })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("checkbox", { name: `Select: She ___ here since 2020. ${tag}` })).toBeVisible();
 
     // 4. Bad files are explained, and nothing is saved.
     await upload(page, "broken.json", "application/json", Buffer.from('[{"prompt": "x",}'));
