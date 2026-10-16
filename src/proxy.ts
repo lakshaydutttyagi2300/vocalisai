@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
+import { readUserAccess } from "@/lib/proxy-user-access";
 
 const SESSION_COOKIES = ["next-auth.session-token", "__Secure-next-auth.session-token"];
 
@@ -41,7 +41,7 @@ export async function proxy(req: NextRequest) {
   // suspending or demoting someone must take effect on their very next
   // request, not when their token expires. src/lib/auth.ts's login-time
   // check is the other half (stops a suspended account starting a session).
-  const user = await db.user.findUnique({ where: { id: token.id }, select: { isActive: true, role: true } });
+  const user = await readUserAccess(token.id);
   if (!user || !user.isActive) {
     if (isApi) return NextResponse.json({ error: "This account has been suspended." }, { status: 403 });
     const res = NextResponse.redirect(new URL("/login?suspended=1", req.url));
