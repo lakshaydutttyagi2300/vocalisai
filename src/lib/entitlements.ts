@@ -37,6 +37,8 @@ export const FEATURES = [
   "CHAT_SIMULATION",
   // One AI marking of a handled support ticket (practice/tickets).
   "TICKET_REVIEW",
+  // One AI marking of a timed written description of a workplace photo (practice/picture-writing).
+  "PICTURE_REVIEW",
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 
@@ -53,6 +55,7 @@ export const FEATURE_LABELS: Record<Feature, string> = {
   EMAIL_REVIEW: "AI email review",
   CHAT_SIMULATION: "chat simulation",
   TICKET_REVIEW: "AI ticket review",
+  PICTURE_REVIEW: "AI picture-writing review",
 };
 
 // Plain "+s" breaks on irregular plurals ("Analysis" -> "Analyses", not
@@ -72,6 +75,7 @@ export const FEATURE_LABELS_PLURAL: Record<Feature, string> = {
   EMAIL_REVIEW: "AI email reviews",
   CHAT_SIMULATION: "chat simulations",
   TICKET_REVIEW: "AI ticket reviews",
+  PICTURE_REVIEW: "AI picture-writing reviews",
 };
 
 // FREE limits are lifetime (all-time), never resetting - deliberately a
@@ -100,6 +104,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     EMAIL_REVIEW: 2,
     CHAT_SIMULATION: 1,
     TICKET_REVIEW: 2,
+    PICTURE_REVIEW: 2,
   },
   STARTER: {
     PRACTICE_SESSION: 60,
@@ -114,6 +119,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     EMAIL_REVIEW: 15,
     CHAT_SIMULATION: 10,
     TICKET_REVIEW: 15,
+    PICTURE_REVIEW: 15,
   },
   PROFESSIONAL: {
     PRACTICE_SESSION: 150,
@@ -128,6 +134,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     EMAIL_REVIEW: 40,
     CHAT_SIMULATION: 25,
     TICKET_REVIEW: 40,
+    PICTURE_REVIEW: 40,
   },
   PREMIUM: {
     PRACTICE_SESSION: 300,
@@ -142,6 +149,7 @@ export const PLAN_LIMITS: Record<Plan, Record<Feature, number>> = {
     EMAIL_REVIEW: 100,
     CHAT_SIMULATION: 60,
     TICKET_REVIEW: 100,
+    PICTURE_REVIEW: 100,
   },
 };
 

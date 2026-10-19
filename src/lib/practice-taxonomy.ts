@@ -12,6 +12,9 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   EXPERT: "Expert",
 };
 
+/** Catalogue skills whose practice tests show the choices as A, B, C, D (src/components/practice-tests/PracticeTestRunner.tsx). */
+export const LETTERED_OPTION_SKILLS: ReadonlySet<string> = new Set(["conversation-completion"]);
+
 export type QuestionType =
   | "MULTIPLE_CHOICE"
   | "READING_COMPREHENSION"

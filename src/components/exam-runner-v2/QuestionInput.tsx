@@ -16,10 +16,10 @@ export function blankCount(prompt: string): number {
   return Math.max(1, (prompt.match(/_{3,}/g) ?? []).length);
 }
 
-function Choice({ options, value, onChange, labels }: { options: string[]; value: unknown; onChange: (v: string) => void; labels?: Record<string, string> }) {
+function Choice({ options, value, onChange, labels, lettered = false }: { options: string[]; value: unknown; onChange: (v: string) => void; labels?: Record<string, string>; lettered?: boolean }) {
   return (
     <div className="mt-4 space-y-2" role="radiogroup">
-      {options.map((opt) => (
+      {options.map((opt, i) => (
         <button
           type="button"
           role="radio"
@@ -30,6 +30,7 @@ function Choice({ options, value, onChange, labels }: { options: string[]; value
             value === opt ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 hover:border-slate-300"
           }`}
         >
+          {lettered && <span className="mr-2 font-semibold">{String.fromCharCode(65 + i)}.</span>}
           {labels?.[opt] ?? opt}
         </button>
       ))}
@@ -43,19 +44,22 @@ export function QuestionInput({
   options,
   value,
   onChange,
+  lettered = false,
 }: {
   type: string;
   prompt: string;
   options: string[] | null;
   value: unknown;
   onChange: (answer: unknown) => void;
+  /** Show the choices as A, B, C, D (multiple-choice types only). */
+  lettered?: boolean;
 }) {
   switch (type) {
     case "MULTIPLE_CHOICE":
     case "READING_COMPREHENSION":
     case "LISTENING_COMPREHENSION":
     case "MATCHING":
-      return <Choice options={options ?? []} value={value} onChange={onChange} />;
+      return <Choice options={options ?? []} value={value} onChange={onChange} lettered={lettered} />;
 
     case "TRUE_FALSE_NOT_GIVEN":
       return <Choice options={TFNG} value={value} onChange={onChange} labels={ENUM_LABELS} />;

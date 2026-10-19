@@ -276,7 +276,7 @@ export async function practiceTestView(userId: string, testId: string) {
     db.questionBookmark.findMany({ where: { userId, questionId: { in: test.questionIds } }, select: { questionId: true } }),
     test.examId ? db.catalogExam.findUnique({ where: { id: test.examId }, select: { name: true, slug: true, category: { select: { slug: true } } } }) : null,
     test.subjectId ? db.catalogSubject.findUnique({ where: { id: test.subjectId }, select: { name: true } }) : null,
-    test.catalogSkillId ? db.catalogSkill.findUnique({ where: { id: test.catalogSkillId }, select: { name: true } }) : null,
+    test.catalogSkillId ? db.catalogSkill.findUnique({ where: { id: test.catalogSkillId }, select: { name: true, slug: true } }) : null,
   ]);
 
   const byId = new Map(questions.map((q) => [q.id, q]));
@@ -302,6 +302,7 @@ export async function practiceTestView(userId: string, testId: string) {
     exam: exam ? { name: exam.name, href: `/explore/${exam.category.slug}/${exam.slug}` } : null,
     subjectName: subject?.name ?? null,
     skillName: skill?.name ?? null,
+    skillSlug: skill?.slug ?? null,
     questions: test.questionIds
       .map((id) => byId.get(id))
       .filter((q) => q !== undefined)

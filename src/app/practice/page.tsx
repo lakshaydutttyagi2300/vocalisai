@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Inbox, Layers3, Mail, MessageSquare, Mic, Keyboard, Timer, Target } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Image as ImageIcon, Inbox, Layers3, Mail, MessageSquare, MessagesSquare, Mic, Keyboard, Timer, Target } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { PRACTICE_MODES, type PracticeModeDef } from "@/lib/practice-taxonomy";
 import { MediaHero } from "@/components/ui/MediaHero";
@@ -149,6 +149,24 @@ export default async function PracticeHubPage() {
             <span className="min-w-0">
               <span className="block font-semibold text-ink-950">Ticket handling</span>
               <span className="mt-1 block text-sm text-slate-600">Prioritise and answer a support ticket &rarr;</span>
+            </span>
+          </Link>
+          <Link href="/practice/picture-writing" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <Icon as={ImageIcon} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-950">Picture writing test</span>
+              <span className="mt-1 block text-sm text-slate-600">Describe a workplace photo in 2 minutes &rarr;</span>
+            </span>
+          </Link>
+          <Link href="/practice/conversation-completion" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <Icon as={MessagesSquare} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-950">Conversation completion</span>
+              <span className="mt-1 block text-sm text-slate-600">Choose the best reply at work &rarr;</span>
             </span>
           </Link>
           <Link href="/goal" className="sheet group flex items-start gap-4 p-6 transition-colors hover:border-brand-200">

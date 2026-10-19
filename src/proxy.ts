@@ -106,5 +106,6 @@ export const config = {
     "/api/chat-simulations/:path*",
     "/api/ticket-reviews/:path*",
     "/api/desk-shifts/:path*",
+    "/api/picture-reviews/:path*",
   ],
 };

@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { StimulusView } from "@/components/questions/StimulusView";
 import { QuestionInput } from "@/components/exam-runner-v2/QuestionInput";
 import type { PracticeTestView } from "@/lib/practice-tests";
+import { LETTERED_OPTION_SKILLS } from "@/lib/practice-taxonomy";
 import { PracticeTestReview } from "@/components/practice-tests/PracticeTestReview";
 
 type Question = PracticeTestView["questions"][number];
@@ -224,7 +225,7 @@ export function PracticeTestRunner({ initial }: { initial: PracticeTestView }) {
         <h2 className="whitespace-pre-line text-base font-semibold leading-relaxed text-ink-950">{current.prompt}</h2>
 
         <fieldset disabled={locked || busy} className="disabled:opacity-90">
-          <QuestionInput type={current.type} prompt={current.prompt} options={current.options} value={value} onChange={(v) => setDraft((d) => ({ ...d, [current.id]: v }))} />
+          <QuestionInput type={current.type} prompt={current.prompt} options={current.options} value={value} onChange={(v) => setDraft((d) => ({ ...d, [current.id]: v }))} lettered={!!test.skillSlug && LETTERED_OPTION_SKILLS.has(test.skillSlug)} />
         </fieldset>
 
         {locked && current.isCorrect !== null && (

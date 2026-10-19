@@ -45,6 +45,7 @@ model User {
   certificates        Certificate[]
   typingResults       TypingResult[]
   emailReviews        EmailReview[]
+  pictureReviews      PictureReview[]
   chatSimulations     ChatSimulation[]
   ticketReviews       TicketReview[]
   deskShifts          DeskShift[]
@@ -1180,6 +1181,27 @@ model EmailReview {
   costUsd      Float    @default(0)
   createdAt    DateTime @default(now())
 
+  @@index([userId, createdAt])
+}
+
+// One AI-marked written description of a workplace photo (practice/picture-writing).
+// attemptKey is made by the browser for each attempt, so a double submit
+// (a click as the timer ends) saves and charges only once.
+model PictureReview {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptKey    String // src/lib/picture-writing/prompts.ts
+  attemptKey   String
+  response     String
+  wordCount    Int
+  timedOut     Boolean  @default(false)
+  score        Int // 0-100
+  feedbackJson String // ratings, strengths, fixes, missed details, model answer
+  costUsd      Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, attemptKey])
   @@index([userId, createdAt])
 }
 

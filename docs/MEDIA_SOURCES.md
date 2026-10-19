@@ -81,6 +81,33 @@ the current slide, and hands over just before the loop point. `MediaHero`
 (every app page's hero) works the same way and also never loads video on phones
 or slow connections: stills and posters only.
 
+## Picture writing test photos (`public/media/picture-test/`)
+
+Free photos from [Pexels](https://www.pexels.com/license/), downloaded 19 Oct 2026 with the owner's OK: free for commercial use, no attribution required, and the people in them must not be presented as endorsing us. They are only used as practice prompts in the picture writing test (src/lib/picture-writing/prompts.ts); each photo is used for one prompt and nowhere else on the site, so they are not in the hero media library.
+
+Converted with sharp: `<key>.webp` (1200 px wide, quality 78) and `<key>-640.webp` (quality 74), 1.9 MB for all 18.
+
+| Name | Shows | Pexels photo |
+| --- | --- | --- |
+| `cafe-payment` | A barista taking a payment at a café counter | [3907119](https://www.pexels.com/photo/3907119/) |
+| `cafe-menu` | A customer asking about the menu at a café counter | [4921155](https://www.pexels.com/photo/4921155/) |
+| `shop-receipt` | A shopkeeper handing a card back to a customer | [8422734](https://www.pexels.com/photo/8422734/) |
+| `bakery-counter` | A customer and a staff member at a café counter | [6281429](https://www.pexels.com/photo/6281429/) |
+| `flipchart-meeting` | A woman presenting at a flipchart to colleagues | [5324980](https://www.pexels.com/photo/5324980/) |
+| `glass-board` | A team behind a glass wall of sticky notes | [9301825](https://www.pexels.com/photo/9301825/) |
+| `warehouse-check` | A woman checking a tablet among boxes | [6169659](https://www.pexels.com/photo/6169659/) |
+| `van-delivery` | Two people loading a delivery van | [5025667](https://www.pexels.com/photo/5025667/) |
+| `clinic-reception` | A clinic receptionist with two visitors | [7108317](https://www.pexels.com/photo/7108317/) |
+| `screen-surprise` | A surprised man at his computer in an office | [3755700](https://www.pexels.com/photo/3755700/) |
+| `site-plans` | Two workers in hard hats reading papers on site | [1216589](https://www.pexels.com/photo/1216589/) |
+| `site-team` | A site team in hard hats around plans | [37198881](https://www.pexels.com/photo/37198881/) |
+| `repair-workshop` | A technician repairing a machine in a workshop | [33388380](https://www.pexels.com/photo/33388380/) |
+| `doctor-nurse` | A nurse updating a doctor in a corridor | [6129589](https://www.pexels.com/photo/6129589/) |
+| `boardroom` | Three people in suits at a conference table | [8133996](https://www.pexels.com/photo/8133996/) |
+| `desk-help` | A colleague helping at a computer | [5621960](https://www.pexels.com/photo/5621960/) |
+| `loft-meeting` | An older man guiding a team at a table | [3860648](https://www.pexels.com/photo/3860648/) |
+| `clinic-chat` | Two women talking in a waiting area | [4266948](https://www.pexels.com/photo/4266948/) |
+
 ## Product demos
 
 The animated demos (`src/components/cine/demos.tsx`: speech analysis, AI
