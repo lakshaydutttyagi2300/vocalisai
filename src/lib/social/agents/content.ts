@@ -2,7 +2,7 @@ import { z } from "zod";
 import { AUTO_PLATFORMS } from "../config";
 import { chooseDirection, type Weights } from "../directions";
 import { alreadyCovered, freshResearch, history, redact } from "../memory";
-import { LIMITS, MAX_HASHTAGS, TELEGRAM_CAPTION_LIMIT } from "../platforms";
+import { LIMITS, MAX_HASHTAGS, TELEGRAM_CAPTION_LIMIT, trackedLink } from "../platforms";
 import type { Direction, Platform, Post, PostContent } from "../types";
 import { fingerprint } from "../uniqueness";
 import { child, istInstant, istParts, type AgentDef, type Ctx } from "./core";
@@ -13,10 +13,15 @@ export const FORMAT_FOR: Record<Platform, string> = {
 export const isVideoFormat = (f: string) => f === "reel" || f === "short";
 export const usesLink = (d: Partial<Direction>) => d.cta === "practice-free-at-vocalisai";
 
-/** Characters left for the writer after the link and hashtags are added. */
-export function bodyBudget(platform: Platform, includeLink: boolean): number {
+/**
+ * Characters left for the writer. Hashtags are optional (they are dropped if
+ * space runs out), so only the real tracked link and the line breaks are
+ * reserved; one short tag's worth of room is kept so a post can still carry it.
+ */
+export function bodyBudget(platform: Platform, includeLink: boolean, siteUrl: string): number {
   const limit = platform === "telegram" ? TELEGRAM_CAPTION_LIMIT : LIMITS[platform];
-  return limit - (includeLink ? 48 : 0) - MAX_HASHTAGS[platform] * 14 - 4;
+  const link = includeLink ? [...trackedLink(siteUrl, { id: "c".repeat(25) })].length + 1 : 0;
+  return limit - link - 2 - 16;
 }
 
 async function growthWeights(ctx: Ctx): Promise<Weights> {
@@ -123,7 +128,7 @@ export const writerAgent: AgentDef = {
       if (!post || !["IDEA", "DRAFT"].includes(post.status)) return { result: { skipped: "post not writable" } };
       const d = post.direction as Direction;
       const includeLink = usesLink(d);
-      const budget = bodyBudget(post.platform, includeLink);
+      const budget = bodyBudget(post.platform, includeLink, ctx.config.siteUrl);
       const hist = await history(ctx.store, 25);
       const video = isVideoFormat(post.format);
       const prompt = `You are a human-sounding writer for a brand in this niche: ${ctx.config.niche}. Brand voice: warm, specific, practical, a little witty; never hype.

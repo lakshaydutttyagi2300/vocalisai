@@ -8,6 +8,9 @@ const nextConfig = {
   serverExternalPackages: ["pdfkit", "svg-to-pdfkit"],
   outputFileTracingIncludes: {
     "/api/certificates/**": ["./src/lib/certificates/fonts/**/*"],
+    // Social Autopilot image cards use the Inter fonts from the certificates folder.
+    "/api/social/**": ["./src/lib/certificates/fonts/Inter-*.ttf"],
+    "/api/admin/social/**": ["./src/lib/certificates/fonts/Inter-*.ttf"],
   },
 };
 

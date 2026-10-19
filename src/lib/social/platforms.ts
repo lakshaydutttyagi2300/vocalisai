@@ -24,13 +24,25 @@ export interface Publisher {
   fetchReplies?(): Promise<Reply[]>;
 }
 
-/** The text that is actually posted: hook/body, tracked link, then hashtags - trimmed to the platform limit. */
+/** Characters, not UTF-16 units: the platforms count what a person sees. */
+const len = (t: string) => [...t].length;
+export const platformLimit = (p: Platform) => (p === "telegram" ? TELEGRAM_CAPTION_LIMIT : LIMITS[p]);
+
+/**
+ * The text that is actually posted: hook/body, tracked link, then hashtags.
+ * If it would be too long, hashtags are dropped (last first) before anything
+ * else, so a tight post still fits; the body itself is never cut here (QA
+ * rejects a body that is too long on its own).
+ */
 export function composeText(platform: Platform, content: Partial<PostContent>, trackedLink?: string): string {
-  const tags = (content.hashtags ?? []).slice(0, MAX_HASHTAGS[platform]).map((t) => (t.startsWith("#") ? t : `#${t}`)).join(" ");
-  const tail = [trackedLink, tags].filter(Boolean).join("\n");
   const body = (content.body ?? "").trim();
-  const text = tail ? `${body}\n\n${tail}` : body;
-  return text;
+  let tags = (content.hashtags ?? []).slice(0, MAX_HASHTAGS[platform]).map((t) => (t.startsWith("#") ? t : `#${t}`));
+  const build = () => {
+    const tail = [trackedLink, tags.join(" ")].filter(Boolean).join("\n");
+    return tail ? `${body}\n\n${tail}` : body;
+  };
+  while (tags.length && len(build()) > platformLimit(platform)) tags = tags.slice(0, -1);
+  return build();
 }
 
 function classify(status: number, what: string): Error {

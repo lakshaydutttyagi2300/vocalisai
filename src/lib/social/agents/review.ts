@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AUTO_PLATFORMS } from "../config";
 import { history } from "../memory";
-import { composeText, LIMITS, MAX_HASHTAGS, TELEGRAM_CAPTION_LIMIT, trackedLink } from "../platforms";
+import { composeText, MAX_HASHTAGS, platformLimit, trackedLink } from "../platforms";
 import type { Direction, Post } from "../types";
 import { findDuplicate } from "../uniqueness";
 import { BANNED_STYLE, usesLink } from "./content";
@@ -85,7 +85,7 @@ export function qaProblems(post: Post, past: { id: string; hook: string; body: s
   if (!c.hook || !c.body) return ["Post has no text"];
   const link = usesLink(post.direction as Direction) ? trackedLink(siteUrl, post) : undefined;
   const text = composeText(post.platform, c, link);
-  const limit = post.platform === "telegram" ? TELEGRAM_CAPTION_LIMIT : LIMITS[post.platform];
+  const limit = platformLimit(post.platform);
   if ([...text].length > limit) p.push(`Text is ${[...text].length} characters; ${post.platform} allows ${limit}`);
   if ((c.hashtags ?? []).length > MAX_HASHTAGS[post.platform]) p.push("Too many hashtags");
   if (!text.startsWith(c.hook.trim().slice(0, 30))) p.push("Body does not start with the hook");

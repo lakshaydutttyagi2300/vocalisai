@@ -7,7 +7,8 @@ import { PermanentError, TransientError } from "@/lib/social/errors";
 import { chooseDirection, HOOK_TYPES } from "@/lib/social/directions";
 import { redact } from "@/lib/social/memory";
 import { tick } from "@/lib/social/orchestrator";
-import { composeText } from "@/lib/social/platforms";
+import { bodyBudget } from "@/lib/social/agents/content";
+import { composeText, trackedLink } from "@/lib/social/platforms";
 import { findDuplicate } from "@/lib/social/uniqueness";
 import type { Post } from "@/lib/social/types";
 import { fakePlatform, makeCtx } from "./social-harness";
@@ -263,6 +264,20 @@ describe("community, memory and security", () => {
   it("redacts credentials before they are stored", () => {
     expect(redact("token sk-abcdefghijklmnopqrstuvwx and postgresql://u:p@host/db")).not.toMatch(/sk-abc|postgresql:/);
     expect(redact("123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw0 ok")).toContain("[redacted]");
+  });
+
+  it("a Bluesky post with the real tracked link and a body exactly at budget passes QA; hashtags yield first", () => {
+    const site = "https://vocalisai.vercel.app";
+    const id = "cmgx1234567890abcdefghijk"; // 25-character id, like a real one
+    const budget = bodyBudget("bluesky", true, site);
+    const hook = "Say it calmly";
+    const body = hook + " " + "a".repeat(budget - hook.length - 1);
+    expect(body.length).toBe(budget);
+    const post = { id, platform: "bluesky", format: "text-post", topic: "t", direction: { cta: "practice-free-at-vocalisai" }, content: { hook, body, hashtags: ["EnglishSpeaking", "InterviewTips", "Careers"], sources: [], claims: [] } } as unknown as Post;
+    const text = composeText("bluesky", post.content, trackedLink(site, post));
+    expect([...text].length).toBeLessThanOrEqual(300);
+    expect(text).toContain(`${site}/go/${id}`);
+    expect(qaProblems(post, [], site)).toEqual([]);
   });
 
   it("composes platform text with the tracked link only when the direction asks for it", () => {
