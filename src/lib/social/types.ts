@@ -49,7 +49,9 @@ export interface Direction {
   hookType: string;
   narrative: string;
   characters: string[]; // cast for dialogue-style pieces
-  batchId?: string; // posts adapted from one idea share a batch (not duplicates of each other)
+  angle?: string; // the specific take the strategist chose
+  evidence?: { title: string; url?: string; date?: string }[]; // research behind the topic
+  feedback?: string; // revision request from a reviewing agent
   visualStyle: string;
   cta: string;
   pillar: string;
@@ -69,7 +71,10 @@ export interface PostContent {
   hashtags: string[];
   link?: string;
   cardText?: string; // headline for the generated image card
-  video?: { scenes: VideoScene[]; music: string; durationSec: number };
+  alt?: string; // image description (accessibility)
+  visualNotes?: string; // creative director's brief
+  mediaChecked?: boolean;
+  video?: { scenes: VideoScene[]; music: string; durationSec: number; renderStatus?: "spec-only" | "rendered" };
   sources: { title: string; url: string }[];
   claims: { text: string; source?: string }[];
 }

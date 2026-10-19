@@ -20,9 +20,6 @@ export const configSchema = z.object({
   tickBudgetMs: z.number().int().min(10_000).max(55_000).default(45_000),
   maxTasksPerTick: z.number().int().min(1).max(100).default(30),
   siteUrl: z.string().url().default("https://vocalisai.vercel.app"),
-  // Replies to comments are only ever auto-posted in autopilot AND when this is true.
-  autoReply: z.boolean().default(false),
-  minConfidenceToAutoReply: z.number().min(0.5).max(1).default(0.9),
   niche: z.string().default("English speaking, workplace communication and job-interview preparation for Indian job seekers"),
 });
 export type SocialConfig = z.infer<typeof configSchema>;
