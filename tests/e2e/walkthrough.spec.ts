@@ -77,8 +77,15 @@ async function visit(page: Page, found: string[], problems: string[], vp: string
   for (const f of found) problems.push(`${where}: ${f}`);
   for (const p of problems.slice(before)) console.log(`PROBLEM ${p}`); // live, so a crash can't hide them
   const file = path === "/" ? "home" : path.replace(/^\//, "").replace(/[/?=&]/g, "_").slice(0, 80);
-  await browserRetry(`screenshot of ${where}`, () => page.screenshot({ path: `${SHOTS}/${vp}/${file}.png`, fullPage: true }), /Unable to capture screenshot/);
+  // A very long page (the admin exam catalogue is ~53,000 px on the test
+  // branch) needs one ~270 MB bitmap for a full-page shot, which Chromium
+  // refuses on an 8 GB PC. The checks above cover the whole page; the
+  // picture keeps only its top part.
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  const shot = height <= MAX_SHOT_HEIGHT ? { fullPage: true } : { fullPage: true, clip: { x: 0, y: 0, width: page.viewportSize()?.width ?? 1280, height: MAX_SHOT_HEIGHT } };
+  await browserRetry(`screenshot of ${where}`, () => page.screenshot({ path: `${SHOTS}/${vp}/${file}.png`, ...shot }), /Unable to capture screenshot/);
 }
+const MAX_SHOT_HEIGHT = 15_000;
 
 test("every page opens cleanly on a laptop and a phone", async ({ page }) => {
   test.setTimeout(900_000);
