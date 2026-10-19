@@ -65,6 +65,9 @@ The code is on GitHub. What is not (on purpose) is the `.env` files, `private/` 
 
 ## 5. Where do I change this?
 
+### Social Autopilot (AI agents that post to social media)
+See [SOCIAL_AUTOPILOT.md](SOCIAL_AUTOPILOT.md): code in `src/lib/social/`, panel at `/admin/social`, heartbeat `POST /api/social/cron`.
+
 ### Frontend (pages in `src/app`, components in `src/components`)
 | Feature | Where |
 |---|---|

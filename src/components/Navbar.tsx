@@ -177,6 +177,7 @@ const ADMIN_NAV: ({ kind: "link" } & AdminLink | { kind: "group"; label: string;
       { href: "/admin/templates", label: "Templates", hint: "Mock test line-ups" },
       { href: "/admin/catalogue", label: "Exam catalogue", hint: "Categories, exams, subjects and skills" },
       { href: "/admin/catalogue/questions", label: "Catalogue questions", hint: "Question bank by exam, subject, skill and level" },
+      { href: "/admin/social", label: "Social Autopilot", hint: "AI team that researches, writes and posts" },
     ],
   },
   {

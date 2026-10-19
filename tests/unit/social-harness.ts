@@ -6,7 +6,7 @@ import type { Ctx } from "@/lib/social/agents/core";
 import type { AiClient } from "@/lib/social/ai";
 import { configSchema, saveConfig, type SocialConfig } from "@/lib/social/config";
 import type { MetricValues, Publisher } from "@/lib/social/platforms";
-import { MemoryStore } from "@/lib/social/store";
+import { MemoryStore, type SocialStore } from "@/lib/social/store";
 import type { Platform } from "@/lib/social/types";
 
 export const START = new Date("2026-10-20T00:00:00Z"); // 05:30 in India
@@ -82,8 +82,8 @@ export function fakePlatform(platform: Platform, over: Partial<Publisher> & { fa
   return { pub, published, metrics };
 }
 
-export async function makeCtx(cfg: Partial<SocialConfig> = {}, opts: FakeAiOptions & { platforms?: Partial<Record<Platform, Publisher>> } = {}) {
-  const store = new MemoryStore();
+export async function makeCtx(cfg: Partial<SocialConfig> = {}, opts: FakeAiOptions & { platforms?: Partial<Record<Platform, Publisher>>; store?: SocialStore } = {}) {
+  const store = opts.store ?? new MemoryStore();
   const clock = { t: new Date(START) };
   const config = await saveConfig(store, { platforms: ["bluesky"], postsPerDay: 2, planDaysAhead: 1, ...cfg });
   const { ai, calls } = fakeAi(opts);
