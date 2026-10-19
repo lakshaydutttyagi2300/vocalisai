@@ -1,0 +1,41 @@
+{
+  "id": "2026-10-26-pm-linkedin-headline",
+  "publish_after": "2026-10-26T19:00:00+05:30",
+  "format": "carousel",
+  "pillar": "Resume & LinkedIn",
+  "hook": "Your LinkedIn headline is *not* \"Student at XYZ\"",
+  "slides": [
+    {
+      "title": "Recruiters search keywords",
+      "body": "Your headline is the first thing they search and see."
+    },
+    {
+      "title": "Formula",
+      "body": "Target role | 2-3 skills | proof"
+    },
+    {
+      "title": "Example",
+      "body": "\"Aspiring Data Analyst | Excel, SQL, Power BI | Built 3 dashboards for college projects\""
+    },
+    {
+      "title": "Then fix your photo and About",
+      "body": "Clear face photo + 4-line About with what you can do and what you want."
+    }
+  ],
+  "cta": "Comment RESUME and practise pitching yourself out loud with free AI feedback.",
+  "caption": "\"Student at XYZ college\" tells recruiters nothing.\n\nUse: target role | 2-3 skills | proof. It takes 2 minutes and helps you show up in searches.\n\nWrite your new headline in the comments - I'll reply with feedback 👇\n\n💬 Comment RESUME for free AI practice to pitch yourself.",
+  "hashtags": [
+    "#linkedintips",
+    "#linkedin",
+    "#personalbranding",
+    "#freshers",
+    "#jobsearch",
+    "#placement2026",
+    "#careeradvice",
+    "#jobsinindia",
+    "#fresherjobs",
+    "#jobreadyindia"
+  ],
+  "comment_keyword": "RESUME",
+  "keyword_reply": "Here you go! 🎯 Practise this with a free AI mock interview + speaking score at vocalisai.vercel.app (link in bio). Tell me your score!"
+}

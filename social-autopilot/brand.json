@@ -1,0 +1,22 @@
+{
+  "name": "Job Ready India",
+  "handle": "@jobreadyindia2026",
+  "website": "vocalisai.vercel.app",
+  "colors": {
+    "bg": "#0B1736",
+    "bg2": "#13265A",
+    "accent": "#F97316",
+    "accent_soft": "#FFE3CC",
+    "text": "#FFFFFF",
+    "muted": "#B9C3DD",
+    "card": "#FFFFFF",
+    "card_text": "#0B1736"
+  },
+  "fonts": {
+    "heavy": "assets/fonts/Poppins-Bold.ttf",
+    "medium": "assets/fonts/Poppins-Medium.ttf",
+    "regular": "assets/fonts/Poppins-Regular.ttf"
+  },
+  "default_cta": "Free AI mock interview + speaking score at vocalisai.vercel.app (link in bio)",
+  "default_hashtags": ["#jobreadyindia", "#interviewtips", "#freshers", "#placement2026", "#spokenenglish", "#careeradvice", "#jobsinindia", "#fresherjobs", "#hrinterview", "#communicationskills"]
+}

@@ -8,3 +8,5 @@ uploads
 .env.local
 prisma/dev.db
 prisma/dev.db-journal
+# Social Autopilot runs on GitHub Actions, not on the website
+social-autopilot

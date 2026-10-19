@@ -1,0 +1,41 @@
+{
+  "id": "2026-10-25-pm-email-to-hr",
+  "publish_after": "2026-10-25T19:00:00+05:30",
+  "format": "carousel",
+  "pillar": "Job search",
+  "hook": "How to follow up with HR *without sounding desperate*",
+  "slides": [
+    {
+      "title": "Wait 5-7 working days",
+      "body": "If they gave you a date, wait one day past it."
+    },
+    {
+      "title": "Subject line",
+      "body": "\"Following up - [Role] interview on [Date] - [Your Name]\""
+    },
+    {
+      "title": "Body: thank, remind, ask",
+      "body": "\"Thank you for the interview for [Role]. I'm still very interested. Could you share an update on next steps?\""
+    },
+    {
+      "title": "One follow-up, then move on",
+      "body": "Keep applying meanwhile. Silence isn't always a no."
+    }
+  ],
+  "cta": "Comment MOCK and get free AI feedback on your professional emails and speaking.",
+  "caption": "Waiting after an interview is the worst part. A short, polite follow-up shows interest - and often gets you an answer.\n\nSave this template 📌\n\nHow long have you waited for HR to reply? 😅👇\n\n💬 Comment MOCK for free AI practice on emails and speaking.",
+  "hashtags": [
+    "#hr",
+    "#followupemail",
+    "#jobsearch",
+    "#emailetiquette",
+    "#freshers",
+    "#placement2026",
+    "#careeradvice",
+    "#jobsinindia",
+    "#businessenglish",
+    "#jobreadyindia"
+  ],
+  "comment_keyword": "MOCK",
+  "keyword_reply": "Here you go! 📝 Try a free sample of the AI speaking/assessment practice at vocalisai.vercel.app (link in bio). All the best!"
+}

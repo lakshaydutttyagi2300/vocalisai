@@ -1,0 +1,41 @@
+{
+  "id": "2026-10-24-pm-referral-message",
+  "publish_after": "2026-10-24T19:00:00+05:30",
+  "format": "carousel",
+  "pillar": "Job search",
+  "hook": "The referral message that *actually gets replies*",
+  "slides": [
+    {
+      "title": "Don't open with \"Hi sir, please refer\"",
+      "body": "Strangers ignore it. Give them a reason and make it easy."
+    },
+    {
+      "title": "Line 1: connection",
+      "body": "\"Hi Priya, I saw your post about the analyst team at your company.\""
+    },
+    {
+      "title": "Line 2-3: proof",
+      "body": "\"I'm a 2026 B.Tech grad, built a sales dashboard in Power BI for our college fest.\""
+    },
+    {
+      "title": "Line 4: tiny ask + job link",
+      "body": "\"Would you be open to referring me for this role? Resume attached. Thank you!\""
+    }
+  ],
+  "cta": "Comment INTERVIEW and practise the interview that comes after the referral - free.",
+  "caption": "Referrals get you noticed faster than a cold application - but only if your message is easy to say yes to.\n\nConnection → proof → tiny ask + job link. Keep it under 80 words.\n\nSave this template 📌 and send 3 messages this week.\n\n💬 Comment INTERVIEW for free AI interview practice once they say yes.",
+  "hashtags": [
+    "#referral",
+    "#jobsearch",
+    "#linkedintips",
+    "#freshers",
+    "#networking",
+    "#placement2026",
+    "#careeradvice",
+    "#jobsinindia",
+    "#fresherjobs",
+    "#jobreadyindia"
+  ],
+  "comment_keyword": "INTERVIEW",
+  "keyword_reply": "Here you go! 🎯 Practise this with a free AI mock interview + speaking score at vocalisai.vercel.app (link in bio). Tell me your score!"
+}

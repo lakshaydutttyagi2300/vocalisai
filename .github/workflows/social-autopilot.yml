@@ -1,0 +1,84 @@
+# Social Autopilot - posts to Instagram twice a day and replies to comments.
+# Runs free on GitHub's servers (public repo). Code and docs: social-autopilot/
+# Scheduled runs only happen once this file is on the default branch (main).
+name: Social Autopilot
+
+on:
+  schedule:
+    - cron: "37 4 * * *"      # ~10:07 IST - morning post (reel)
+    - cron: "37 13 * * *"     # ~19:07 IST - evening post (carousel)
+    - cron: "17 1-22/3 * * *" # every 3 hours - reply to new comments
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "What to run"
+        type: choice
+        options: [post, engage, check, refresh-token]
+        default: check
+      dry_run:
+        description: "Dry run (render only, don't publish or reply)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: social-autopilot
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: social-autopilot
+    env:
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: |
+          pip install -r requirements.txt
+          ffmpeg -version > /dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Decide what to run
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "task=${{ inputs.task }}" >> "$GITHUB_OUTPUT"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then echo "flags=--dry-run" >> "$GITHUB_OUTPUT"; fi
+          elif [ "${{ github.event.schedule }}" = "17 1-22/3 * * *" ]; then
+            echo "task=engage" >> "$GITHUB_OUTPUT"
+          else
+            echo "task=post" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: Run
+        run: |
+          TASK="${{ steps.pick.outputs.task }}"
+          FLAGS="${{ steps.pick.outputs.flags }}"
+          case "$TASK" in
+            post|engage) python -m autopilot.run "$TASK" $FLAGS ;;
+            *) python -m autopilot.run "$TASK" ;;
+          esac
+      - name: Keep the Instagram token fresh
+        if: steps.pick.outputs.task == 'post' && steps.pick.outputs.flags == ''
+        run: python -m autopilot.run refresh-token
+      - name: Save rendered media for review
+        if: always() && steps.pick.outputs.task == 'post'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-media
+          path: social-autopilot/out/
+          retention-days: 7
+          if-no-files-found: ignore

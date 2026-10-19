@@ -1,0 +1,41 @@
+{
+  "id": "2026-10-23-pm-versant-speaking-test",
+  "publish_after": "2026-10-23T19:00:00+05:30",
+  "format": "carousel",
+  "pillar": "Company assessments",
+  "hook": "Clear the *speaking round* of company assessments",
+  "slides": [
+    {
+      "title": "Know the format",
+      "body": "Many companies use automated English tests: read aloud, repeat sentences, short answers, listening."
+    },
+    {
+      "title": "Read aloud = pace + clarity",
+      "body": "Don't rush. Read at a steady speed, stress key words, pause at commas and full stops."
+    },
+    {
+      "title": "Repeat-the-sentence trick",
+      "body": "Listen for meaning, not single words. It's easier to repeat an idea than a string of words."
+    },
+    {
+      "title": "Practise with a timer",
+      "body": "These tests are timed. Silence costs marks, so start speaking within 2 seconds."
+    }
+  ],
+  "cta": "Comment MOCK and get free timed speaking practice with an AI score.",
+  "caption": "Lots of BPO, IT services and customer-support hiring starts with an automated English/communication test.\n\nMost people fail it because of pace and hesitation - not grammar.\n\nHave you given one of these tests? How did it go? 👇\n\n💬 Comment MOCK for free timed speaking practice with an AI score.",
+  "hashtags": [
+    "#versanttest",
+    "#communicationtest",
+    "#bpojobs",
+    "#spokenenglish",
+    "#freshers",
+    "#placement2026",
+    "#aptitude",
+    "#jobsinindia",
+    "#interviewtips",
+    "#jobreadyindia"
+  ],
+  "comment_keyword": "MOCK",
+  "keyword_reply": "Here you go! 📝 Try a free sample of the AI speaking/assessment practice at vocalisai.vercel.app (link in bio). All the best!"
+}
