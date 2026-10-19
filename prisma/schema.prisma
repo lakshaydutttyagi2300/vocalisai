@@ -1260,3 +1260,95 @@ model DeskShift {
 
   @@index([userId, startedAt])
 }
+
+// ---- Social Autopilot (agent team that researches, writes, checks and posts) ----
+// No relations to User on purpose: nothing here stores personal data.
+
+model SocialSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model SocialTask {
+  id          String    @id @default(cuid())
+  kind        String
+  agent       String
+  status      String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED | BLOCKED | CANCELLED
+  dedupeKey   String    @unique
+  payload     String    @default("{}")
+  result      String?
+  error       String?
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  depth       Int       @default(0)
+  runAfter    DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  parentId    String?
+  postId      String?
+  durationMs  Int?
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+
+  @@index([status, runAfter])
+  @@index([postId])
+}
+
+model SocialPost {
+  id            String    @id @default(cuid())
+  platform      String
+  status        String    @default("IDEA") // IDEA | DRAFT | NEEDS_REVIEW | APPROVED | SCHEDULED | PUBLISHING | PUBLISHED | REJECTED | FAILED
+  format        String
+  topic         String
+  directionJson String    @default("{}")
+  contentJson   String    @default("{}")
+  hookText      String    @default("")
+  fingerprint   String    @default("")
+  qaJson        String?
+  revisionCount Int       @default(0)
+  scheduledFor  DateTime?
+  publishedAt   DateTime?
+  externalId    String?
+  externalUrl   String?
+  clicks        Int       @default(0)
+  decidedBy     String?
+  error         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  metrics SocialMetric[]
+
+  @@index([status, scheduledFor])
+  @@index([platform, createdAt])
+}
+
+// null = the platform does not report it (never store 0 for "unknown").
+model SocialMetric {
+  id          String     @id @default(cuid())
+  postId      String
+  post        SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  collectedAt DateTime   @default(now())
+  likes       Int?
+  replies     Int?
+  shares      Int?
+  saves       Int?
+  views       Int?
+
+  @@index([postId, collectedAt])
+}
+
+// Memory: research evidence, decisions, experiments, reports, comment drafts.
+model SocialNote {
+  id        String    @id @default(cuid())
+  kind      String // RESEARCH | AUDIENCE | DECISION | EXPERIMENT | REPORT | COMMENT | ALERT
+  title     String
+  body      String
+  sourceUrl String?
+  verified  Boolean   @default(false)
+  dedupeKey String?   @unique
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([kind, createdAt])
+}
