@@ -1,0 +1,31 @@
+# Free scheduler for the Social Autopilot. Copy this file to
+# .github/workflows/social-autopilot.yml (see docs/SOCIAL_AUTOPILOT.md).
+# GitHub Actions is free for public repositories. It only wakes the app up;
+# all the work (and all the social-account secrets) stay on Vercel.
+name: Social Autopilot heartbeat
+on:
+  schedule:
+    - cron: "*/30 * * * *" # every 30 minutes (GitHub may delay runs by several minutes)
+  workflow_dispatch: {}
+concurrency:
+  group: social-autopilot
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Run due autopilot tasks
+        env:
+          SITE_URL: ${{ secrets.AUTOPILOT_SITE_URL }}
+          CRON_SECRET: ${{ secrets.AUTOPILOT_CRON_SECRET }}
+        run: |
+          set -u
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -sS -o out.json -w "%{http_code}" -X POST --max-time 70 \
+              -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/social/cron") || code=000
+            echo "run $i: HTTP $code"; cat out.json 2>/dev/null; echo
+            [ "$code" = "200" ] || { [ "$i" = "1" ] && exit 1; break; }
+            remaining=$(sed -n 's/.*"remaining":\([0-9]*\).*/\1/p' out.json)
+            [ "${remaining:-0}" -gt 0 ] || break
+          done
