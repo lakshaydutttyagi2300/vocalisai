@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const filters = filtersFromParams(searchParams); // category, difficulty, search, active, duplicates
-  const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
+  const page = Math.max(1, Math.floor(Number(searchParams.get("page") ?? "1")) || 1);
   const pageSize = 25;
   const dupes = filters.duplicates ? await findDuplicates() : undefined;
   const where = await bankWhere(filters, dupes);

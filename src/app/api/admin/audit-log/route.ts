@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   if (!admin.ok) return admin.response;
 
   const { searchParams } = new URL(req.url);
-  const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
+  const page = Math.max(1, Math.floor(Number(searchParams.get("page") ?? "1")) || 1);
 
   const [total, entries] = await Promise.all([
     db.adminAuditLog.count(),

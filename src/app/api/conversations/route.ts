@@ -35,17 +35,18 @@ export async function POST(req: Request) {
       { status: 403 }
     );
   }
-  const usage = await checkAndRecordUsage(session.user.id, "INTERVIEW_SIMULATION");
-  if (!usage.allowed) {
-    return NextResponse.json({ error: upgradeMessage(usage, "INTERVIEW_SIMULATION") }, { status: 403 });
-  }
-
+  // Find the scenarios before charging, so "none available" never uses the allowance.
   const pool = await db.practiceQuestion.findMany({
     // Original 4 types only - see api/practice/questions for why.
     where: { category: roleDef.category, difficulty, isActive: true, examPartId: null, type: { in: LEGACY_QUESTION_TYPES } },
   });
   if (pool.length === 0) {
     return NextResponse.json({ error: "No scenarios available for this selection yet." }, { status: 404 });
+  }
+
+  const usage = await checkAndRecordUsage(session.user.id, "INTERVIEW_SIMULATION");
+  if (!usage.allowed) {
+    return NextResponse.json({ error: upgradeMessage(usage, "INTERVIEW_SIMULATION") }, { status: 403 });
   }
 
   // Fresh first - a scenario this candidate hasn't met anywhere yet.

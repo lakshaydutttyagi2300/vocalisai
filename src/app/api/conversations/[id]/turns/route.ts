@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const body = await req.json().catch(() => null);
-  const recordingId = body?.recordingId;
+  const recordingId = typeof body?.recordingId === "string" ? body.recordingId : "";
   if (!recordingId) return NextResponse.json({ error: "recordingId is required." }, { status: 400 });
 
   const recording = await db.practiceRecording.findUnique({ where: { id: recordingId } });
