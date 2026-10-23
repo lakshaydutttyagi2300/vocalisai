@@ -1,4 +1,4 @@
-// International Process Readiness: one 0-100 score for international voice,
+// Job readiness score (formerly "International Process Readiness"): one 0-100 score for voice,
 // chat and email roles, built from evidence the candidate already has - the
 // Customer Support English Assessment (a timed test like a hiring round) and
 // skill mastery from practice. No AI, no new tests: an explainable weighted
@@ -108,7 +108,7 @@ export interface InternationalReadiness {
 
 export function readinessVerdict(overall: number | null): string {
   if (overall === null) return "Not enough evidence yet.";
-  if (overall >= 80) return "Ready for most international voice and chat roles.";
+  if (overall >= 80) return "Ready for most customer-facing voice and chat roles.";
   if (overall >= 65) return "Nearly ready: work on your weakest areas before your interview.";
   if (overall >= 50) return "Getting there: practise the areas below, then check again.";
   return "Build the basics first: start with the areas below.";

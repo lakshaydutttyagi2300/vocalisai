@@ -69,7 +69,7 @@ const CANDIDATE_NAV: CandidateEntry[] = [
       { href: "/practice/picture-writing", label: "Picture writing test", hint: "Describe a workplace photo in 2 minutes, marked by AI" },
       { href: "/practice/conversation-completion", label: "Conversation completion", hint: "Pick the best reply in a workplace conversation" },
       { href: "/goal", label: "My goal plan", hint: "Your goal, your readiness and your next steps" },
-      { href: "/readiness", label: "International Process readiness", hint: "Your % ready for international voice and chat roles" },
+      { href: "/readiness", label: "Job readiness score", hint: "Your % ready for customer-facing voice, chat and email roles" },
     ],
   },
   {

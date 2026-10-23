@@ -255,7 +255,7 @@ export function TicketHandling({ ticketKey, shiftId, onBack }: { ticketKey?: str
       )}
       <p className="flex items-center gap-2 text-xs text-slate-500">
         <Icon as={Inbox} />
-        Your ticket scores also count towards your International Process readiness score.
+        Your ticket scores also count towards your job readiness score.
       </p>
     </div>
   );

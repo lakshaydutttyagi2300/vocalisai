@@ -37,7 +37,7 @@ export default async function RolePage({ params }: { params: Params }) {
       {role.group === "service" && (
         <Link href="/readiness" className="sheet group mt-6 flex items-center justify-between gap-4 p-5 transition-colors hover:border-brand-200">
           <span className="min-w-0">
-            <span className="block font-semibold text-ink-950 group-hover:text-brand-700">How ready are you? See your International Process readiness score</span>
+            <span className="block font-semibold text-ink-950 group-hover:text-brand-700">How ready are you? See your job readiness score</span>
             <span className="mt-1 block text-sm text-slate-500">One score from your test and practice results, with the areas to work on next.</span>
           </span>
           <Icon as={ArrowUpRight} className="flex-none text-fg-muted transition-colors group-hover:text-brand-600" />

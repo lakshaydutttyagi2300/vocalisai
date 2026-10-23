@@ -220,7 +220,7 @@ export function TypingTest() {
       )}
       <p className="flex items-center gap-2 text-xs text-slate-500">
         <Icon as={Keyboard} />
-        Your typing result also counts towards your International Process readiness score.
+        Your typing result also counts towards your job readiness score.
       </p>
     </div>
   );

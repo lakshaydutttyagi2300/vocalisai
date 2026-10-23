@@ -273,7 +273,7 @@ function History({ items }: { items: Chat[] }) {
       </ul>
       <p className="mt-3 flex items-center gap-2 text-xs text-slate-500">
         <Icon as={MessageSquare} />
-        Your chat scores also count towards your International Process readiness score.
+        Your chat scores also count towards your job readiness score.
       </p>
     </section>
   );

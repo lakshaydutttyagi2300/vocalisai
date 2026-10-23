@@ -1,4 +1,4 @@
-// Loads a candidate's evidence for the International Process Readiness score
+// Loads a candidate's evidence for the job readiness score
 // (./international.ts): their latest marked Customer Support English
 // Assessment, their skill mastery, and their recent typing tests, marked emails,
 // chat simulations and tickets. Server only.

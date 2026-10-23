@@ -9,7 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { MIN_COVERAGE, ASSESSMENT_FRESH_DAYS, type AreaResult } from "@/lib/readiness/international";
 import { loadInternationalReadiness, supportAssessmentTemplateId } from "@/lib/readiness/international-loader";
 
-export const metadata = { title: "International Process readiness - VocalisAi" };
+export const metadata = { title: "Job readiness score - VocalisAi" };
 
 
 const dateText = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -34,9 +34,9 @@ export default async function ReadinessPage() {
     <div className="pb-20">
       <MediaHero
         {...HEROES.goal}
-        eyebrow="International Process Ready"
+        eyebrow="Job readiness"
         title="Your readiness score"
-        subtitle="How ready you are for international voice, chat and email roles, from your test and practice results."
+        subtitle="How ready you are for customer-facing voice, chat and email roles, from your test and practice results."
       />
       <div className="page-container mt-10">
         <section className="card grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
@@ -49,7 +49,7 @@ export default async function ReadinessPage() {
           </div>
           <div className="min-w-0">
             <h2 className="font-display text-xl font-bold text-ink-900">
-              {r.overall === null ? "Let's find your starting point" : `You are ${r.overall}% International Process Ready`}
+              {r.overall === null ? "Let's find your starting point" : `You are ${r.overall}% job ready`}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {r.overall === null
@@ -87,7 +87,7 @@ export default async function ReadinessPage() {
 
         <section className="mt-8">
           <h2 className="font-display text-lg font-bold text-ink-950">What the score is made of</h2>
-          <p className="mt-0.5 text-sm text-slate-600">The skills international process hiring rounds check, weighted by how much they matter.</p>
+          <p className="mt-0.5 text-sm text-slate-600">The skills customer-facing hiring rounds check, weighted by how much they matter.</p>
           <ul className="card mt-3 divide-y divide-slate-100">
             {r.areas.map((a) => (
               <li key={a.key} className="flex flex-wrap items-center gap-3 px-5 py-3">

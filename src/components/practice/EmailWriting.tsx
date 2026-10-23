@@ -201,7 +201,7 @@ export function EmailWriting() {
       )}
       <p className="flex items-center gap-2 text-xs text-slate-500">
         <Icon as={Mail} />
-        Your email scores also count towards your International Process readiness score.
+        Your email scores also count towards your job readiness score.
       </p>
     </div>
   );
