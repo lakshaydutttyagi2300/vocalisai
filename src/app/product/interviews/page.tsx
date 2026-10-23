@@ -10,23 +10,33 @@ import { SiteFooter } from "@/components/cine/SiteFooter";
 import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
-  title: "AI interviews and role-play - VocalisAi",
-  description: "Rehearse job interviews, customer calls and workplace conversations with an AI that replies to what you actually say, then get feedback on your answers.",
+  title: "AI interview coach and mock interview practice - VocalisAi",
+  description: "Practise job interviews out loud with an AI interviewer that asks follow-ups based on your answers. Rehearse self-introductions, strengths, behavioural questions and workplace conversations, then review your feedback.",
+  openGraph: { title: "AI interview coach and mock interview practice - VocalisAi", description: "Practise job interviews out loud with an AI interviewer that asks follow-ups based on your answers. Rehearse self-introductions, strengths, behavioural questions and workplace conversations, then review your feedback.", siteName: "VocalisAi", type: "website" },
 };
 
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
 
 const SCENARIOS = [
-  { id: "job", title: "Job interview", text: "Tell me about yourself, your strengths, a time you solved a problem. Follow-ups based on your answer.", href: "/practice/interview" },
-  { id: "customer", title: "Customer call", text: "An upset customer, a delayed order, a refund request. Stay calm, clear and polite.", href: "/practice/customer-service" },
-  { id: "manager", title: "Manager conversation", text: "Explain a delay, ask for help, give an update. The workplace conversations that matter.", href: "/practice/supervisor" },
-  { id: "casual", title: "Casual conversation", text: "Everyday small talk with a friendly AI partner, to build fluency and confidence.", href: "/practice/conversation-partner" },
+  { id: "job", title: "Job interview", text: "Tell me about yourself, your strengths and weaknesses, a project you're proud of, where you see yourself next. Follow-ups based on your answer.", href: "/practice/interview" },
+  { id: "manager", title: "Manager conversation", text: "Explain a delay, ask for help, give an update or respond to feedback. The workplace conversations that matter.", href: "/practice/supervisor" },
+  { id: "casual", title: "Everyday conversation", text: "Relaxed small talk with a friendly AI partner, to build fluency and confidence in spoken English.", href: "/practice/conversation-partner" },
+  { id: "customer", title: "Customer conversation", text: "For customer-facing roles: a question, a delay or a complaint. Stay calm, clear and polite.", href: "/practice/customer-service" },
 ] as const;
 
 const STEPS = [
-  ["Pick a scenario", "Interview, customer call, manager or casual conversation, at your level."],
+  ["Pick a conversation", "A job interview, your manager, an everyday chat or a customer, at your level."],
   ["Speak your answer", "The AI listens, understands what you said, and asks the next question."],
-  ["Read your feedback", "What worked, what to add, and the grammar and phrasing to fix."],
+  ["Review your feedback", "What worked, what to add, and the grammar and phrasing to fix."],
+];
+
+const QUESTION_TYPES = [
+  ["Introducing yourself", "A clear, natural answer to “Tell me about yourself”, without reciting a script."],
+  ["Strengths and weaknesses", "Honest answers with an example, and how you're working on the weak spot."],
+  ["Behavioural questions", "“Tell me about a time…”: situation, what you did and the result."],
+  ["Situational questions", "“What would you do if…”: think aloud and give a sensible plan."],
+  ["Projects and experience", "Explain what you worked on, your part in it and what you learned."],
+  ["Career goals", "Why this role, and where you want to grow next."],
 ];
 
 export default function InterviewsPage() {
@@ -34,17 +44,17 @@ export default function InterviewsPage() {
     <div className="cine overflow-x-hidden">
       <PageHero
         name={scene("interviews.hero")}
-        eyebrow="AI interviews and role-play"
+        eyebrow="AI interview coach"
         title={<>Rehearse the conversation {accent("before")} it counts.</>}
-        text="Speak to an AI interviewer, customer or manager. It replies to what you actually said, so every round goes a little differently, just like the real thing."
+        text="Practise interviews and workplace conversations out loud. The AI replies to what you actually said, so every round goes a little differently, just like the real thing."
         actions={
           <>
             <Link href="/signup" className="btn-primary btn-lg">
-              Try an AI interview
+              Practise an interview
               <Icon as={ArrowRight} />
             </Link>
-            <Link href="/practice/conversation" className="btn-secondary btn-lg">
-              Open AI conversation
+            <Link href="/practice/conversation?role=INTERVIEWER" className="btn-secondary btn-lg">
+              Open the AI interviewer
             </Link>
           </>
         }
@@ -55,7 +65,7 @@ export default function InterviewsPage() {
           <MediaSplit
             eyebrow="How a round works"
             title={<>A question, your answer, a {accent("real")} follow-up.</>}
-            text="There's no script to memorise. The AI listens to your spoken answer, asks the follow-up a real interviewer would, and at the end shows what made your answer strong and what to add."
+            text="There's no script to memorise. The AI listens to your spoken answer, asks the kind of follow-up a real interviewer might, and at the end shows what made your answer strong and what to add."
             points={STEPS.map(([t, d]) => `${t}: ${d}`)}
             media={
               <div className="relative">
@@ -69,7 +79,25 @@ export default function InterviewsPage() {
 
       <section className="pb-28 sm:pb-40">
         <Container>
-          <SectionIntro eyebrow="Scenarios" title={<>Four conversations worth {accent("practising")}.</>} />
+          <SectionIntro
+            eyebrow="Interview questions"
+            title={<>The questions you&rsquo;re most likely to {accent("hear")}.</>}
+            text="Practise the common questions out loud until your answers feel natural. AI feedback is a guide, so use it alongside your own judgement."
+          />
+          <dl className="mt-14 grid gap-px overflow-hidden rounded-[1.5rem] bg-accent-softer ring-1 ring-line sm:grid-cols-2 lg:grid-cols-3">
+            {QUESTION_TYPES.map(([name, text]) => (
+              <div key={name} className="bg-bg p-7">
+                <dt className="font-display text-lg font-semibold tracking-tight text-fg">{name}</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-fg-muted">{text}</dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
+      </section>
+
+      <section className="pb-28 sm:pb-40">
+        <Container>
+          <SectionIntro eyebrow="Conversations" title={<>Four conversations worth {accent("practising")}.</>} />
           <div className="mt-14 grid gap-4 sm:grid-cols-2">
             {SCENARIOS.map((s, i) => (
               <FadeIn key={s.title} delay={(i % 2) * 110}>
@@ -93,9 +121,9 @@ export default function InterviewsPage() {
         <Container>
           <MediaSplit
             reverse
-            eyebrow="Then test under real conditions"
+            eyebrow="Then try it under real conditions"
             title={<>Mock exams that feel like the {accent("real")} one.</>}
-            text="When you're ready, take a timed mock exam with the same rules as the real test: a fixed question order, timed sections and a camera and microphone check before you begin."
+            text="When you're ready, take a timed mock exam with the same kind of rules as a real assessment: a fixed question order, timed sections and a camera and microphone check before you begin."
             media={
               <ClipFrame name={scene("interviews.prep")} ratio="aspect-[4/3]">
                 <ul className="absolute inset-x-4 bottom-4 grid gap-2 sm:inset-x-6 sm:bottom-6 sm:grid-cols-2">
@@ -124,8 +152,8 @@ export default function InterviewsPage() {
         name={scene("interviews.final")}
         title={<>Walk in having said it {accent("before")}.</>}
         text="Your first AI interview is free. No card needed."
-        primary={{ href: "/signup", label: "Start practising" }}
-        secondary={{ href: "/use-cases", label: "See use cases" }}
+        primary={{ href: "/signup", label: "Practise an interview" }}
+        secondary={{ href: "/use-cases", label: "See who it's for" }}
       />
       <SiteFooter />
     </div>

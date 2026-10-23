@@ -1,5 +1,5 @@
 // PASS_MERIT_DISTINCTION: the simple categorical scale used by many
-// vocational/employment-style assessments (e.g. aptitude and BPO/MNC
+// vocational/employment-style assessments (e.g. aptitude and company
 // role-readiness tests) - a plain, editable threshold table over this
 // platform's own 0-100 rule-based score, no external scale involved at
 // all (so nothing here is even an approximation of a third party's

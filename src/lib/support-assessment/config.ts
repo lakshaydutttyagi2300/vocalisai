@@ -1,4 +1,4 @@
-// The Customer Support (BPO) English Assessment: which exam it is, what each
+// The Customer Support English Assessment: which exam it is, what each
 // of its questions measures, and how the 100 points are split. Browser-safe
 // (no database). The questions themselves live in the database - pinned to
 // this exam's parts and tagged "support:<kind>" - never in this public repo.

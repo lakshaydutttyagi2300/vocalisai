@@ -12,8 +12,9 @@ import { LESSONS, SPEECH_DIMENSIONS } from "@/components/cine/content";
 import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
-  title: "Speaking practice with AI feedback - VocalisAi",
-  description: "Speak your answer out loud and get feedback on pronunciation, fluency, grammar, vocabulary and pace that quotes your own words.",
+  title: "Spoken English and fluency practice with AI feedback - VocalisAi",
+  description: "Practise speaking English out loud and get feedback on pronunciation, fluency, grammar, vocabulary and pace that quotes your own words. Practise at your level, from Beginner to Expert.",
+  openGraph: { title: "Spoken English and fluency practice with AI feedback - VocalisAi", description: "Practise speaking English out loud and get feedback on pronunciation, fluency, grammar, vocabulary and pace that quotes your own words. Practise at your level, from Beginner to Expert.", siteName: "VocalisAi", type: "website" },
 };
 
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
@@ -39,13 +40,13 @@ export default function SpeakingPage() {
     <div className="cine overflow-x-hidden">
       <PageHero
         name={scene("speaking.hero")}
-        eyebrow="Speaking practice"
+        eyebrow="Spoken English practice"
         title={<>Speak. Hear exactly how you {accent("sound")}.</>}
-        text="Answer out loud and VocalisAi transcribes and rates your answer on six dimensions, quoting your own words with the fix beside each one."
+        text="Whether you understand English well but freeze when speaking, or you want to polish what you already have: answer out loud and get feedback on six areas, with your own words quoted."
         actions={
           <>
             <Link href="/signup" className="btn-primary btn-lg">
-              Start speaking free
+              Improve my speaking
               <Icon as={ArrowRight} />
             </Link>
             <Link href="/practice/speaking" className="btn-secondary btn-lg">
@@ -60,7 +61,7 @@ export default function SpeakingPage() {
           <MediaSplit
             eyebrow="The analysis"
             title={<>Six things a good {accent("listener")} notices.</>}
-            text="Your recording is transcribed, then rated for how you said it as well as what you said. Each point quotes your transcript, so you can see the moment it happened."
+            text="Your recording is transcribed, then rated for how you said it as well as what you said. Each point quotes your transcript, so you can see the moment it happened. It's AI feedback: a useful guide, not a final judgement."
             points={SPEECH_DIMENSIONS.map(([name, text]) => `${name}: ${text.toLowerCase()}`)}
             media={
               <div className="relative">
@@ -97,7 +98,7 @@ export default function SpeakingPage() {
             reverse
             eyebrow="Ways to practise"
             title={<>Every kind of {accent("speaking")}, in one place.</>}
-            text="Pick the skill you want to work on, at Beginner, Intermediate, Advanced or Expert. Every mode gives the same detailed feedback."
+            text="Pick the skill you want to work on, at Beginner, Intermediate, Advanced or Expert: speaking more naturally, organising your thoughts, sentence formation, pronunciation or everyday conversation."
             media={<ClipFrame name={scene("speaking.presenting")} ratio="aspect-[4/3]" />}
           />
           <div className="mt-14 grid gap-px overflow-hidden rounded-[1.5rem] bg-accent-softer ring-1 ring-line sm:grid-cols-2 lg:grid-cols-3">
@@ -116,7 +117,7 @@ export default function SpeakingPage() {
 
       <section className="pb-28 sm:pb-40">
         <Container>
-          <SectionIntro eyebrow="Micro-lessons" title={<>Small habits that {accent("examiners")} notice.</>} text="One idea each, under a minute to read. Then practise it straight away." />
+          <SectionIntro eyebrow="Micro-lessons" title={<>Small habits that {accent("listeners")} notice.</>} text="One idea each, under a minute to read. Then practise it straight away." />
           <div className="mt-12">
             <LessonsSlider lessons={LESSONS} />
           </div>

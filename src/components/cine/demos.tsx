@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Mic, Sparkles, Timer } from "lucide-react";
+import { Check, Mic, Sparkles } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { useStillMedia } from "./media";
 import { Waveform } from "./Waveform";
@@ -39,7 +39,7 @@ const frame = "rounded-2xl border border-line bg-surface/90 shadow-[var(--shadow
 const ANALYSIS_EXAMPLES = {
   interview: {
     title: "Interview answer · Intermediate",
-    answer: "So, um, in my last role I handled, like, twenty customer calls a day, and I always made sure the customer felt heard.",
+    answer: "So, um, in my last project I led a team of four, and, like, I made sure everyone knew what they owned each week.",
     fillers: ["um,", "like,"],
     seconds: 18,
     scores: [
@@ -135,8 +135,8 @@ export function AnalysisDemo({ className = "", example = "interview" }: { classN
 const CONVERSATION_EXAMPLES = {
   customer: {
     label: "AI interview",
-    question: "Tell me about a time you handled an upset customer.",
-    reply: "A customer's order arrived damaged. I apologised, sent a replacement the same day and followed up the next morning.",
+    question: "Tell me about a time you worked to a tight deadline.",
+    reply: "Our project demo moved up by a week. I split the remaining work by strengths, we checked in daily and finished a day early.",
     followUp: "Good. What would you do differently next time?",
     notes: ["Clear structure", "Specific example", "Add the result"],
   },
@@ -186,20 +186,24 @@ export function ConversationDemo({ className = "", example = "customer" }: { cla
   );
 }
 
-const STEPS = ["Choose", "Answer", "Review"] as const;
+const STEPS = ["Choose", "Speak", "Review"] as const;
+const GOALS = ["Interview Preparation", "General English", "Campus Placement"] as const;
+const ANSWER = "I'm a final-year commerce student. In my internship I helped a small team track their monthly sales, and I enjoyed explaining the numbers to them.";
 
-/** Choose a test -> answer a question -> review the result. 5 s per step. */
+/** Choose a goal -> answer out loud -> review the feedback. 5 s per step. */
 export function WalkthroughDemo({ className = "" }: { className?: string }) {
   const { ref, tick, still } = useTicker(150, 100, 40);
   const step = still ? 2 : Math.floor(tick / 50);
   const local = tick % 50;
+  const words = ANSWER.split(" ");
+  const shown = still ? words.length : Math.min(words.length, Math.floor((local / 40) * words.length));
   return (
     <div ref={ref} className={`${frame} overflow-hidden ${className}`}>
       <div className="flex items-center gap-2 border-b border-line px-5 py-3">
         <span className="h-2.5 w-2.5 rounded-full bg-fg/10" />
         <span className="h-2.5 w-2.5 rounded-full bg-fg/10" />
         <span className="h-2.5 w-2.5 rounded-full bg-fg/10" />
-        <span className="ml-3 truncate text-xs text-fg-subtle">vocalisai.vercel.app/explore/company-hiring-assessments/tcs-nqt</span>
+        <span className="ml-3 truncate text-xs text-fg-subtle">vocalisai.vercel.app/practice/interview · Example</span>
       </div>
       <div className="grid grid-cols-3 border-b border-line text-xs">
         {STEPS.map((s, i) => (
@@ -214,11 +218,11 @@ export function WalkthroughDemo({ className = "" }: { className?: string }) {
       <div className="relative min-h-[17rem] p-5 text-sm">
         {step === 0 && (
           <div className="grid gap-4">
-            <p className="text-fg-muted">TCS NQT · Reasoning Ability</p>
-            <div className="flex flex-wrap gap-2">
-              {["Syllogism", "Seating Arrangement", "Blood Relations", "Coding-Decoding", "Series"].map((t, i) => (
-                <span key={t} className={`rounded-full border px-3 py-1 text-xs transition-colors ${i === 0 && local > 12 ? "border-accent bg-accent text-on-ink" : "border-line text-fg-muted"}`}>
-                  {t}
+            <p className="text-fg-muted">What are you preparing for?</p>
+            <div className="grid gap-2">
+              {GOALS.map((g, i) => (
+                <span key={g} className={`rounded-xl border px-4 py-2.5 text-xs transition-colors ${i === 0 && local > 12 ? "border-accent bg-accent-soft font-semibold text-fg" : "border-line text-fg-muted"}`}>
+                  {g}
                 </span>
               ))}
             </div>
@@ -229,44 +233,37 @@ export function WalkthroughDemo({ className = "" }: { className?: string }) {
                 </span>
               ))}
             </div>
-            <span className={`justify-self-start rounded-full px-4 py-2 text-xs font-semibold transition-colors ${local > 38 ? "bg-ink text-on-ink" : "bg-fg/10 text-fg-muted"}`}>Start practice →</span>
           </div>
         )}
         {step === 1 && (
           <div className="grid gap-3">
             <div className="flex items-center justify-between text-xs text-fg-subtle">
-              <span>Question 3 of 10</span>
-              <span className="inline-flex items-center gap-1">
-                <Icon as={Timer} size="xs" /> 0:{String(45 - Math.floor(local / 2)).padStart(2, "0")}
+              <span>Interview question</span>
+              <span className="inline-flex items-center gap-1 text-accent-strong">
+                <Icon as={Mic} size="xs" /> Recording 0:{String(Math.min(45, 5 + Math.floor(local / 2))).padStart(2, "0")}
               </span>
             </div>
-            <p className="text-fg">All pens are books. All books are bags. Does &ldquo;All pens are bags&rdquo; follow?</p>
-            {["Follows", "Does not follow"].map((o, i) => (
-              <span key={o} className={`rounded-xl border px-4 py-2.5 transition-colors ${i === 0 && local > 18 ? "border-accent bg-accent-soft text-fg" : "border-line text-fg-muted"}`}>
-                {o}
-              </span>
-            ))}
-            <p className={`text-xs text-fg-muted transition-opacity duration-500 ${local > 30 ? "opacity-100" : "opacity-0"}`}>
-              <span className="font-semibold text-accent-strong">Correct.</span> Every pen is a book and every book is a bag.
-            </p>
+            <p className="font-semibold text-fg">&ldquo;Tell me about yourself.&rdquo;</p>
+            <Waveform bars={40} className="h-8 opacity-70" />
+            <p className="min-h-[4.5rem] text-fg-muted">{words.slice(0, shown).join(" ")}</p>
           </div>
         )}
         {step === 2 && (
           <div className="grid gap-4">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs text-fg-subtle">TCS NQT · Syllogism · Intermediate</p>
-                <p className="cine-headline mt-1 text-4xl text-fg">8 / 10</p>
+                <p className="text-xs text-fg-subtle">Interview answer · Intermediate</p>
+                <p className="cine-headline mt-1 text-2xl text-fg">Clear and specific</p>
               </div>
-              <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent-strong">80% · 6 min</span>
+              <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent-strong">138 wpm</span>
             </div>
             <ul className="grid gap-2.5 text-xs">
               {[
-                ["Syllogism", 90],
-                ["Statement & Conclusion", 70],
-                ["Data Sufficiency", 45],
+                ["Grammar", 90],
+                ["Delivery", 76],
+                ["Fluency", 62],
               ].map(([n, v], i) => (
-                <li key={n as string} className="grid grid-cols-[9rem_minmax(0,1fr)] items-center gap-3">
+                <li key={n as string} className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-3">
                   <span className="text-fg-muted">{n}</span>
                   <span className="relative h-1.5 overflow-hidden rounded-full bg-fg/10">
                     <span className="absolute inset-y-0 left-0 rounded-full bg-accent transition-[width] duration-700" style={{ width: still || local > 6 + i * 4 ? `${v}%` : "0%" }} />
@@ -274,7 +271,7 @@ export function WalkthroughDemo({ className = "" }: { className?: string }) {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-fg-muted">Next: Data Sufficiency at Beginner, your weakest skill.</p>
+            <p className="text-xs text-fg-muted">Add one result from your internship. Next up: fluency practice, your weakest area.</p>
           </div>
         )}
       </div>

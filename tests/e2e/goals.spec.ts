@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { createTestUser, loginAs } from "./helpers";
 
 // Phase 4 through the real UI: the dashboard invites a goal, the candidate
-// picks BPO / Customer Support, gets their plan, and the BPO exam opens
+// picks Customer Support, gets their plan, and that track's exam opens
 // from inside the track with that exam pre-selected.
 const password = "correct-horse-battery-staple";
 const SHOTS = process.env.E2E_SCREENSHOT_DIR;
@@ -25,15 +25,15 @@ test("choose a goal from the dashboard, see the plan, and start the goal's own e
     await expect(page.getByRole("heading", { name: "What are you preparing for?" })).toBeVisible({ timeout: 30_000 });
 
     const goals = page.getByRole("radiogroup", { name: "Choose your goal" });
-    for (const name of ["General English", "BPO / Customer Support", "Interview Preparation", "Campus Placement", "Study Abroad"]) {
+    for (const name of ["General English", "Customer Support", "Interview Preparation", "Campus Placement", "Study Abroad"]) {
       await expect(goals.getByRole("radio", { name: new RegExp(name.replace("/", "\\/")) })).toBeVisible();
     }
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/goal-choose.png`, fullPage: true });
-    await goals.getByRole("radio", { name: /BPO \/ Customer Support/ }).click();
+    await goals.getByRole("radio", { name: /^Customer Support/ }).click();
     await page.getByRole("button", { name: /Start my plan/ }).click();
 
     await expect(page).toHaveURL(/\/goal$/, { timeout: 20_000 });
-    await expect(page.getByRole("heading", { name: "BPO / Customer Support", level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Customer Support", level: 1 })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Your next steps" })).toBeVisible();
     await expect(page.getByText("Not rated yet")).toBeVisible();
     const exam = page.getByRole("link", { name: /Workplace Communication Assessment/ });
@@ -42,10 +42,10 @@ test("choose a goal from the dashboard, see the plan, and start the goal's own e
 
     // The dashboard now shows the goal.
     await page.goto("/dashboard");
-    await expect(page.getByText("BPO / Customer Support").first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Customer Support", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("link", { name: /Open my plan/ })).toBeVisible();
 
-    // The BPO exam, from inside the track, opens with that test pre-selected.
+    // The track's exam, from inside the track, opens with that test pre-selected.
     await page.goto("/goal");
     await page.getByRole("link", { name: /Workplace Communication Assessment/ }).click();
     await expect(page).toHaveURL(/\/mock-tests\?template=/);

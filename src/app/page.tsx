@@ -13,13 +13,18 @@ import { FadeIn } from "@/components/cine/FadeIn";
 import { ClipFrame, Container, FinalCta, MediaSplit, SectionIntro, TextLink } from "@/components/cine/sections";
 import { SiteFooter } from "@/components/cine/SiteFooter";
 import { Waveform } from "@/components/cine/Waveform";
-import { FEATURES, SPEECH_DIMENSIONS, USE_CASES } from "@/components/cine/content";
+import { CONFIDENCE, FEATURES, SPEECH_DIMENSIONS, USE_CASES } from "@/components/cine/content";
 import { LIBRARY, scene } from "@/config/mediaLibrary";
 
+const TITLE = "VocalisAi - AI communication coach for interviews and spoken English";
+const DESCRIPTION =
+  "Practise spoken English, mock interviews and workplace conversations with an AI coach. Get feedback on fluency, pronunciation, grammar and clarity, and build confidence before the moments that matter.";
+
 export const metadata: Metadata = {
-  title: "VocalisAi - AI speaking, interview and hiring-test practice",
-  description:
-    "Practise speaking, interviews and company hiring tests with AI feedback on every answer: pronunciation, fluency, grammar and pace, AI interview role-play, and timed mock tests for AMCAT, TCS NQT and more.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION, siteName: "VocalisAi", type: "website" },
+  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
 };
 
 // Live product figures. The page must never fail because the database is
@@ -52,57 +57,57 @@ export default async function LandingPage() {
     {
       name: scene("home.hero.speaking"),
       label: "Speaking",
-      eyebrow: "AI speaking practice",
-      title: <>Give every answer a {accent("confident")} voice.</>,
-      text: "Answer out loud and get feedback on pronunciation, fluency, grammar and pace that quotes your own words.",
-      cta: { label: "Start speaking", href: signedIn ? "/practice/speaking" : "/signup" },
+      eyebrow: "Your AI communication coach",
+      title: <>Speak with {accent("confidence")}. Interview with clarity.</>,
+      text: "Practise speaking, mock interviews and everyday conversations with an AI coach that listens to your answers and shows you what to improve next.",
+      cta: { label: signedIn ? "Continue practising" : "Start practising", href: start },
       alt: LIBRARY[scene("home.hero.speaking")].alt,
     },
     {
       name: scene("home.hero.interviews"),
       label: "Interviews",
-      eyebrow: "AI interviews",
+      eyebrow: "AI mock interviews",
       title: <>Rehearse the interview {accent("before")} it&rsquo;s real.</>,
-      text: "An AI interviewer listens to your answer and asks the next question, just like a real panel.",
-      cta: { label: "Try an AI interview", href: signedIn ? "/practice/conversation" : "/product/interviews" },
+      text: "Answer common and behavioural questions out loud. The AI interviewer listens and asks a follow-up based on what you said.",
+      cta: { label: "Practise an interview", href: signedIn ? "/practice/conversation?role=INTERVIEWER" : "/product/interviews" },
       alt: LIBRARY[scene("home.hero.interviews")].alt,
     },
     {
       name: scene("home.hero.analysis"),
       label: "Feedback",
-      eyebrow: "Speech analysis",
+      eyebrow: "Personalised feedback",
       title: <>Hear how you {accent("really")} sound.</>,
-      text: "Every recording is transcribed and rated on six dimensions, so you know exactly what to fix next.",
-      cta: { label: "See speech analysis", href: "/product/speaking" },
+      text: "Your spoken answers are transcribed and rated on six areas, from fluency to delivery, so you know what to work on next.",
+      cta: { label: "See how feedback works", href: "/product/speaking" },
       alt: LIBRARY[scene("home.hero.analysis")].alt,
       overlay: <AnalysisDemo />,
     },
     {
-      name: scene("home.hero.companyTests"),
-      label: "Company tests",
-      eyebrow: "Hiring assessments",
-      title: <>Clear the {accent("aptitude")} round.</>,
-      text: "Reasoning, aptitude and English for AMCAT, TCS NQT, Infosys and more, skill by skill.",
-      cta: { label: "Explore exams", href: "/explore" },
-      alt: LIBRARY[scene("home.hero.companyTests")].alt,
+      name: scene("home.hero.spokenEnglish"),
+      label: "Spoken English",
+      eyebrow: "Spoken English and fluency",
+      title: <>Say what you mean, {accent("clearly")}.</>,
+      text: "Practise everyday and professional English at your level, from Beginner to Expert, with fewer fillers and better-organised answers.",
+      cta: { label: "Improve my speaking", href: signedIn ? "/practice/speaking" : "/product/speaking" },
+      alt: LIBRARY[scene("home.hero.spokenEnglish")].alt,
     },
     {
       name: scene("home.hero.customerService"),
-      label: "Customer calls",
-      eyebrow: "Role-play",
-      title: <>Sound ready for the {accent("customer")} on the line.</>,
-      text: "Practise real customer and workplace conversations with an AI that replies to what you said.",
-      cta: { label: "See use cases", href: "/use-cases" },
+      label: "Conversations",
+      eyebrow: "Workplace conversations",
+      title: <>Stay {accent("calm")} in tricky conversations.</>,
+      text: "Role-play talks with an AI manager, colleague or customer that replies to what you actually say.",
+      cta: { label: "Try a conversation", href: signedIn ? "/practice/conversation" : "/product/interviews" },
       alt: LIBRARY[scene("home.hero.customerService")].alt,
     },
     {
-      name: scene("home.hero.spokenEnglish"),
-      label: "Your plan",
-      eyebrow: "Personalised practice",
-      title: <>Practice that {accent("knows")} you.</>,
-      text: "Pick your goal. Your weakest skills come first, at your level, with no repeated questions.",
-      cta: { label: signedIn ? "Open my plan" : "Start free", href: signedIn ? "/goal" : "/signup" },
-      alt: LIBRARY[scene("home.hero.spokenEnglish")].alt,
+      name: scene("home.hero.companyTests"),
+      label: "Hiring tests",
+      eyebrow: "Aptitude and hiring tests",
+      title: <>Walk into the {accent("test")} prepared.</>,
+      text: "Reasoning, aptitude and English practice for company hiring tests such as AMCAT and TCS NQT, skill by skill.",
+      cta: { label: "Explore exams", href: "/explore" },
+      alt: LIBRARY[scene("home.hero.companyTests")].alt,
     },
   ];
 
@@ -117,17 +122,17 @@ export default async function LandingPage() {
     <div className="cine overflow-x-hidden">
       <CineHero
         slides={slides}
-        heading="VocalisAi: practise speaking, interviews and hiring tests with AI feedback"
-        secondary={{ label: "See how it works", href: "#platform" }}
+        heading="VocalisAi: your AI communication coach for spoken English, interviews and confidence"
+        secondary={{ label: "Explore features", href: "#platform" }}
       />
 
-      {/* 2. One platform. Every voice. */}
+      {/* 2. What you can practise. */}
       <section id="platform" className="scroll-mt-20 py-28 sm:py-40">
         <Container>
           <SectionIntro
-            eyebrow="The platform"
-            title={<>One platform. Every {accent("voice")}.</>}
-            text="Everything you need to sound ready: speaking, conversation, listening and real test conditions, in one place."
+            eyebrow="What you can practise"
+            title={<>One coach for every {accent("conversation")}.</>}
+            text="Practise out loud, get feedback that quotes your own words, and come back to what needs work. Interviews, everyday English and workplace talks, in one place."
           />
           <div className="mt-16 grid gap-x-6 gap-y-14 sm:grid-cols-2">
             {FEATURES.map((f, i) => (
@@ -143,7 +148,28 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 3. Voice: a large cinematic visual with the waveform over it. */}
+      {/* 3. Confidence: the worries people bring, and how practice helps. */}
+      <section className="border-y border-line bg-surface-muted py-28 sm:py-36">
+        <Container>
+          <SectionIntro
+            eyebrow="Confidence through practice"
+            title={<>Nervous? That&rsquo;s what {accent("practice")} is for.</>}
+            text="Most people don't need more theory. They need a safe place to say it out loud, get it a little wrong and try again."
+          />
+          <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CONFIDENCE.map((c, i) => (
+              <FadeIn key={c.worry} delay={(i % 3) * 100}>
+                <li className="cine-surface h-full p-7">
+                  <p className="font-display text-lg font-semibold tracking-tight text-fg">{c.worry}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-fg-muted">{c.help}</p>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      {/* 4. Voice: a large cinematic visual with the waveform over it. */}
       <section className="px-2 sm:px-3">
         <div className="relative overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
           <div className="absolute inset-0">
@@ -153,11 +179,11 @@ export default async function LandingPage() {
           <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
           <Container className="relative py-28 sm:py-40">
             <FadeIn className="max-w-2xl">
-              <p className="cine-eyebrow">Speech analysis</p>
+              <p className="cine-eyebrow">Personalised feedback</p>
               <h2 className="cine-display mt-5 text-5xl text-fg sm:text-7xl">Feedback on the {accent("voice")}, not just the words.</h2>
               <p className="cine-lede mt-6 text-fg-muted">
-                VocalisAi listens to how you speak: the sounds you stress, the pauses you leave, the fillers you use and how fast you go. Every comment quotes your
-                own words, with the fix beside it.
+                VocalisAi listens to how you speak: the words you stress, the pauses you leave, the fillers you use and how fast you go. Each comment quotes your own
+                words with a suggested fix. It&rsquo;s AI feedback, so treat it as a guide rather than a final verdict.
               </p>
               <dl className="mt-10 grid gap-x-10 gap-y-5 sm:grid-cols-2">
                 {SPEECH_DIMENSIONS.map(([name, text]) => (
@@ -176,15 +202,20 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* 4. AI interviews: from a question to a confident answer. */}
+      {/* 5. AI interview coach: from a question to a confident answer. */}
       <section className="py-28 sm:py-40">
         <Container>
           <MediaSplit
-            eyebrow="AI interviews and role-play"
+            eyebrow="AI interview coach"
             title={<>From question to {accent("confident")} answer.</>}
-            text="Speak your answer to an AI interviewer, customer or manager. It replies to what you actually said, asks the follow-up a real person would, and then shows what worked and what to add."
-            points={["Job interviews, customer calls and casual conversation", "Replies to your words, not a script", "Feedback on structure, examples and results", "As many rounds as your plan allows"]}
-            link={{ href: "/product/interviews", label: "See AI interviews" }}
+            text="Speak your answer to an AI interviewer. It replies to what you actually said, asks the follow-up a real person might, and then shows what worked and what to add."
+            points={[
+              "Tell me about yourself, strengths and weaknesses",
+              "Behavioural and situational questions",
+              "Explaining your projects, experience and goals",
+              "Feedback on structure, examples and clarity",
+            ]}
+            link={{ href: "/product/interviews", label: "Explore interview practice" }}
             media={
               <div className="relative">
                 <ClipFrame name={scene("home.interviews")} ratio="aspect-[4/3]" />
@@ -195,14 +226,14 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 5. Personalised practice. */}
+      {/* 6. Personalised practice. */}
       <section className="pb-28 sm:pb-40">
         <Container>
           <MediaSplit
             reverse
             eyebrow="Personalised practice"
             title={<>Practice that {accent("knows")} you.</>}
-            text="Tell VocalisAi what you're preparing for. Your plan puts the skills that matter for it first, every answer updates your skill scores, and the next questions go straight to what's weakest."
+            text="Tell VocalisAi what you're preparing for. Your plan puts the skills that matter for it first, every answer updates your skill scores, and the next questions go to what needs the most work."
             points={["A plan for your goal", "Weakest skills first", "Beginner to Expert, at your level", "No repeated questions until a topic runs out"]}
             link={{ href: "/product/personalised", label: "See personalised practice" }}
             media={
@@ -233,11 +264,11 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 6. Use cases as large visual panels. */}
+      {/* 7. Who it's for, as large visual panels. */}
       <section className="pb-28 sm:pb-40">
         <Container>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <SectionIntro eyebrow="Use cases" title={<>Built for the {accent("moment")} that matters.</>} />
+            <SectionIntro eyebrow="Who it's for" title={<>Built for the {accent("moment")} that matters.</>} />
             <TextLink href="/use-cases">All use cases</TextLink>
           </div>
           <div className="mt-14 grid gap-4 md:grid-cols-12">
@@ -263,21 +294,22 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 7. Product walkthrough. */}
+      {/* 8. How it works. */}
       <section className="border-y border-line bg-surface-muted py-28 sm:py-40">
         <Container>
           <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div>
               <SectionIntro
-                eyebrow="In the product"
-                title={<>Choose. Answer. {accent("Improve")}.</>}
-                text="Pick a company test, a section and a skill. Answer at your level. See your score, your weakest skill and what to practise next."
+                eyebrow="How it works"
+                title={<>Choose. Practise. {accent("Improve")}.</>}
+                text="A few minutes a day is enough to start. Each session shows you what to practise next."
               />
               <ol className="mt-10 grid gap-5">
                 {[
-                  ["Choose", "A company, assessment or skill, then your level and how you want to practise."],
-                  ["Answer", "Untimed practice with instant explanations, or a timed test like the real one."],
-                  ["Review", "Your score, every answer explained, and your weakest skill picked for next time."],
+                  ["Choose your goal", "Interview preparation, spoken English, workplace communication or a hiring test, at your level."],
+                  ["Start practising", "Answer questions out loud, talk to an AI interviewer or manager, or take a timed test."],
+                  ["Review your feedback", "See what went well, what to fix, and the exact words the feedback refers to."],
+                  ["Practise and improve", "Your weakest skills come up first next time, so each session builds on the last."],
                 ].map(([t, d], i) => (
                   <FadeIn key={t} delay={i * 100}>
                     <li className="flex gap-4">
@@ -298,7 +330,7 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 8. Trust: real product figures only. */}
+      {/* 9. Trust: real product figures only. */}
       <section className="py-24 sm:py-32">
         <Container>
           <FadeIn>
@@ -319,10 +351,10 @@ export default async function LandingPage() {
         </Container>
       </section>
 
-      {/* 9. Final call to action. */}
+      {/* 10. Final call to action. */}
       <FinalCta
         name={scene("home.final")}
-        title={<>Your next opportunity starts with your {accent("voice")}.</>}
+        title={<>Your next conversation starts with {accent("practice")}.</>}
         text="Start free with practice sessions and speech analyses. No card needed."
         primary={{ href: start, label: signedIn ? "Go to your dashboard" : "Start practising" }}
         secondary={{ href: "/pricing", label: "See pricing" }}

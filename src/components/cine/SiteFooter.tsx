@@ -4,19 +4,19 @@ const COLUMNS: { title: string; links: [string, string][] }[] = [
   {
     title: "Product",
     links: [
-      ["Speaking practice", "/product/speaking"],
-      ["AI interviews", "/product/interviews"],
+      ["AI interview coach", "/product/interviews"],
+      ["Spoken English practice", "/product/speaking"],
       ["Personalised practice", "/product/personalised"],
-      ["Explore exams", "/explore"],
+      ["Exam library", "/explore"],
     ],
   },
   {
-    title: "Solutions",
+    title: "Who it's for",
     links: [
-      ["All use cases", "/use-cases"],
-      ["Campus placements", "/use-cases#campus-placements"],
-      ["Customer service", "/use-cases#customer-service"],
-      ["Company assessments", "/use-cases#company-assessments"],
+      ["Job interviews", "/use-cases#interviews"],
+      ["Spoken English", "/use-cases#spoken-english"],
+      ["Working professionals", "/use-cases#professionals"],
+      ["Students and freshers", "/use-cases#campus-placements"],
     ],
   },
   {
@@ -45,7 +45,7 @@ export function SiteFooter() {
           <p className="font-display text-lg font-semibold tracking-tight text-fg">
             Vocalis<span className="text-accent-strong">Ai</span>
           </p>
-          <p className="mt-3 max-w-xs leading-relaxed text-fg-subtle">Practise speaking, interviews and hiring tests, with AI feedback on every answer.</p>
+          <p className="mt-3 max-w-xs leading-relaxed text-fg-subtle">Your AI communication coach: practise interviews, spoken English and workplace conversations, with feedback after every answer.</p>
         </div>
         {COLUMNS.map((c) => (
           <nav key={c.title} aria-label={c.title}>

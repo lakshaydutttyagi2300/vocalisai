@@ -35,7 +35,7 @@ export interface MockTestOption {
   questionCount: number;
   levels: string[]; // e.g. ["Intermediate"] or ["Beginner", "Expert"]
   skills: string[]; // e.g. ["Grammar", "Listening"]
-  /** The Goal Track this test belongs to (standard tests only), e.g. "BPO / Customer Support". */
+  /** The Goal Track this test belongs to (standard tests only), e.g. "Customer Support". */
   trackName?: string | null;
 }
 

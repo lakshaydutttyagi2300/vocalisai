@@ -96,9 +96,9 @@ export default async function PracticeHubPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Link href="/practice/conversation" className="panel-ink lift group block overflow-hidden rounded-xl p-7 sm:p-8">
           <p className="eyebrow eyebrow-on-ink">AI voice conversation · Needs mic</p>
-          <h2 className="display mt-4 max-w-xl text-2xl sm:text-3xl">Talk with an AI customer, interviewer, supervisor or conversation partner</h2>
+          <h2 className="display mt-4 max-w-xl text-2xl sm:text-3xl">Talk with an AI interviewer, manager, conversation partner or customer</h2>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-fg-muted">
-            A real back-and-forth conversation, not a scripted quiz - the closest thing to a live Voice &amp; Accent interview you can practice on your own.
+            A real back-and-forth conversation, not a scripted quiz - the closest thing to a live interview you can practise on your own.
           </p>
           <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-accent-strong">
             Start a conversation

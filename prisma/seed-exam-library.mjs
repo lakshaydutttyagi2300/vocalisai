@@ -7,7 +7,7 @@
 // has its names, descriptions and paper timings refreshed - its parts and
 // sections are never rebuilt, so nothing in progress can break. Nothing is
 // ever deleted. Also makes the General English track assessment distinct
-// from the BPO one (content.mjs, GENERAL_ENGLISH_ASSESSMENT).
+// from the Customer Support one (content.mjs, GENERAL_ENGLISH_ASSESSMENT).
 //
 //   npm run seed:exam-library                  # dev database (.env)
 //   npm run seed:exam-library -- --dry-run     # show what would change

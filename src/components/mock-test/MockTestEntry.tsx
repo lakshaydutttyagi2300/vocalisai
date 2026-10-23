@@ -66,7 +66,7 @@ export function MockTestEntry() {
           {...HEROES.mockTests}
           eyebrow="Proctored assessment"
           title="Prepare for your assessment"
-          subtitle="A realistic, timed Voice & Accent assessment: the closest thing to the real hiring process you can practise on your own."
+          subtitle="A realistic, timed English and communication assessment: the closest thing to a real hiring test you can practise on your own."
         />
       <div className="page-container mt-10 max-w-lg text-center">
         <PrepChecks />

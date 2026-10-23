@@ -10,8 +10,9 @@ import { SiteFooter } from "@/components/cine/SiteFooter";
 import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
-  title: "About - VocalisAi",
-  description: "Why VocalisAi exists: practice for the moments where how you speak and how you think under time pressure decide what happens next.",
+  title: "About VocalisAi - your AI communication coach",
+  description: "Why VocalisAi exists: a low-pressure place to practise interviews, spoken English and professional conversations, with feedback you can act on.",
+  openGraph: { title: "About VocalisAi - your AI communication coach", description: "Why VocalisAi exists: a low-pressure place to practise interviews, spoken English and professional conversations, with feedback you can act on.", siteName: "VocalisAi", type: "website" },
 };
 
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
@@ -25,12 +26,12 @@ const BELIEFS = [
   {
     id: "realThing",
     title: "Practice like the real thing",
-    text: "Timed sections, real test formats and an AI that replies to what you said, so the real day feels like the second time you've done it.",
+    text: "An AI that replies to what you said, and timed tests when you want them, so the real day feels like the second time you've done it.",
   },
   {
     id: "honest",
     title: "Honest by design",
-    text: "Practice material is our own, written in the style of each test. Examples are labelled as examples, and we never invent scores, reviews or results.",
+    text: "Practice material is our own. Examples are labelled as examples, AI feedback is presented as a guide, and we never invent scores, reviews or results.",
   },
 ] as const;
 
@@ -40,8 +41,8 @@ export default function AboutPage() {
       <PageHero
         name={scene("about.hero")}
         eyebrow="About VocalisAi"
-        title={<>For the people who have to {accent("perform")}.</>}
-        text="Interviews, placement tests, customer calls, presentations: moments where how you speak, and how you think against the clock, decide what happens next. VocalisAi is where you practise them until they feel familiar."
+        title={<>For anyone who wants to speak with {accent("confidence")}.</>}
+        text="Interviews, meetings, new jobs and everyday conversations: moments where how you express yourself matters. VocalisAi is a calm place to practise them out loud, make mistakes safely and improve a little each time."
       />
 
       <section className="py-28 sm:py-40">
@@ -67,7 +68,7 @@ export default function AboutPage() {
         <Container>
           <MediaSplit
             eyebrow="How it works"
-            title={<>Listening first, then {accent("scoring")}.</>}
+            title={<>Listening first, then {accent("feedback")}.</>}
             text="Your spoken answers are transcribed and analysed by AI for pronunciation, fluency, grammar, vocabulary, pace and delivery. Every answer also updates a mastery score for the skill it tested, and the next questions you see are chosen from that, never repeating one you've already seen until a topic runs out."
             points={["Speech transcribed, then rated on six dimensions", "Mastery scores for every skill", "Fresh questions first, revision on demand", "Camera and microphone checks for mock exams"]}
             media={
@@ -86,7 +87,7 @@ export default function AboutPage() {
         <Container className="flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="cine-eyebrow">Talk to us</p>
-            <h2 className="cine-headline mt-5 text-4xl text-fg sm:text-5xl">Questions, schools or {accent("companies")}?</h2>
+            <h2 className="cine-headline mt-5 text-4xl text-fg sm:text-5xl">Questions, colleges or {accent("teams")}?</h2>
           </div>
           <Link href="/contact" className="btn-secondary btn-lg">
             Contact us

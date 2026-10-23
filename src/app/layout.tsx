@@ -14,9 +14,10 @@ const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", st
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "VocalisAi - AI English Practice, Assessment & Proctored Exam Preparation",
+  title: "VocalisAi - AI communication coach for interviews and spoken English",
   description:
-    "Practice and prepare for English language tests, academic and workplace English assessments, recruitment and pre-employment assessments, and proctored mock exams - with real AI-powered speech, grammar and performance analysis.",
+    "Practise spoken English, mock interviews and professional conversations with an AI communication coach. Get feedback on fluency, pronunciation, grammar and clarity, and build confidence through practice.",
+  applicationName: "VocalisAi",
 };
 
 const THEME_SCRIPT = `try{if(localStorage.getItem("vx-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;

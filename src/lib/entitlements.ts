@@ -28,7 +28,7 @@ export const FEATURES = [
   "MOCK_ASSESSMENT",
   "INTERVIEW_SIMULATION",
   "AI_SCENARIO",
-  // Free plan only: one go at the Customer Support (BPO) English Assessment.
+  // Free plan only: one go at the Customer Support English Assessment.
   // Paid plans take it from their MOCK_ASSESSMENT allowance instead.
   "SUPPORT_ASSESSMENT_TRY",
   // One AI marking of a written customer-service email reply (practice/email).

@@ -1,7 +1,8 @@
 // Goal Tracks (Phase 4): what a candidate is preparing for, and a plan built
 // from their skill mastery. A track is a recipe over skills (GoalTrackSkill
-// weights) plus the exams that belong to it (ExamBlueprint, e.g. the BPO
-// assessment lives inside the BPO track). Only enabled tracks are offered;
+// weights) plus the exams that belong to it (ExamBlueprint, e.g. the
+// Workplace Communication assessment lives inside the Customer Support
+// track). Only enabled tracks are offered;
 // Campus and Study Abroad stay hidden until an admin enables them.
 
 import { db } from "@/lib/db";
@@ -24,8 +25,8 @@ export const TRACK_COPY: Record<string, { tagline: string; includes: string[] }>
     includes: ["Grammar, vocabulary, reading and listening drills", "Writing and speaking practice", "The General English assessment"],
   },
   BPO_SUPPORT: {
-    tagline: "Get ready for customer-support and BPO roles.",
-    includes: ["Voice, accent and listening practice", "Customer-service role-plays and workplace judgement", "The full BPO (Workplace Communication) assessment"],
+    tagline: "Get ready for customer-facing and support roles.",
+    includes: ["Voice, accent and listening practice", "Customer conversation role-plays and workplace judgement", "The full Workplace Communication assessment"],
   },
   INTERVIEW_PREP: {
     tagline: "Answer interview questions clearly and confidently.",

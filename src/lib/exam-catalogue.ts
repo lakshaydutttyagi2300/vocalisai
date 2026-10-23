@@ -52,7 +52,7 @@ export const EXAM_FAMILY_SEED: { slug: ExamFamilySlug; name: string; description
   { slug: "PTE_STYLE", name: "PTE-style", description: "Computer-delivered, integrated-skills English proficiency testing." },
   { slug: "CAMBRIDGE_STYLE", name: "Cambridge-style", description: "Cambridge English qualification style assessments." },
   { slug: "APTITUDE", name: "Aptitude", description: "General aptitude, reasoning and situational-judgement assessments." },
-  { slug: "EMPLOYMENT", name: "Employment & Recruitment", description: "Recruitment, pre-employment and role-specific assessments, including BPO/MNC interviews." },
+  { slug: "EMPLOYMENT", name: "Employment & Recruitment", description: "Recruitment, pre-employment and role-specific assessments, including company interview rounds." },
   { slug: "GENERAL_ENGLISH", name: "General English", description: "General English proficiency, placement and workplace-communication assessments." },
 ];
 

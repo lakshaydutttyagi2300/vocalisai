@@ -5,9 +5,9 @@ import { CineVideo } from "@/components/cine/CineVideo";
 import { scene } from "@/config/mediaLibrary";
 
 const BRAND_POINTS = [
-  "Feedback on pronunciation, fluency, grammar and pace",
-  "AI interviews that reply to what you actually say",
-  "Timed mock tests for company assessments and exams",
+  "Practise interviews with an AI that replies to what you say",
+  "Feedback on fluency, pronunciation, grammar and pace",
+  "A plan for your goal, with your weakest skills first",
 ];
 
 // Sign-in and sign-up: a picture with the promise on the left (large
@@ -15,7 +15,7 @@ const BRAND_POINTS = [
 // page a photo from the media library, the others a preview of their own step.
 type Panel = "login" | "signup" | "forgot" | "reset";
 
-const GOALS = ["BPO / Customer Support", "Campus Placement", "Interview Preparation", "Study Abroad"];
+const GOALS = ["Interview Preparation", "General English", "Campus Placement", "Study Abroad"];
 
 function StepPreview({ panel }: { panel: Exclude<Panel, "login"> }) {
   const card = "w-[min(24rem,80%)] rounded-2xl border border-line bg-surface/95 p-5 text-left shadow-[var(--shadow-lg)] backdrop-blur";
@@ -57,7 +57,7 @@ export function AuthShell({ children, panel = "login" }: { children: ReactNode; 
         <div aria-hidden="true" className="scrim-bottom absolute inset-0" />
         <div className="absolute inset-x-0 bottom-0 p-12 text-fg">
           <h2 className="cine-headline max-w-md text-4xl">
-            Give every answer a <span className="serif-accent">confident</span> voice.
+            Speak with <span className="serif-accent">confidence</span>. Interview with clarity.
           </h2>
           <ul className="mt-8 space-y-3">
             {BRAND_POINTS.map((point) => (

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { db } from "@/lib/db";
 import { createTestUser, loginAs } from "./helpers";
 
-// The Customer Support (BPO) English Assessment end to end, on a tiny copy of
+// The Customer Support English Assessment end to end, on a tiny copy of
 // its structure: a Free user's one free try, marking (no recordings, so no AI
 // call), the brief result page, the second try refused, and the exam's own
 // questions never leaking into ordinary practice.
@@ -35,7 +35,7 @@ test.beforeAll(async () => {
     data: {
       familyId,
       slug: "CUSTOMER_SUPPORT_BPO",
-      name: `Customer Support (BPO) English ${stamp}`,
+      name: `Customer Support English ${stamp}`,
       scoreScale: "PASS_MERIT_DISTINCTION",
       papers: {
         create: [

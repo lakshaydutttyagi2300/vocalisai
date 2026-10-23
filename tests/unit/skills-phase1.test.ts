@@ -133,10 +133,10 @@ describe("Phase 1 seed on the test database", { timeout: 180_000 }, () => {
     const allTracks = await db.goalTrack.findMany({ include: { skills: true }, orderBy: { sortOrder: "asc" } });
     const tracks = allTracks.filter((t) => REAL_SLUGS.includes(t.slug));
     expect(tracks.map((t) => [t.slug, t.enabled])).toEqual([
-      ["GENERAL_ENGLISH", true],
-      ["BPO_SUPPORT", true],
       ["INTERVIEW_PREP", true],
+      ["GENERAL_ENGLISH", true],
       ["CAMPUS", true],
+      ["BPO_SUPPORT", true],
       ["STUDY_ABROAD", true],
     ]);
     for (const t of tracks) expect(t.skills.length).toBeGreaterThan(0);

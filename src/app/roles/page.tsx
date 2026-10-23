@@ -5,8 +5,8 @@ import { JOB_ROLES, ROLE_GROUPS } from "@/lib/job-roles";
 import { Icon } from "@/components/ui/Icon";
 
 export const metadata: Metadata = {
-  title: "Prepare for your job - VocalisAi",
-  description: "Pick the job you want, such as Customer Support Executive, Phone Banking Officer or Retention Specialist, and practise exactly what its hiring tests and interview ask.",
+  title: "Interview preparation by job role - VocalisAi",
+  description: "Pick the job you want, from graduate trainee and HR executive to banking, office and customer-facing roles, and practise what its hiring tests and interview ask.",
 };
 
 // Role-first practice: pick a job, get the practice that matters for it.

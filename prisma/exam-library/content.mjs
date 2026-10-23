@@ -58,13 +58,13 @@ export const EXAM_LIBRARY = [
   {
     slug: "CUSTOMER_SERVICE_ENGLISH",
     name: "Customer Service English",
-    description: "Listening, voice and customer handling for support, contact-centre and BPO roles.",
+    description: "Listening, speaking and customer handling for customer-facing and support roles.",
     exams: [
       {
         slug: "CONTACT_CENTRE_SCREENING",
-        name: "Contact Centre Screening",
+        name: "Customer Service Screening",
         scale: "PASS_MERIT_DISTINCTION",
-        description: "A short screening like a first-round BPO test: understand callers, then answer customers out loud.",
+        description: "A short screening like a first-round customer service test: understand callers, then answer customers out loud.",
         papers: [
           paper("Listening", 8, [part("Customer calls", [["LISTENING", I, 4]])]),
           paper("Customer calls", 12, [part("Respond as the agent", [["CUSTOMER_SERVICE", I, 3]], speaking(15, 60))], { navigation: "LOCKED_SEQUENTIAL", review: false }),
@@ -501,7 +501,7 @@ export const EXAM_LIBRARY = [
   {
     slug: "EMPLOYMENT",
     name: "Employment & Recruitment",
-    description: "Recruitment, pre-employment and role-specific assessments, including BPO/MNC interviews.",
+    description: "Recruitment, pre-employment and role-specific assessments, including company interview rounds.",
     exams: [
       {
         slug: "PRE_EMPLOYMENT_SCREENING",
@@ -550,7 +550,7 @@ export const EXAM_LIBRARY = [
 ];
 
 // The General English goal track's assessment, made clearly different from
-// the BPO / Workplace Communication one: language skills rather than
+// the Customer Support / Workplace Communication one: language skills rather than
 // customer handling (it used to share 8 of its 9 sections).
 export const GENERAL_ENGLISH_ASSESSMENT = {
   name: "General English Communication Assessment",

@@ -14,16 +14,17 @@ import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
   title: "Pricing - VocalisAi",
-  description: "Every practice mode on every plan. Start free, then choose how much practice, speech analysis, mock assessments and AI interviews you need each month.",
+  description: "Start free, then choose how much speaking practice, AI feedback, mock interviews and mock assessments you need each month. Every practice mode is on every plan.",
+  openGraph: { title: "Pricing - VocalisAi", description: "Start free, then choose how much speaking practice, AI feedback, mock interviews and mock assessments you need each month. Every practice mode is on every plan.", siteName: "VocalisAi", type: "website" },
 };
 
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
 
 const PLAN_DISPLAY: Record<Plan, { label: string; blurb: string }> = {
   FREE: { label: "Free", blurb: "A one-time sample, at your own pace." },
-  STARTER: { label: "Starter", blurb: "For an exam or interview coming up soon." },
-  PROFESSIONAL: { label: "Professional", blurb: "Regular practice across every skill." },
-  PREMIUM: { label: "Premium", blurb: "The most practice, for the most thorough preparation." },
+  STARTER: { label: "Starter", blurb: "For an interview or test coming up soon." },
+  PROFESSIONAL: { label: "Professional", blurb: "Regular practice to build lasting habits." },
+  PREMIUM: { label: "Premium", blurb: "The most practice, for thorough preparation." },
 };
 const HIGHLIGHTS = ["PRACTICE_SESSION", "SPEECH_ANALYSIS", "MOCK_ASSESSMENT", "INTERVIEW_SIMULATION"] as const;
 
@@ -37,6 +38,7 @@ export default async function PricingPage() {
     ],
     ["What's different between the plans?", `Every plan includes all ${PRACTICE_MODES.length} practice modes. Paid plans add more of each every month, full mock assessments, and more difficulty levels.`],
     ["Will I see the same questions again?", "No. You get questions you haven't seen first, until a topic runs out; revision mode brings back the ones you got wrong."],
+    ["How accurate is the AI feedback?", "It's a helpful guide rather than a final judgement. Speech recognition and AI ratings can miss things, so use the feedback alongside your own sense of how an answer went."],
     ["Are these the official tests?", "No. Practice material is written by VocalisAi in the style of each test. We are not affiliated with or endorsed by the employers or test providers named."],
   ];
 
@@ -126,7 +128,7 @@ export default async function PricingPage() {
         title={<>Start with your {accent("voice")}.</>}
         text="Free to begin. Upgrade only when you want more."
         primary={{ href: session ? "/dashboard" : "/signup", label: session ? "Go to your dashboard" : "Start free" }}
-        secondary={{ href: "/use-cases", label: "See use cases" }}
+        secondary={{ href: "/use-cases", label: "See who it's for" }}
       />
       <SiteFooter />
     </div>

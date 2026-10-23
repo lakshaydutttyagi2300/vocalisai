@@ -15,15 +15,24 @@ export type RoleStep =
 
 export type JobRole = { slug: string; title: string; group: RoleGroupId; summary: string; steps: RoleStep[] };
 
+// Listed in this order on /roles.
 export const ROLE_GROUPS = [
-  { id: "bpo", name: "Customer service and BPO (voice)" },
-  { id: "banking", name: "Banking and finance" },
-  { id: "insurance", name: "Insurance" },
-  { id: "nonvoice", name: "Non-voice and back office" },
-  { id: "accounts", name: "Accounts" },
   { id: "graduate", name: "Freshers and graduates" },
   { id: "communication", name: "Communication-heavy jobs" },
+  { id: "nonvoice", name: "Office, email and chat roles" },
+  { id: "banking", name: "Banking and finance" },
+  { id: "insurance", name: "Insurance" },
+  { id: "accounts", name: "Accounts" },
+  { id: "service", name: "Customer service (phone)" },
 ] as const;
+
+/** Roles renamed in Oct 2026: the old address redirects to the new one. */
+export const RENAMED_ROLE_SLUGS: Record<string, string> = {
+  "inbound-call-centre-agent": "inbound-customer-service-agent",
+  "bpo-quality-analyst": "customer-service-quality-analyst",
+  "bpo-team-leader": "customer-service-team-leader",
+  "travel-call-centre-agent": "travel-customer-service-agent",
+};
 export type RoleGroupId = (typeof ROLE_GROUPS)[number]["id"];
 
 export function stepHref(step: RoleStep): string {
@@ -78,7 +87,7 @@ const S = {
   interviewQs: { kind: "mode", slug: "interview", label: "Interview questions", why: "Practise answers to the questions you will be asked." },
   interview: { kind: "talk", role: "INTERVIEWER", label: "Live AI mock interview", why: "A real interview with an AI interviewer, then feedback." },
   supervisor: { kind: "talk", role: "SUPERVISOR", label: "Conversation with an AI manager", why: "Handle updates, feedback and difficult talks with a manager." },
-  mockSupport: { kind: "mock", label: "Customer Support English Assessment", why: "A full timed test like a BPO hiring round, with a score report." },
+  mockSupport: { kind: "mock", label: "Customer Support English Assessment", why: "A full timed test like a customer service hiring round, with a score report." },
   mockAptitude: { kind: "mock", label: "Aptitude Screening or Graduate Recruitment Assessment", why: "A full timed aptitude test like a company's first round." },
   ticket: { kind: "ticket", label: "Ticket handling (AI-marked)", why: "Choose the category and priority, reply, and leave a note for your team." },
   chat: { kind: "chat", label: "Live chat simulation", why: "Chat with an AI customer who reacts to what you write, then get marked." },
@@ -93,25 +102,25 @@ const office = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.email, S.tic
 const spoken = (extra: RoleStep[] = []): RoleStep[] => [...extra, S.speaking, S.fluency, S.pronunciation, S.judgement, S.interviewQs, S.interview];
 
 export const JOB_ROLES: JobRole[] = [
-  // Customer service and BPO
-  { slug: "customer-support-executive", title: "Customer Support Executive", group: "bpo", summary: "Answer customer calls, solve problems and keep customers happy.", steps: voice([S.fluency]) },
-  { slug: "customer-service-representative", title: "Customer Service Representative", group: "bpo", summary: "The first voice customers hear: questions, orders and complaints.", steps: voice([S.fluency]) },
-  { slug: "customer-care-executive", title: "Customer Care Executive", group: "bpo", summary: "Help customers with accounts, orders and service requests by phone.", steps: voice([S.fluency]) },
-  { slug: "international-voice-process-associate", title: "International Voice Process Associate", group: "bpo", summary: "Take calls from customers in the US, UK or Australia, with clear neutral English.", steps: voice([S.readAloud, S.fluency, S.vocabulary]) },
-  { slug: "technical-support-associate", title: "Technical Support Associate (L1)", group: "bpo", summary: "Walk customers through simple fixes, calmly and step by step.", steps: voice([S.reasoning]) },
-  { slug: "retention-specialist", title: "Retention Expert / Retention Specialist", group: "bpo", summary: "Talk customers out of cancelling by understanding and solving their reason.", steps: voice([S.speaking]) },
-  { slug: "escalations-executive", title: "Customer Complaints / Escalations Executive", group: "bpo", summary: "Handle upset customers and complaints others could not solve.", steps: voice([S.supervisor]) },
-  { slug: "inbound-call-centre-agent", title: "Inbound Call Centre Agent", group: "bpo", summary: "Take incoming calls and solve each one on the first call.", steps: voice() },
-  { slug: "help-desk-associate", title: "Help Desk / Service Desk Associate", group: "bpo", summary: "Log, solve and route requests from customers or staff.", steps: voice([S.writing]) },
-  { slug: "customer-experience-associate", title: "Customer Experience Associate", group: "bpo", summary: "Make every customer contact smooth, by phone and in writing.", steps: voice([S.chat, S.writing]) },
-  { slug: "telecaller", title: "Telecaller (service and follow-up calls)", group: "bpo", summary: "Make follow-up, reminder and confirmation calls clearly and politely.", steps: voice([S.fluency]) },
-  { slug: "bpo-quality-analyst", title: "Quality Analyst, BPO", group: "bpo", summary: "Listen to calls, score them and coach agents to improve.", steps: [S.listening, S.judgement, S.serviceRoleplay, S.writing, S.supervisor, S.mockSupport, S.interview] },
-  { slug: "bpo-team-leader", title: "Team Leader, BPO", group: "bpo", summary: "Lead a team of agents: targets, feedback and difficult conversations.", steps: [S.supervisor, S.judgement, S.workplaceComms, S.customerCall, S.speaking, S.mockSupport, S.interview] },
-  { slug: "onboarding-executive", title: "Customer Onboarding / Welcome Call Executive", group: "bpo", summary: "Welcome new customers, explain the product and set them up.", steps: voice([S.speaking]) },
-  { slug: "ecommerce-support-executive", title: "E-commerce / Order Support Executive", group: "bpo", summary: "Help shoppers with orders, deliveries, returns and refunds.", steps: voice([S.chat, S.writing]) },
-  { slug: "travel-call-centre-agent", title: "Travel and Airline Call Centre Agent", group: "bpo", summary: "Book, change and cancel travel for callers, and handle delays.", steps: voice([S.fluency]) },
-  { slug: "telecom-support-executive", title: "Telecom Customer Support Executive", group: "bpo", summary: "Help mobile and broadband customers with plans, bills and faults.", steps: voice([S.reasoning]) },
-  { slug: "billing-support-executive", title: "Utility / Billing Support Executive", group: "bpo", summary: "Explain bills, take payments and sort out billing complaints.", steps: voice([S.quant]) },
+  // Customer service (phone)
+  { slug: "customer-support-executive", title: "Customer Support Executive", group: "service", summary: "Answer customer calls, solve problems and keep customers happy.", steps: voice([S.fluency]) },
+  { slug: "customer-service-representative", title: "Customer Service Representative", group: "service", summary: "The first voice customers hear: questions, orders and complaints.", steps: voice([S.fluency]) },
+  { slug: "customer-care-executive", title: "Customer Care Executive", group: "service", summary: "Help customers with accounts, orders and service requests by phone.", steps: voice([S.fluency]) },
+  { slug: "international-voice-process-associate", title: "International Voice Process Associate", group: "service", summary: "Take calls from customers in the US, UK or Australia, with clear neutral English.", steps: voice([S.readAloud, S.fluency, S.vocabulary]) },
+  { slug: "technical-support-associate", title: "Technical Support Associate (L1)", group: "service", summary: "Walk customers through simple fixes, calmly and step by step.", steps: voice([S.reasoning]) },
+  { slug: "retention-specialist", title: "Retention Expert / Retention Specialist", group: "service", summary: "Talk customers out of cancelling by understanding and solving their reason.", steps: voice([S.speaking]) },
+  { slug: "escalations-executive", title: "Customer Complaints / Escalations Executive", group: "service", summary: "Handle upset customers and complaints others could not solve.", steps: voice([S.supervisor]) },
+  { slug: "inbound-customer-service-agent", title: "Inbound Customer Service Agent", group: "service", summary: "Take incoming calls and solve each one on the first call.", steps: voice() },
+  { slug: "help-desk-associate", title: "Help Desk / Service Desk Associate", group: "service", summary: "Log, solve and route requests from customers or staff.", steps: voice([S.writing]) },
+  { slug: "customer-experience-associate", title: "Customer Experience Associate", group: "service", summary: "Make every customer contact smooth, by phone and in writing.", steps: voice([S.chat, S.writing]) },
+  { slug: "telecaller", title: "Telecaller (service and follow-up calls)", group: "service", summary: "Make follow-up, reminder and confirmation calls clearly and politely.", steps: voice([S.fluency]) },
+  { slug: "customer-service-quality-analyst", title: "Customer Service Quality Analyst", group: "service", summary: "Listen to calls, score them and coach agents to improve.", steps: [S.listening, S.judgement, S.serviceRoleplay, S.writing, S.supervisor, S.mockSupport, S.interview] },
+  { slug: "customer-service-team-leader", title: "Customer Service Team Leader", group: "service", summary: "Lead a team of agents: targets, feedback and difficult conversations.", steps: [S.supervisor, S.judgement, S.workplaceComms, S.customerCall, S.speaking, S.mockSupport, S.interview] },
+  { slug: "onboarding-executive", title: "Customer Onboarding / Welcome Call Executive", group: "service", summary: "Welcome new customers, explain the product and set them up.", steps: voice([S.speaking]) },
+  { slug: "ecommerce-support-executive", title: "E-commerce / Order Support Executive", group: "service", summary: "Help shoppers with orders, deliveries, returns and refunds.", steps: voice([S.chat, S.writing]) },
+  { slug: "travel-customer-service-agent", title: "Travel and Airline Customer Service Agent", group: "service", summary: "Book, change and cancel travel for callers, and handle delays.", steps: voice([S.fluency]) },
+  { slug: "telecom-support-executive", title: "Telecom Customer Support Executive", group: "service", summary: "Help mobile and broadband customers with plans, bills and faults.", steps: voice([S.reasoning]) },
+  { slug: "billing-support-executive", title: "Utility / Billing Support Executive", group: "service", summary: "Explain bills, take payments and sort out billing complaints.", steps: voice([S.quant]) },
 
   // Banking and finance
   { slug: "phone-banking-officer", title: "Phone Banking Officer", group: "banking", summary: "Help bank customers by phone with accounts, cards and transactions.", steps: voice([S.bankingOps]) },

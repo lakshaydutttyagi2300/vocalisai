@@ -13,8 +13,9 @@ import { SiteFooter } from "@/components/cine/SiteFooter";
 import { scene } from "@/config/mediaLibrary";
 
 export const metadata: Metadata = {
-  title: "Personalised practice - VocalisAi",
-  description: "Choose your goal and VocalisAi builds your practice around it: the skills that matter first, your weakest skills next, at your level, with no repeated questions.",
+  title: "Personalised communication practice - VocalisAi",
+  description: "Choose your goal and VocalisAi builds your practice around it: the skills that matter first, your weakest areas next, at your level, with no repeated questions.",
+  openGraph: { title: "Personalised communication practice - VocalisAi", description: "Choose your goal and VocalisAi builds your practice around it: the skills that matter first, your weakest areas next, at your level, with no repeated questions.", siteName: "VocalisAi", type: "website" },
 };
 
 const accent = (word: string) => <span className="serif-accent">{word}</span>;
@@ -51,8 +52,8 @@ export default async function PersonalisedPage() {
               Choose my goal
               <Icon as={ArrowRight} />
             </Link>
-            <Link href="/explore" className="btn-secondary btn-lg">
-              Explore exams
+            <Link href="/product/speaking" className="btn-secondary btn-lg">
+              See speaking practice
             </Link>
           </>
         }
@@ -83,9 +84,9 @@ export default async function PersonalisedPage() {
                   <ul className="mt-3 grid gap-2.5 text-xs">
                     {(
                       [
-                        ["Syllogism", "Mastered", 90],
+                        ["Answering interview questions", "Proficient", 78],
                         ["Reading for inference", "Proficient", 72],
-                        ["Data sufficiency", "Next up", 41],
+                        ["Fluency", "Next up", 41],
                       ] as const
                     ).map(([skill, band, value]) => (
                       <li key={skill} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1">

@@ -1,4 +1,4 @@
-// Creates the Customer Support (BPO) English Assessment - its exam version,
+// Creates the Customer Support English Assessment - its exam version,
 // timed sections and template - and loads its question sets ("forms") from
 // a private content file with their audio. The content and answer keys are
 // never in this public repo: keep them in the git-ignored private/ folder.
@@ -23,10 +23,10 @@ import { audioScriptHash } from "../prisma/question-audio/script-hash.mjs";
 const FAMILY = { slug: "CUSTOMER_SERVICE_ENGLISH", name: "Customer Service English" };
 const VARIANT = {
   slug: "CUSTOMER_SUPPORT_BPO",
-  name: "Customer Support (BPO) English",
+  name: "Customer Support English",
   scoreScale: "PASS_MERIT_DISTINCTION",
   description:
-    "A short, demanding test for call-centre and customer support jobs: US and UK calls, repeating, dictation, grammar, retelling, fast answers and two customer role-play calls. Score out of 100.",
+    "A short, demanding test for customer support and customer-facing jobs: US and UK calls, repeating, dictation, grammar, retelling, fast answers and two customer role-play calls. Score out of 100.",
 };
 const TEMPLATE_NAME = "Customer Support English Assessment";
 const DIFFICULTY = "ADVANCED";
@@ -113,7 +113,7 @@ try {
   let variant = family ? await db.examVariant.findFirst({ where: { familyId: family.id, slug: VARIANT.slug }, include: { papers: { include: { parts: true } } } }) : null;
   console.log(`exam: ${variant ? "exists" : "will be created"}`);
   if (!variant && save) {
-    const fam = family ?? (await db.examFamily.create({ data: { ...FAMILY, description: "English for customer service and contact-centre work." } }));
+    const fam = family ?? (await db.examFamily.create({ data: { ...FAMILY, description: "English for customer service and other customer-facing work." } }));
     variant = await db.examVariant.create({
       data: {
         familyId: fam.id,

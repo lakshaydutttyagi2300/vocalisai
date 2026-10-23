@@ -31,7 +31,7 @@ export const LIBRARY = {
   teacher: { kind: "clip", alt: "A teacher helping a student at a desk", pexels: "6672045" },
   graduates: { kind: "clip", alt: "Graduates in caps and gowns smiling together", pexels: "8060941" },
   videocall: { kind: "clip", alt: "A woman talking on a video call at her laptop", pexels: "8993403" },
-  callcentre: { kind: "clip", alt: "A call-centre agent speaking into a headset", pexels: "7706876" },
+  callcentre: { kind: "clip", alt: "A customer service agent speaking into a headset", pexels: "7706876" },
   meeting: { kind: "clip", alt: "A man in an online meeting on a laptop", pexels: "7643346" },
   headphones: { kind: "clip", alt: "A man with headphones reading and speaking at his desk", pexels: "6671228" },
 

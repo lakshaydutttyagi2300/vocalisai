@@ -67,21 +67,8 @@ export const RUBRICS = [
 ];
 
 // Weights are 0-1 relevance of a skill node (category or subcategory) to the goal.
+// Listed in this order when choosing a goal (sortOrder = position).
 export const GOAL_TRACKS = [
-  {
-    slug: "GENERAL_ENGLISH",
-    name: "General English",
-    description: "Everyday and workplace English - grammar, vocabulary, reading, listening, writing and speaking.",
-    enabled: true,
-    weights: { ENG: 1, "ENG.GRM": 1, "ENG.VOC": 1, "ENG.RDG": 0.8, "ENG.LST": 0.8, "ENG.WRT": 0.8, SPK: 0.8, VRB: 0.4 },
-  },
-  {
-    slug: "BPO_SUPPORT",
-    name: "BPO / Customer Support",
-    description: "Voice and accent, customer handling, listening and workplace judgement for support roles.",
-    enabled: true,
-    weights: { SPK: 1, CSV: 1, "ENG.LST": 0.9, "ENG.GRM": 0.6, "ENG.VOC": 0.6, SJT: 0.7, INV: 0.5 },
-  },
   {
     slug: "INTERVIEW_PREP",
     name: "Interview Preparation",
@@ -90,11 +77,25 @@ export const GOAL_TRACKS = [
     weights: { INV: 1, SPK: 0.8, SJT: 0.6, "ENG.GRM": 0.4, VRB: 0.4 },
   },
   {
+    slug: "GENERAL_ENGLISH",
+    name: "General English",
+    description: "Everyday and workplace English - grammar, vocabulary, reading, listening, writing and speaking.",
+    enabled: true,
+    weights: { ENG: 1, "ENG.GRM": 1, "ENG.VOC": 1, "ENG.RDG": 0.8, "ENG.LST": 0.8, "ENG.WRT": 0.8, SPK: 0.8, VRB: 0.4 },
+  },
+  {
     slug: "CAMPUS",
     name: "Campus Placement",
     description: "Aptitude (numerical, reasoning, verbal) and interview readiness for campus hiring.",
     enabled: true, // switched on 28 Sep 2026, with its exams (Aptitude Screening, Graduate Recruitment)
     weights: { QNT: 1, REA: 1, VRB: 0.9, "ENG.GRM": 0.6, "ENG.RDG": 0.6, INV: 0.5 },
+  },
+  {
+    slug: "BPO_SUPPORT",
+    name: "Customer Support",
+    description: "Voice and accent, customer handling, listening and workplace judgement for support roles.",
+    enabled: true,
+    weights: { SPK: 1, CSV: 1, "ENG.LST": 0.9, "ENG.GRM": 0.6, "ENG.VOC": 0.6, SJT: 0.7, INV: 0.5 },
   },
   {
     slug: "STUDY_ABROAD",

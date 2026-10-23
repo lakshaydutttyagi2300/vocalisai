@@ -64,7 +64,7 @@ export function buildAssessmentPrompt(units: RatingUnit[]): string {
     .map((k) => `- ${k}: ${DIMENSIONS[k].join(", ")}. ${DIMENSION_GUIDE[k]}`)
     .join("\n");
 
-  return `You are marking the spoken part of an English assessment for customer support (BPO / call centre) jobs. The candidate's words below were transcribed by speech recognition, so ignore spelling and small recognition slips, and never judge the accent: an Indian or any other accent is fine when the words are clear. Judge only what was said.
+  return `You are marking the spoken part of an English assessment for customer support jobs. The candidate's words below were transcribed by speech recognition, so ignore spelling and small recognition slips, and never judge the accent: an Indian or any other accent is fine when the words are clear. Judge only what was said.
 
 Rate every unit on each of its dimensions as exactly "strong", "adequate" or "weak":
 ${needed}
