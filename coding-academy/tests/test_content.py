@@ -92,3 +92,28 @@ def test_projects_are_complete():
             assert skill in LIBRARY.lessons, f"{project.id}: unknown skill lesson {skill}"
         if project.dataset:
             assert project.dataset in list_datasets(), project.id
+
+
+def _text_blocks(markdown: str) -> list[str]:
+    import re
+    return re.findall(r"```text\n(.*?)```", markdown, re.S)
+
+
+def _norm(text: str) -> list[str]:
+    lines = [line.rstrip() for line in text.strip("\n").split("\n")]
+    return [line for line in lines]
+
+
+@pytest.mark.parametrize("exercise", [e for e in EXERCISES if e.kind == "python"], ids=lambda e: e.key)
+def test_example_output_in_instructions_matches_the_check(exercise):
+    """If the instructions show an example output, it must equal what the checker expects."""
+    check = exercise.check
+    expected = check.get("expected")
+    if expected is None and check.get("cases"):
+        expected = check["cases"][0].get("expected")
+    blocks = _text_blocks(exercise.instructions)
+    if expected is None or not blocks:
+        return
+    assert any(_norm(block) == _norm(str(expected)) for block in blocks), (
+        f"{exercise.key}: the example in the instructions differs from the checked output.\n"
+        f"Checked output:\n{expected}\nInstruction examples:\n" + "\n---\n".join(blocks))
