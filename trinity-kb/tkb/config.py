@@ -25,6 +25,7 @@ DEFAULT_SETTINGS = {
     "web_allowed_hosts": ["www.trinitycollege.com"],
     "web_terms_reviewed": False,       # must be ticked by the user before any crawl
     "web_store_full_text": True,       # False => title, headings and a short excerpt only
+    "web_respect_noindex": True,       # skip pages tagged noindex (a search-engine listing instruction)
     "web_delay_seconds": 3.0,
     "web_max_pages_per_run": 200,
     "web_max_depth": 3,

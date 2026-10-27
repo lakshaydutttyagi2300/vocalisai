@@ -8,6 +8,7 @@
 <h2>Website updates</h2>
 <label style="font-weight:400"><input type="checkbox" name="web_terms_reviewed" {% if s.web_terms_reviewed %}checked{% endif %}> I have read trinitycollege.com's terms of use and robots.txt and am satisfied that storing public pages for my personal reference is permitted.</label>
 <label style="font-weight:400"><input type="checkbox" name="web_store_full_text" {% if s.web_store_full_text %}checked{% endif %}> Store full page text (untick to store only titles, headings and short excerpts)</label>
+<label style="font-weight:400"><input type="checkbox" name="web_respect_noindex" {% if s.web_respect_noindex %}checked{% endif %}> Skip pages tagged "noindex". This tag asks search engines not to list a page publicly. Trinity's pages currently carry it, so while this is ticked most web pages are skipped (syllabus PDFs are still collected).</label>
 <div class="grid"><div><label>Seconds between requests (min 1)</label><input type="number" step="0.5" name="web_delay_seconds" value="{{ s.web_delay_seconds }}"></div>
 <div><label>Max pages per run</label><input type="number" name="web_max_pages_per_run" value="{{ s.web_max_pages_per_run }}"></div>
 <div><label>Link-following depth</label><input type="number" name="web_max_depth" value="{{ s.web_max_depth }}"></div>

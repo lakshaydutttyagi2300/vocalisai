@@ -331,6 +331,7 @@ def settings_page():
         db.set_setting(c, "llm_model", f.get("llm_model", "").strip() or config.DEFAULT_SETTINGS["llm_model"])
         db.set_setting(c, "web_terms_reviewed", f.get("web_terms_reviewed") == "on")
         db.set_setting(c, "web_store_full_text", f.get("web_store_full_text") == "on")
+        db.set_setting(c, "web_respect_noindex", f.get("web_respect_noindex") == "on")
         db.set_setting(c, "web_delay_seconds", max(1.0, float(f.get("web_delay_seconds") or 3)))
         db.set_setting(c, "web_max_pages_per_run", max(1, int(f.get("web_max_pages_per_run") or 200)))
         db.set_setting(c, "web_max_depth", max(0, int(f.get("web_max_depth") or 3)))

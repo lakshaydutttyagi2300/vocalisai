@@ -282,3 +282,34 @@ def test_ticket_not_stored(conn, files):
     assert "jane@example.com" not in red and "DG5550001" not in red and "Jane" not in red
     ingest.add_note(conn, "Example", red, "D")
     assert conn.execute("SELECT COUNT(*) FROM passages").fetchone()[0] == before + 1
+
+
+def test_trinity_style_resources_and_noindex(conn):
+    """Mirrors the live site: pages tagged noindex link to syllabus PDFs at /resource/?id=NNNN."""
+    import pymupdf
+    pdf = pymupdf.open(); pg = pdf.new_page()
+    pg.insert_text((72, 72), "PIANO SYLLABUS", fontsize=18); pg.insert_text((72, 110), "Candidates perform three pieces and technical work.")
+    pdf_bytes = pdf.tobytes()
+    noindex = '<html><head><meta name="robots" content="noindex"><title>Piano</title></head><body><main><h1>Piano</h1><p>Piano grade exams overview.</p>'
+    pages = {
+        f"{B}/robots.txt": (200, "text/plain", f"User-agent: *\nAllow: /\nSitemap: {B}/sitemap.xml"),
+        f"{B}/sitemap.xml": (200, "application/xml", f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>{B}/piano/</loc></url></urlset>'),
+        f"{B}/": (200, "text/html", noindex + '</main></body></html>'),
+        f"{B}/piano": (200, "text/html", noindex + f'<a href="/resource/?id=10125">Syllabus</a><a href="/search?q=x">s</a></main></body></html>'),
+        f"{B}/resource?id=10125": (200, "application/pdf", pdf_bytes),
+    }
+    db.set_setting(conn, "web_terms_reviewed", True)
+    f = FakeSite(pages)
+    web.run_update(conn, f, sleep=lambda s: None)
+    cov = web.coverage_report(conn)
+    assert cov["processed"] == 1 and cov["skipped"] == 2  # PDF kept; both noindex pages skipped
+    r = search(conn, "three pieces technical work")[0]
+    assert r["location"] == f"{B}/resource?id=10125" and r["category"] == "A" and r["title"] == "PIANO SYLLABUS"
+    from pathlib import Path
+    assert Path(r["stored_path"]).read_bytes()[:5] == b"%PDF-"  # the official file is saved for offline use
+    assert not any("search" in u for u in f.calls)
+    db.set_setting(conn, "web_respect_noindex", False)
+    conn.execute("UPDATE web_pages SET state='pending' WHERE state='skipped'"); conn.commit()
+    web.run_update(conn, FakeSite(pages), sleep=lambda s: None)
+    cov = web.coverage_report(conn)
+    assert cov["processed"] == 2 and cov["duplicate"] == 1 and search(conn, "piano grade exams overview")

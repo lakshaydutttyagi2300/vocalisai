@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 from urllib import robotparser
 from urllib.parse import urldefrag, urljoin, urlparse
 
-from . import db
+from . import config, db
 from .extract import extract_pdf, html_to_extracted
 from .ingest import norm_hash, write_passages
 
@@ -49,13 +49,22 @@ def _allowed_host(url, hosts):
 def normalise(url):
     url = urldefrag(url)[0]
     p = urlparse(url)
-    path = p.path or "/"
+    path = p.path.rstrip("/") or "/"  # "/piano/" and "/piano" are the same page
     return f"{p.scheme}://{p.netloc.lower()}{path}" + (f"?{p.query}" if p.query else "")
+
+
+# Official documents (syllabuses, handbooks, policies) are served as /resource/?id=NNNN
+RESOURCE_RE = re.compile(r"(?i)^/resource$")
+
+
+def _is_resource(url):
+    p = urlparse(url)
+    return bool(RESOURCE_RE.match(p.path)) and re.fullmatch(r"id=\d+", p.query or "") is not None
 
 
 def _add(conn, url, depth, via):
     conn.execute("INSERT OR IGNORE INTO web_pages(url,state,depth,via,discovered_at,kind) VALUES(?,?,?,?,?,?)",
-                 (url, "pending", depth, via, db.now(), "pdf" if url.lower().endswith(".pdf") else "html"))
+                 (url, "pending", depth, via, db.now(), "pdf" if url.lower().endswith(".pdf") or _is_resource(url) else "html"))
 
 
 def _err(conn, job, target, msg):
@@ -113,7 +122,8 @@ def run_update(conn, fetcher=None, sleep=time.sleep, max_pages=None, refresh=Fal
     # 3. process the queue
     limit = max_pages or s["web_max_pages_per_run"]
     while stats["fetched"] < limit:
-        row = conn.execute("SELECT * FROM web_pages WHERE state='pending' ORDER BY depth, rowid LIMIT 1").fetchone()
+        # official documents (syllabuses etc.) first, then pages nearest the start
+        row = conn.execute("SELECT * FROM web_pages WHERE state='pending' ORDER BY kind='pdf' DESC, depth, rowid LIMIT 1").fetchone()
         if not row:
             break
         url = row["url"]
@@ -227,9 +237,11 @@ def _process(conn, fetcher, row, s, hosts, stats, job):
         stats["skipped"] += 1; return
     ctype = h.get("content-type", "").lower()
     xrobots = h.get("x-robots-tag", "").lower()
-    if "pdf" in ctype or url.lower().endswith(".pdf"):
+    if "pdf" in ctype or url.lower().endswith(".pdf") or body[:5] == b"%PDF-":
         ex = extract_pdf(body)
         kind, links = "pdf", []
+        if not ex.title and ex.passages:
+            ex.title = ex.passages[0]["text"].split("\n")[0][:120]
     elif "html" in ctype or not ctype:
         html = body.decode(_charset(ctype), "replace")
         meta = re.search(r"<meta[^>]+name=[\"']robots[\"'][^>]*content=[\"']([^\"']+)", html, re.I)
@@ -238,7 +250,7 @@ def _process(conn, fetcher, row, s, hosts, stats, job):
         if row["depth"] < s["web_max_depth"]:
             for l in links:
                 _add(conn, l, row["depth"] + 1, url)
-        if "noindex" in robots_meta:
+        if "noindex" in robots_meta and s.get("web_respect_noindex", True):
             _mark(conn, url, "skipped", "Page asks not to be indexed (noindex).", status)
             stats["skipped"] += 1; return
         ex = html_to_extracted(html, full_text=s["web_store_full_text"])
@@ -278,6 +290,10 @@ def _process(conn, fetcher, row, s, hosts, stats, job):
         ver = conn.execute("SELECT version FROM sources WHERE id=?", (sid,)).fetchone()[0]
         conn.execute("INSERT INTO source_versions(source_id,version,checksum,recorded_at,note) VALUES(?,?,?,?,?)",
                      (sid, ver, chash, now, "web change detected" if src else "first retrieval"))
+    if kind == "pdf":  # keep the official file itself, so it can be opened offline
+        f = config.docs_dir() / ("official_" + re.sub(r"[^A-Za-z0-9]+", "_", urlparse(url).path + "_" + urlparse(url).query).strip("_")[-80:] + ".pdf")
+        f.write_bytes(body)
+        conn.execute("UPDATE sources SET stored_path=? WHERE id=?", (str(f), sid))
     conn.execute("""UPDATE web_pages SET state='done', source_id=?, kind=?, http_status=?, fetched_at=?, verified_at=?,
                     content_hash=?, etag=?, last_modified=?, note=NULL WHERE url=?""",
                  (sid, kind, status, now, now, chash, h.get("etag"), h.get("last-modified"), url))
@@ -298,8 +314,8 @@ def _links(html, base, hosts):
     for href in re.findall(r"""<a\s[^>]*href=["']([^"'#]+)""", html, re.I):
         if href.startswith(("mailto:", "tel:", "javascript:")):
             continue
-        u = normalise(urljoin(base, href.strip()))
-        if _allowed_host(u, hosts) and not SKIP_EXT.search(urlparse(u).path) and "?" not in u:
+        u = normalise(urljoin(base, href.strip().replace("&amp;", "&")))
+        if _allowed_host(u, hosts) and not SKIP_EXT.search(urlparse(u).path) and ("?" not in u or _is_resource(u)):
             out.add(u)
     return sorted(out)
 
