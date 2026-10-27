@@ -253,3 +253,12 @@ def render_academy(track: str) -> None:
                     extra.append(f"mastery {status.mastery_score:.0%}")
                 suffix = f"  ({', '.join(extra)})" if extra else ""
                 lesson_link(lesson, label=f"{STATE_ICONS[status.state]} {lesson.title} · {lesson.minutes} min{suffix}")
+
+    # The last level of each track is practical: the projects on the Projects page.
+    track_projects = [p for p in library.projects.values() if p.track == track]
+    if track_projects:
+        with st.expander(f"Level {levels[-1].number + 1}: Practical projects  ({len(track_projects)} projects)"):
+            st.markdown("Put everything together in bigger, real-world tasks with beginner, intermediate and "
+                        "extension stages. Start a project whenever its skills are familiar - you don't have to "
+                        "finish every lesson first.")
+            page_link("projects", "Open the projects", icon="🛠️")

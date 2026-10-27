@@ -35,12 +35,12 @@ Claude subscription and without any paid service. An AI tutor is available as an
 | Section | What it does |
 |---|---|
 | **Home** | Where you stopped, what to learn next, what to revise, recent results |
-| **Python Academy** | Python lessons from "what is a program?" upwards, in levels |
-| **SQL Academy** | SQL lessons from "what is a database?" upwards, in levels |
-| **Python Practice Lab** | Write and run real Python code safely; every Python exercise in one place |
-| **SQL Practice Lab** | Explore 7 sample databases and run any SQL; resettable at any time |
+| **Python Academy** | 48 lessons in 12 levels, from "what is a program?" to decorators, testing and concurrency |
+| **SQL Academy** | 24 lessons in 8 levels, from "what is a database?" to window functions, design and transactions |
+| **Python Practice Lab** | Write and run real Python code safely; all 192 Python exercises in one place |
+| **SQL Practice Lab** | Explore 7 sample databases and run any SQL; resettable at any time; 94 SQL exercises |
 | **Quizzes & Assessments** | Revision quizzes, lesson quizzes and level assessments |
-| **Projects & Challenges** | 20 practical projects with beginner/intermediate/extension stages |
+| **Projects & Challenges** | 20 practical projects (10 Python, 10 SQL) with beginner/intermediate/extension stages, hints and sample solutions |
 | **Progress & Revision** | Mastery estimates from real results, topics to revise, exports |
 | **Knowledge Base** | Offline search across lessons, glossary, error guides, cheat sheets, FAQ and your notes |
 | **Notes & Bookmarks** | Your own notes (linked to lessons) and saved lessons/articles |

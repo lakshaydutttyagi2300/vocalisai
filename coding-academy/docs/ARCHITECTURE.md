@@ -92,8 +92,8 @@ without migrating data. Definitions are in the docstring of `academy/progress.py
 - Streamlit listens on **localhost only** (`.streamlit/config.toml`) - other devices cannot reach the code
   runner.
 - Learner Python: separate process, time limit, output limit, file-write/delete/rename guard, no subprocess,
-  no ctypes, rlimits on POSIX. **Not** a security sandbox against deliberately malicious code (audit hooks can
-  be bypassed by determined code). Documented to the learner.
+  no ctypes, rlimits on POSIX. Designed to prevent accidents by a learner running their own code - not to
+  contain deliberately harmful code. Documented to the learner ("only run code you understand").
 - Learner SQL: practice copies only; authorizer denies ATTACH/DETACH/load_extension and risky PRAGMAs;
   `VACUUM INTO` refused; progress handler enforces a time limit.
 - Backups: zip members validated (no absolute paths/`..`, size cap), DB integrity-checked and version-checked
