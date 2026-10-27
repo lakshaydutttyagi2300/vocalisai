@@ -1,0 +1,49 @@
+{% extends "base.html" %}{% from "_macros.html" import evidence, cat with context %}{% block body %}
+<h1>Ticket Assistant</h1>
+<p class="muted">Advisory only. Nothing is sent and the ticket is not stored or added to the knowledge base unless you choose to save it.</p>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}">
+<div class="two"><div><label>Customer email / ticket message</label><textarea name="ticket" style="min-height:170px">{{ form.ticket }}</textarea>
+<label>Previous correspondence (optional)</label><textarea name="previous">{{ form.previous }}</textarea></div>
+<div><label>Exact question I need to resolve</label><input type="text" name="question" value="{{ form.question }}" placeholder="e.g. How does the candidate confirm their digital exam booking?">
+<label>Ticket notes (optional)</label><textarea name="notes">{{ form.notes }}</textarea>
+<label>Booking references / other details (optional)</label><input type="text" name="refs" value="{{ form.refs }}">
+<label style="font-weight:400"><input type="checkbox" name="mode" value="retrieval"> Retrieval-only (don't use local AI)</label>
+<div class="row" style="margin-top:10px"><button>Search evidence &amp; draft</button>{% if res %}<button class="sec">Regenerate</button>{% endif %}</div></div></div></form>
+{% if res %}{% set a = res.analysis %}
+{% for w in res.warnings %}<div class="{{ 'bad' if 'Insufficient' in w or 'Conflict' in w else 'warn' }}">{{ w }}</div>{% endfor %}
+<div class="two"><div>
+<div class="card"><h2>Ticket analysis</h2><table>
+<tr><th>Main question</th><td>{{ a.main_question }}</td></tr>
+<tr><th>Customer role</th><td>{{ a.role|join(', ') or 'Not clear from the message' }}</td></tr>
+<tr><th>Qualification / service</th><td>{{ a.qualifications|join(', ') or 'Not stated' }}</td></tr>
+<tr><th>Requested action / topic</th><td>{{ a.actions|join(', ') or 'Not identified' }}</td></tr>
+<tr><th>References found</th><td>{{ a.references|join(', ') or 'None' }}</td></tr>
+<tr><th>Dates mentioned</th><td>{{ a.dates|join(', ') or 'None' }}</td></tr>
+<tr><th>Evidence</th><td><b>{{ res.assessment.verdict|upper }}</b> (question coverage {{ (res.assessment.coverage*100)|round|int }}%)</td></tr></table>
+{% for m in res.assessment.missing %}<div class="warn">{{ m }}</div>{% endfor %}{% for m in res.assessment.notes %}<div class="warn">{{ m }}</div>{% endfor %}</div>
+<div class="card"><h2>Proposed response <span class="badge">{{ res.mode }}</span></h2>
+<form method="post" action="/drafts/save"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="question" value="{{ a.main_question }}">
+<input type="hidden" name="ticket" value="{{ form.ticket }}"><input type="hidden" name="warnings" value="{{ res.warnings|tojson|forceescape }}">
+{% for e in res.evidence %}<input type="hidden" name="evidence" value="{{ e.id }}">{% endfor %}
+<textarea id="resp" name="response" style="min-height:360px">{{ res.draft }}</textarea>
+<p class="muted">{{ res.link_note }}</p>
+<div class="row"><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('resp').value.replace(/ ?\[E\d+\]/g,''));this.textContent='Copied'">Copy response</button>
+<button type="button" class="sec" onclick="document.getElementById('resp').focus()">Edit response</button>
+<a class="btn sec" href="#evidence">View evidence</a>
+<button class="sec">Save draft locally</button><label style="font-weight:400"><input type="checkbox" name="reviewed" value="1"> Mark as reviewed</label>
+<label style="font-weight:400"><input type="checkbox" name="keep_ticket"> also keep the ticket text with the draft</label></div></form>
+<p class="muted">Copy removes the [E#] evidence markers automatically.</p></div>
+<div class="card"><h2>Internal routing recommendation</h2>{% set t = res.triage %}
+<div class="{{ 'okbox' if t.certainty=='supported' else 'warn' }}">Routing is <b>{{ t.certainty }}</b>{% if t.certainty!='supported' %} - the internal directory does not clearly cover this ticket. Check manually.{% endif %}</div>
+{% for r in t.recommendations[:3] %}<div class="ev">{{ cat(r.row.category) }} <span class="muted">{{ r.cite.text }}</span>
+{% if r.fields %}<table>{% for k,v in r.fields %}<tr><th>{{k}}</th><td>{{v}}</td></tr>{% endfor %}</table>{% else %}<div class="passage">{{ r.row.text[:400] }}</div>{% endif %}
+{% for f in r.flags %}<div class="warn">{{ f }}</div>{% endfor %}</div>{% endfor %}<a href="/triage">Open full triage</a></div>
+</div><div id="evidence">
+{% for cf in res.conflicts %}<div class="card bad"><h2>Conflict: {{ cf.unit }}</h2><p>{{ cf.why }}</p>
+<p><b>{{ cf.a.label }}</b> {{ cat(cf.a.category) }} {{ cf.a.cite.text }}: {{ cf.va|join(', ') }}<br><b>{{ cf.b.label }}</b> {{ cat(cf.b.category) }} {{ cf.b.cite.text }}: {{ cf.vb|join(', ') }}</p>
+<p>Not resolved automatically - confirm which is current before answering.</p></div>{% endfor %}
+<div class="card"><h2>Evidence panel</h2>{% for e in res.evidence %}{{ evidence(e, e.label) }}{% else %}<div class="bad">No evidence found in the knowledge base.</div>{% endfor %}</div>
+<div class="card"><h2>Save a redacted example to the knowledge base</h2><p class="muted">Optional. You'll see a redacted version first and must confirm.</p>
+<form method="post" action="/knowledge/save"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="title" value="{{ a.main_question[:80] }}">
+<input type="hidden" name="text" value="Question: {{ a.main_question }}&#10;&#10;Answer given: {{ res.draft }}"><button class="sec">Prepare redacted example...</button></form></div>
+</div></div>{% endif %}{% endblock %}

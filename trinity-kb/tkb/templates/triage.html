@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}
+<h1>Ticket Triage</h1><p class="muted">Recommendations come only from your internal procedures (categories B, C, D). Nothing is invented: if the directory does not cover the ticket, it says so.</p>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><label>Ticket text</label><textarea name="ticket">{{ form.ticket }}</textarea>
+<label>Question / summary (optional)</label><input type="text" name="question" value="{{ form.question }}"><div style="margin-top:8px"><button>Triage</button></div></form>
+{% if res %}{% set a = res.analysis %}
+<div class="card"><table><tr><th>Customer type</th><td>{{ a.role|join(', ') or 'Not clear' }}</td></tr><tr><th>Issue category</th><td>{{ a.actions|join(', ') or 'Not identified' }}</td></tr>
+<tr><th>Qualification / product</th><td>{{ a.qualifications|join(', ') or 'Not stated' }}</td></tr></table></div>
+<div class="{{ 'okbox' if res.certainty=='supported' else 'warn' }}">Routing recommendation: <b>{{ res.certainty }}</b>.{% if res.certainty!='supported' %} The internal directory does not clearly identify the group for this ticket.{% endif %}</div>
+<div class="card"><h2>Matching internal procedure entries</h2>{% for r in res.recommendations %}<div class="ev">{{ cat(r.row.category) }} <span class="muted">{{ r.cite.text }}</span>
+{% if r.fields %}<table>{% for k,v in r.fields %}<tr><th>{{k}}</th><td>{{v}}</td></tr>{% endfor %}</table>{% endif %}<div class="passage muted">{{ r.row.text[:600] }}</div>
+{% for f in r.flags %}<div class="warn">{{ f }}</div>{% endfor %}<a href="/documents/{{ r.row.source_id }}?p={{ r.row.id }}#p{{ r.row.id }}">Open source</a></div>{% else %}<div class="warn">No internal procedure matched.</div>{% endfor %}</div>
+<div class="card"><h2>Booking-reference formats</h2>{% for f in res.ref_formats %}<div><b>{{ f.ref }}</b> (format {{ f.shape }}):
+{% for h in f.hits %}<div class="ev"><span class="muted">{{ h.cite.text }}</span><div class="passage">{{ h.preview }}</div></div>{% else %}<span class="warn">No document describes this reference format.</span>{% endfor %}</div>{% else %}<div class="muted">No references found in the ticket.</div>{% endfor %}</div>
+<div class="card"><h2>Tags</h2>{% if res.tag_profile %}<div>Active workflow profile: <b>{{ res.tag_profile.name }}</b> - {{ res.tag_profile.count }} tag(s). {{ res.tag_profile.format }} <span class="muted">{{ res.tag_profile.note }}</span></div>{% endif %}
+{% if res.tag_discrepancy %}<div class="bad">Your documents prescribe different numbers of tags:{% for n, srcs in res.tag_counts.items() %}<div>{{ n }} tag(s): {{ srcs|join('; ') }}</div>{% endfor %}Choose the profile that applies to your current workflow below.</div>
+{% elif res.tag_counts %}{% for n, srcs in res.tag_counts.items() %}<div class="muted">Documents mention {{ n }} tag(s): {{ srcs|join('; ') }}</div>{% endfor %}{% endif %}</div>
+{% endif %}
+<details class="card"><summary><b>Configure tagging profiles</b></summary><form method="post" action="/triage/profiles"><input type="hidden" name="csrf" value="{{csrf}}">
+<label>Profiles (JSON list)</label><textarea name="profiles" style="font-family:monospace">{{ profiles|tojson(indent=2) }}</textarea>
+<label>Active profile name</label><input type="text" name="active" value="{{ active }}"><div style="margin-top:8px"><button>Save</button></div></form></details>
+{% endblock %}

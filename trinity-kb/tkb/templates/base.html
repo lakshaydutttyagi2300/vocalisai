@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Support Knowledge Base{% endblock %}</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5d6676;--line:#dde1e7;--brand:#1f4e8c;--warn:#fff4d6;--warnline:#e2b33c;--bad:#fde8e8;--badline:#d46a6a;--ok:#e6f4ea}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+nav{background:var(--brand);padding:0 16px;display:flex;flex-wrap:wrap;gap:2px}nav a{color:#fff;text-decoration:none;padding:12px 10px;font-weight:500}nav a:hover{background:#ffffff22}
+main{max-width:1300px;margin:0 auto;padding:16px}h1{font-size:22px;margin:8px 0 14px}h2{font-size:17px;margin:18px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.two{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+input[type=text],input[type=search],input[type=number],input[type=date],select,textarea{width:100%;padding:8px;border:1px solid #b9c0cb;border-radius:6px;font:inherit}
+textarea{min-height:110px}label{font-weight:600;display:block;margin:8px 0 4px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.sec,button.sec{background:#e8edf5;color:var(--brand)}button.danger{background:#a33}
+.badge{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:600;background:#e8edf5;color:#203a63}
+.cat-A{background:#dff3e4;color:#145a2a}.cat-B{background:#e3ecfb;color:#1f4e8c}.cat-C{background:#efe6fb;color:#5b2d91}.cat-D{background:#fbefe0;color:#7a4b10}.cat-E{background:#f3e1e1;color:#8a1f1f}
+.warn{background:var(--warn);border-left:4px solid var(--warnline);padding:8px 12px;margin:8px 0;border-radius:4px}
+.bad{background:var(--bad);border-left:4px solid var(--badline);padding:8px 12px;margin:8px 0;border-radius:4px}
+.okbox{background:var(--ok);border-left:4px solid #3a8a52;padding:8px 12px;margin:8px 0;border-radius:4px}
+.muted{color:var(--muted);font-size:13px}mark{background:#ffe58a}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top;font-size:14px}
+.passage{white-space:pre-wrap;font-size:14px}.flash{background:#e3ecfb;padding:8px 12px;border-radius:6px;margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ev{border-left:3px solid var(--line);padding-left:10px;margin:10px 0}
+</style></head><body>
+<nav><a href="/">Home</a><a href="/search">Search</a><a href="/ticket">Ticket Assistant</a><a href="/triage">Ticket Triage</a>
+<a href="/official">Official sources</a><a href="/documents">Internal documents</a><a href="/drafts">Drafts</a><a href="/coverage">Coverage</a><a href="/settings">Settings</a></nav>
+<main>{% with m = get_flashed_messages() %}{% for x in m %}<div class="flash">{{ x }}</div>{% endfor %}{% endwith %}
+{% block body %}{% endblock %}</main></body></html>

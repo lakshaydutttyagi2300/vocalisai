@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}<h1>Internal documents</h1>
+<div class="card"><h2>Import documents</h2><form method="post" action="/documents/import" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{csrf}}">
+<div class="grid"><div><label>Files ({{ supported }})</label><input type="file" name="files" multiple></div>
+<div><label>...or a folder on this computer</label><input type="text" name="folder" placeholder="C:\Users\me\Documents\Trinity support"></div>
+<div><label>Source type</label><select name="category"><option value="">Guess from filename (change later)</option>{% for k,v in CATEGORIES.items() if k!='A' %}<option value="{{k}}">{{k}} - {{v}}</option>{% endfor %}</select></div></div>
+<div class="warn"><label style="font-weight:400;margin:0"><input type="checkbox" name="confirm_sensitive"> These documents are fine to store on this computer (no customer personal data, passwords or card details I don't want kept).</label></div>
+<button>Import</button> <span class="muted">Re-importing a file with the same name updates it; identical files are detected as duplicates.</span></form></div>
+<form class="row"><input type="search" name="filter" value="{{ f }}" placeholder="Filter by name" style="max-width:340px"><button class="sec">Filter</button> <a href="/reports/imports">Full import report</a></form>
+<div class="card"><table><tr><th>Document</th><th>Type</th><th>Status</th><th>Passages</th><th>Imported</th><th>Version</th></tr>
+{% for r in rows %}<tr><td><a href="/documents/{{r.id}}">{{ r.name }}</a>{% if r.title %}<div class="muted">{{ r.title }}</div>{% endif %}</td><td>{{ cat(r.category) }}</td>
+<td><span class="badge">{{ r.status }}</span>{% for w in r.warnings|fromjson %}<div class="muted">&#9888; {{ w }}</div>{% endfor %}</td><td>{{ r.passages }}</td><td>{{ (r.imported_at or '')[:10] }}</td><td>{{ r.version }}</td></tr>
+{% else %}<tr><td colspan="6" class="muted">No documents imported yet.</td></tr>{% endfor %}</table></div>
+<div class="card"><h2>Recent import activity</h2><table>{% for j in jobs %}<tr><td>{{ j.started_at[:16] }}</td><td>{{ j.status }}</td><td>{{ j.summary }}</td></tr>{% endfor %}</table></div>{% endblock %}

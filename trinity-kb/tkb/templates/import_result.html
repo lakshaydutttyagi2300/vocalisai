@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block body %}<h1>Import results</h1><div class="card"><table><tr><th>File</th><th>Result</th><th>Details</th></tr>
+{% for r in results %}<tr><td>{% if r.source_id %}<a href="/documents/{{ r.source_id }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</td><td><span class="badge">{{ r.status }}</span></td>
+<td>{{ r.message }}{% for w in r.warnings or [] %}<div class="muted">&#9888; {{ w }}</div>{% endfor %}</td></tr>{% else %}<tr><td colspan="3">No files were selected.</td></tr>{% endfor %}</table></div><a class="btn" href="/documents">Back to documents</a>{% endblock %}

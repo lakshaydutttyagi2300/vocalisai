@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}<h1>Internal document import report</h1><div class="card"><table><tr><th>File</th><th>Type</th><th>Status</th><th>Passages</th><th>Pages/sheets</th><th>Units seen</th><th>Warnings</th></tr>
+{% for r in rows %}<tr><td><a href="/documents/{{r.id}}">{{ r.name }}</a></td><td>{{ cat(r.category) }}</td><td>{{ r.status }}</td><td>{{ r.passages }}</td><td>{{ r.page_count or '-' }}</td>
+<td class="muted">{{ r.units[:30]|join(', ') }}{% if r.units|length>30 %} ...{% endif %}</td><td>{% for w in r.warnings %}<div>&#9888; {{ w }}</div>{% endfor %}</td></tr>{% else %}<tr><td colspan="7">Nothing imported yet.</td></tr>{% endfor %}</table></div>{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block body %}<h1>Save example to the knowledge base</h1>
+<div class="warn">Emails, phone numbers, references and names after greetings were masked automatically. Check carefully and remove any remaining personal data before saving.</div>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><label>Title</label><input type="text" name="title" value="{{ title }}">
+<label>Text</label><textarea name="text" style="min-height:300px">{{ text }}</textarea><label>Source type</label><select name="category">{% for k,v in CATEGORIES.items() if k!='A' %}<option value="{{k}}" {% if k=='E' %}selected{% endif %}>{{k}} - {{v}}</option>{% endfor %}</select>
+<label style="font-weight:400"><input type="checkbox" name="confirm"> I have checked this contains no personal customer data</label><div style="margin-top:8px"><button>Save to knowledge base</button></div></form>{% endblock %}

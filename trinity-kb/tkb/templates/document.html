@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}<h1>{{ s.title or s.name }}</h1>
+<div class="card"><table><tr><th>Filename / URL</th><td>{% if s.kind=='web' %}<a href="{{ s.location }}" target="_blank" rel="noopener noreferrer">{{ s.location }}</a>{% else %}{{ s.name }}{% endif %}</td></tr>
+<tr><th>Source type</th><td>{{ cat(s.category) }}</td></tr><tr><th>Status</th><td>{{ s.status }}{% for w in s.warnings|fromjson %}<div class="warn">{{ w }}</div>{% endfor %}</td></tr>
+<tr><th>Imported / retrieved</th><td>{{ s.imported_at }}</td></tr><tr><th>Last verified</th><td>{{ s.verified_at or '-' }}</td></tr><tr><th>File modified</th><td>{{ s.file_mtime or '-' }}</td></tr>
+<tr><th>Checksum (SHA-256)</th><td style="word-break:break-all">{{ s.checksum }}</td></tr><tr><th>Pages / sheets / sections</th><td>{{ s.page_count or '-' }} / {{ s.unit_count or '-' }}</td></tr><tr><th>Version</th><td>{{ s.version }}</td></tr></table>
+{% if s.kind!='web' %}<form method="post" enctype="multipart/form-data" class="row" style="margin-top:10px"><input type="hidden" name="csrf" value="{{csrf}}">
+<select name="category" style="max-width:300px">{% for k,v in CATEGORIES.items() %}<option value="{{k}}" {% if k==s.category %}selected{% endif %}>{{k}} - {{v}}</option>{% endfor %}</select><button name="action" value="category" class="sec">Change type</button>
+{% if s.stored_path %}<button name="action" value="reindex" class="sec">Re-index</button><a class="btn sec" href="/documents/{{s.id}}/file">Open original</a>{% endif %}
+<input type="file" name="file" style="max-width:250px"><button name="action" value="replace" class="sec">Replace with new version</button>
+<button name="action" value="delete" class="danger" onclick="return confirm('Remove this document from the knowledge base?')">Remove</button></form>{% endif %}</div>
+{% if versions %}<details class="card"><summary>Version history ({{ versions|length }})</summary><table>{% for v in versions %}<tr><td>v{{ v.version }}</td><td>{{ v.recorded_at }}</td><td>{{ v.note }}</td><td class="muted">{{ v.checksum[:16] }}</td></tr>{% endfor %}</table></details>{% endif %}
+<h2>Extracted passages ({{ passages|length }})</h2>{% for p in passages %}<div class="card" id="p{{p.id}}" {% if p.id==focus %}style="outline:3px solid #e2b33c"{% endif %}>
+<div class="muted">{% if p.page %}Page {{ p.page }} &middot; {% endif %}{% if p.sheet %}Worksheet '{{ p.sheet }}' {{ p.cell_ref or '' }} &middot; {% endif %}{{ p.heading or '' }}</div><div class="passage">{{ p.text }}</div></div>{% endfor %}{% endblock %}

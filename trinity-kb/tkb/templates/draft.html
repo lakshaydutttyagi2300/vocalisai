@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block body %}<h1>{{ d.title }} <span class="badge">{{ d.status }}</span></h1>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><textarea id="resp" name="response" style="min-height:340px">{{ d.response_text }}</textarea>
+<div class="row" style="margin-top:8px"><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('resp').value.replace(/ ?\[E\d+\]/g,''));this.textContent='Copied'">Copy response</button>
+<button name="action" value="save" class="sec">Save</button><button name="action" value="review" class="sec">Mark as reviewed</button>
+<button name="action" value="delete" class="danger" onclick="return confirm('Delete this draft?')">Delete</button></div></form>
+{% for w in d.warnings|fromjson %}<div class="warn">{{ w }}</div>{% endfor %}
+<div class="card"><h2>Evidence used (snapshot at save time)</h2>{% for e in ev %}<div class="ev"><div class="muted">{{ e.label }}</div><div class="passage">{{ e.snapshot }}</div></div>{% else %}<div class="muted">No evidence recorded.</div>{% endfor %}</div>
+{% if d.ticket_text %}<details class="card"><summary>Ticket text (kept at your request)</summary><div class="passage">{{ d.ticket_text }}</div></details>{% endif %}{% endblock %}

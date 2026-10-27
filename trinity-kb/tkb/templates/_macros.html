@@ -1,0 +1,8 @@
+{% macro cat(c) %}<span class="badge cat-{{c}}" title="{{ CATEGORIES[c] }}">{{c}} &middot; {{ CATEGORIES[c] }}</span>{% endmacro %}
+{% macro evidence(r, label=None) %}{% set c = citation(r) %}
+<div class="ev">{% if label %}<b>[{{label}}]</b> {% endif %}{{ cat(r.category) }}
+ <div class="muted">{{ c.text }}{% if c.date %} &middot; file date {{ c.date }}{% endif %}</div>
+ <div class="passage">{{ r.preview|safe if r.preview else r.text }}</div>
+ <div class="row muted">{% if r.kind=='web' %}<a href="{{ r.location }}" target="_blank" rel="noopener noreferrer">Open official page</a>{% else %}
+ <a href="/documents/{{ r.source_id }}?p={{ r.id }}#p{{ r.id }}">Show in document</a>{% if r.stored_path %} &middot; <a href="/documents/{{ r.source_id }}/file">Open original file</a>{% endif %}{% endif %}</div>
+</div>{% endmacro %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block body %}<h1>Website coverage report</h1>
+<div class="card"><b>{{ r.verdict }}</b><table style="margin-top:8px"><tr><th>Pages discovered</th><td>{{ r.discovered }}</td></tr><tr><th>Successfully processed</th><td>{{ r.processed }}</td></tr>
+<tr><th>Skipped</th><td>{{ r.skipped }}</td></tr><tr><th>Failed</th><td>{{ r.failed }}</td></tr><tr><th>Requiring manual review</th><td>{{ r.manual }}</td></tr>
+<tr><th>Duplicates identified</th><td>{{ r.duplicate }}</td></tr><tr><th>Awaiting indexing</th><td>{{ r.pending }}</td></tr><tr><th>URLs listed in sitemaps</th><td>{{ r.sitemap_urls if r.sitemap_urls is not none else 'not read yet' }}</td></tr>
+<tr><th>robots.txt last checked</th><td>{{ r.robots_checked or 'never' }}</td></tr><tr><th>Last successful update</th><td>{{ r.last_success or 'never' }}</td></tr></table></div>
+<div class="card"><h2>Known coverage limitations</h2><ul>{% for l in r.limitations %}<li>{{ l }}</li>{% endfor %}</ul></div>
+<div class="card"><h2>Pages not processed</h2><table><tr><th>URL</th><th>State</th><th>HTTP</th><th>Reason</th></tr>{% for p in r.problems %}<tr><td style="word-break:break-all">{{ p.url }}</td><td>{{ p.state }}</td><td>{{ p.http_status or '' }}</td><td>{{ p.note or '' }}{% if p.duplicate_of %} (same as {{ p.duplicate_of }}){% endif %}</td></tr>{% else %}<tr><td colspan="4" class="muted">None.</td></tr>{% endfor %}</table></div>
+<div class="card"><h2>Ingestion log</h2><table>{% for j in jobs %}<tr><td>{{ j.started_at }}</td><td>{{ j.status }}</td><td>{{ j.summary }}</td></tr>{% endfor %}</table>
+<h2>Recent errors</h2><table>{% for e in errors %}<tr><td>{{ e.at }}</td><td style="word-break:break-all">{{ e.target }}</td><td>{{ e.message }}</td></tr>{% endfor %}</table></div>{% endblock %}

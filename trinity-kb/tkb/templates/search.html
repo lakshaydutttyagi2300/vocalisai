@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% from "_macros.html" import evidence with context %}{% block body %}
+<h1>Search knowledge base</h1>
+<form class="card"><div class="row"><input type="search" name="q" value="{{ q }}" style="flex:1" autofocus placeholder='Words, "exact phrase", an email address, a reference, or format:AB123456'><button>Search</button></div>
+<div class="grid" style="margin-top:8px">
+ <div><label>Source type</label>{% for k,v in CATEGORIES.items() %}<label style="font-weight:400;margin:0"><input type="checkbox" name="cat" value="{{k}}" {% if k in cats %}checked{% endif %}> {{k}} - {{v}}</label>{% endfor %}</div>
+ <div><label>Qualification / subject</label><select name="qual"><option value="">Any</option>{% for x in quals %}<option {% if args.qual==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select>
+  <label>Document</label><select name="doc"><option value="">Any</option>{% for d in docs %}<option value="{{d.id}}" {% if doc==d.id|string %}selected{% endif %}>{{ d.title or d.name }}</option>{% endfor %}</select></div>
+ <div><label>Section heading contains</label><input type="text" name="heading" value="{{ args.heading or '' }}"><label>Updated/verified since</label><input type="date" name="since" value="{{ args.since or '' }}"></div>
+</div></form>
+{% if q %}<p class="muted">{{ results|length }} result(s). Tip: <code>format:TC1234567</code> finds passages mentioning references of the same shape.</p>
+{% for r in results %}<div class="card">{{ evidence(r) }}</div>{% else %}<div class="warn">No matching passages. The knowledge base does not contain this information (or uses different wording).</div>{% endfor %}{% endif %}
+{% endblock %}

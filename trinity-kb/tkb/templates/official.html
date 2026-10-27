@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block body %}<h1>Official Trinity College London sources</h1>
+<div class="card" id="update"><h2>Update website index</h2>
+{% if not settings.web_terms_reviewed %}<div class="warn">Website collection is switched off. Read the site's terms of use and robots.txt, then tick the confirmation in <a href="/settings">Settings</a>.</div>{% endif %}
+<form method="post" action="/web/update" class="row"><input type="hidden" name="csrf" value="{{csrf}}"><button name="mode" value="continue">Continue / incremental update</button>
+<button name="mode" value="refresh" class="sec">Re-check sitemap and pages older than {{ settings.web_recheck_days }} days</button></form>
+<div id="crawl" class="muted" style="margin-top:8px">{% if crawl.running %}Running: {{ crawl.count }} fetched - {{ crawl.url }}{% else %}{{ crawl.message }}{% endif %}</div>
+<p class="muted">Polite: max {{ settings.web_max_pages_per_run }} pages per run, at least {{ settings.web_delay_seconds }}s apart. Interrupted runs continue next time. See the <a href="/coverage">coverage report</a>.</p></div>
+<form class="row"><input type="search" name="filter" value="{{ f }}" placeholder="Filter by title or URL" style="max-width:340px"><button class="sec">Filter</button></form>
+<div class="card"><table><tr><th>Page</th><th>Passages</th><th>Last verified</th><th>Status</th></tr>{% for r in rows %}<tr><td><a href="/documents/{{r.id}}">{{ r.title or r.name }}</a><div class="muted"><a href="{{ r.location }}" target="_blank" rel="noopener noreferrer">{{ r.location }}</a></div></td>
+<td>{{ r.passages }}</td><td>{{ (r.verified_at or '')[:10] }}</td><td>{{ r.status }}{% if not r.active %} (hidden){% endif %}</td></tr>{% else %}<tr><td colspan="4" class="warn">No official pages have been collected yet.</td></tr>{% endfor %}</table></div>
+<script>setInterval(async()=>{const r=await (await fetch('/web/status')).json();document.getElementById('crawl').textContent=r.running?`Running: ${r.count} fetched - ${r.url}`:r.message},3000)</script>{% endblock %}

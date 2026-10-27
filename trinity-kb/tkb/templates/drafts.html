@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block body %}<h1>Saved drafts</h1><div class="card"><table><tr><th>Draft</th><th>Status</th><th>Updated</th></tr>
+{% for d in drafts %}<tr><td><a href="/drafts/{{d.id}}">{{ d.title }}</a></td><td><span class="badge">{{ d.status }}</span></td><td>{{ d.updated_at[:16] }}</td></tr>{% else %}<tr><td colspan="3" class="muted">No drafts.</td></tr>{% endfor %}</table>
+<form method="post" action="/privacy/clear" onsubmit="return confirm('Delete all drafts?')"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="what" value="drafts"><button class="danger" style="margin-top:10px">Delete all drafts</button></form></div>{% endblock %}

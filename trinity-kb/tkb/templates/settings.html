@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block body %}<h1>Settings</h1>
+<div class="card"><h2>Local storage</h2><p>All data is stored in <code>{{ data_dir }}</code> (database <code>knowledge.db</code>, copies of documents in <code>documents/</code>, backups in <code>backups/</code>). Copy this folder to move to another computer.</p></div>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}">
+<h2>AI model (optional, local only)</h2><p>Status: {{ llm.reason }}</p>
+<p class="muted">This computer: {{ hw.os }}, {{ hw.cpus }} CPU threads, {{ hw.ram_gb }} GB RAM, {{ hw.free_disk_gb }} GB free disk, NVIDIA GPU: {{ 'yes' if hw.nvidia_gpu else 'no' }}, Ollama installed: {{ 'yes' if hw.ollama_installed else 'no' }}.<br><b>Recommendation:</b> {{ hw.recommendation }}</p>
+<label style="font-weight:400"><input type="checkbox" name="llm_enabled" {% if s.llm_enabled %}checked{% endif %}> Use a local Ollama model to write drafts (off = retrieval-only mode)</label>
+<label>Model name</label><input type="text" name="llm_model" value="{{ s.llm_model }}">
+<h2>Website updates</h2>
+<label style="font-weight:400"><input type="checkbox" name="web_terms_reviewed" {% if s.web_terms_reviewed %}checked{% endif %}> I have read trinitycollege.com's terms of use and robots.txt and am satisfied that storing public pages for my personal reference is permitted.</label>
+<label style="font-weight:400"><input type="checkbox" name="web_store_full_text" {% if s.web_store_full_text %}checked{% endif %}> Store full page text (untick to store only titles, headings and short excerpts)</label>
+<div class="grid"><div><label>Seconds between requests (min 1)</label><input type="number" step="0.5" name="web_delay_seconds" value="{{ s.web_delay_seconds }}"></div>
+<div><label>Max pages per run</label><input type="number" name="web_max_pages_per_run" value="{{ s.web_max_pages_per_run }}"></div>
+<div><label>Link-following depth</label><input type="number" name="web_max_depth" value="{{ s.web_max_depth }}"></div>
+<div><label>Re-check pages older than (days)</label><input type="number" name="web_recheck_days" value="{{ s.web_recheck_days }}"></div>
+<div><label>Contact for crawler User-Agent (optional)</label><input type="text" name="web_contact" value="{{ s.web_contact }}"></div></div>
+<h2>Search and source precedence</h2><div class="grid"><div><label>Precedence order (tie-break only; conflicts are always shown)</label><input type="text" name="precedence" value="{{ s.precedence|join(',') }}"></div>
+<div><label>Results per search</label><input type="number" name="search_limit" value="{{ s.search_limit }}"></div>
+<div><label>Evidence sufficiency threshold (0.1-1)</label><input type="number" step="0.05" name="sufficiency_threshold" value="{{ s.sufficiency_threshold }}"></div></div>
+<label>Qualification / subject filter terms (comma separated)</label><input type="text" name="qualifications" value="{{ s.qualifications|join(', ') }}">
+<div style="margin-top:10px"><button>Save settings</button></div></form>
+<div class="card"><h2>Backup and restore</h2><form method="post" action="/backup" class="row"><input type="hidden" name="csrf" value="{{csrf}}"><label style="font-weight:400"><input type="checkbox" name="drafts" checked> include saved drafts</label><button>Back up now</button></form>
+<ul>{% for b in backups[:10] %}<li><a href="/backup/{{ b.name }}">{{ b.name }}</a></li>{% endfor %}</ul>
+<form method="post" action="/restore" enctype="multipart/form-data" class="row" onsubmit="return confirm('Replace the current knowledge base with this backup? A safety backup is made first.')"><input type="hidden" name="csrf" value="{{csrf}}"><input type="file" name="file" accept=".zip"><button class="sec">Restore from backup</button></form>
+<form method="post" action="/export" style="margin-top:8px"><input type="hidden" name="csrf" value="{{csrf}}"><button class="sec">Export knowledge base (JSON lines)</button></form></div>
+<div class="card"><h2>Privacy</h2><p>The app only listens on this computer (127.0.0.1), sends no telemetry and never uploads tickets or documents. Tickets are not stored unless you save a draft.</p>
+<form method="post" action="/privacy/clear" class="row" onsubmit="return confirm('Delete?')"><input type="hidden" name="csrf" value="{{csrf}}"><button name="what" value="history" class="sec">Delete search history</button><button name="what" value="drafts" class="sec">Delete all drafts</button><button name="what" value="all" class="danger">Delete both</button></form></div>{% endblock %}
