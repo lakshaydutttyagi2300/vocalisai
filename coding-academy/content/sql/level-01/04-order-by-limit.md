@@ -148,18 +148,21 @@ title: Cheapest first
 difficulty: beginner
 dataset: shop
 instructions: |
-  Show `name` and `price` of all products, **cheapest first**.
+  Show `name` and `price` of all products, **cheapest first**. Two products cost exactly the same - put those in
+  alphabetical order of `name`.
 starter: |
   SELECT name, price
   FROM products;
 hints:
   - "`ORDER BY price` sorts ascending by default."
+  - "Add a second sort column after a comma for ties: `ORDER BY price, name`."
 solution: |
   SELECT name, price
   FROM products
-  ORDER BY price;
+  ORDER BY price, name;
 explanation: |
-  ORDER BY sorts the result; ascending (smallest first) is the default.
+  ORDER BY sorts the result; ascending (smallest first) is the default. The second column only matters when the
+  first one ties - here the Seed Starter Kit and the Watering Can both cost 14.37.
 check:
   ordered: true
 ```

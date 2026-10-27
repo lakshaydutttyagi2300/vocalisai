@@ -137,8 +137,15 @@ check:
   ordered: false                # true when row order matters (ORDER BY exercises)
   columns: true                 # also compare column names (for AS exercises)
   verify: SELECT * FROM courses ORDER BY id;   # for INSERT/UPDATE/DELETE/CREATE exercises
+  require_text: [BEGIN, ROLLBACK]  # words the answer must contain (comments ignored, any case)
 ```
 ````
+
+A `verify` query runs after the learner's SQL on the same fresh copy of the dataset, and its result is compared
+with the result of running the model solution followed by the same `verify` query. Useful verify queries:
+`SELECT ... FROM pragma_table_info('t')` (columns, NOT NULL, primary key), `pragma_foreign_key_list('t')`,
+`pragma_index_list('t')`, and `INSERT OR IGNORE ...; SELECT COUNT(*) ...` to prove that a UNIQUE / CHECK /
+NOT NULL constraint rejects bad rows.
 
 ## Quiz block
 

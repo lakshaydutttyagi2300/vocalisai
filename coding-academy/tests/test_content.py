@@ -117,3 +117,45 @@ def test_example_output_in_instructions_matches_the_check(exercise):
     assert any(_norm(block) == _norm(str(expected)) for block in blocks), (
         f"{exercise.key}: the example in the instructions differs from the checked output.\n"
         f"Checked output:\n{expected}\nInstruction examples:\n" + "\n---\n".join(blocks))
+
+
+def _order_by_terms(sql: str) -> list[str]:
+    """The terms of the last ORDER BY clause of a query (lower-case, without ASC/DESC)."""
+    import re
+    from academy.sql_engine import strip_comments
+    text = strip_comments(sql).strip().rstrip(";")
+    matches = list(re.finditer(r"\border\s+by\b", text, re.I))
+    if not matches:
+        return []
+    clause = re.split(r"\b(limit|offset)\b", text[matches[-1].end():], flags=re.I)[0]
+    if "(" in clause or ")" in clause:  # inside a window or subquery - can't analyse simply
+        return []
+    terms = []
+    for term in clause.split(","):
+        term = re.sub(r"\s+(asc|desc)\b|\s+nulls\s+(first|last)\b|\s+collate\s+\w+", "", term.strip(), flags=re.I)
+        terms.append(term.strip().lower())
+    return terms
+
+
+@pytest.mark.parametrize("exercise", [e for e in EXERCISES if e.kind == "sql" and e.check.get("ordered")
+                                      and not e.check.get("verify")], ids=lambda e: e.key)
+def test_ordered_sql_exercises_have_no_ties(exercise):
+    """When row order is checked, the ORDER BY must decide the order of every row (no ties)."""
+    from academy.sql_engine import expected_result
+    result = expected_result(exercise)
+    terms = _order_by_terms(exercise.solution)
+    columns = [c.lower() for c in result.columns]
+    positions = []
+    for term in terms:
+        name = term.split(".")[-1]
+        if term.isdigit():
+            positions.append(int(term) - 1)
+        elif name in columns:
+            positions.append(columns.index(name))
+        else:
+            pytest.skip(f"ORDER BY term {term!r} is not an output column - can't check ties")
+    if not positions:
+        pytest.skip("no simple ORDER BY to analyse")
+    keys = [tuple(row[i] for i in positions) for row in result.rows]
+    duplicates = {k for k in keys if keys.count(k) > 1}
+    assert not duplicates, f"{exercise.key}: rows tie on the ORDER BY columns {terms}: {sorted(duplicates)[:3]}"

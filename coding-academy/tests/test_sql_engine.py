@@ -94,6 +94,14 @@ def test_check_with_verify_query_for_changes():
     assert not sql_engine.check_sql_exercise(exercise, "DELETE FROM courses WHERE id = 1;").passed
 
 
+def test_required_text_in_sql_answer():
+    exercise = sql_exercise("BEGIN; UPDATE courses SET credits = 99; ROLLBACK;",
+                            {"verify": "SELECT SUM(credits) FROM courses;", "require_text": ["BEGIN", "ROLLBACK"]})
+    assert sql_engine.check_sql_exercise(exercise, "begin;\nupdate courses set credits = 1;\nrollback;").passed
+    outcome = sql_engine.check_sql_exercise(exercise, "SELECT 1; -- BEGIN ROLLBACK only in a comment")
+    assert not outcome.passed and "BEGIN" in " ".join(outcome.details)
+
+
 def test_float_tolerance_and_int_float_equality():
     exercise = sql_exercise("SELECT 10.0 / 4;")
     assert sql_engine.check_sql_exercise(exercise, "SELECT 2.5000000001;").passed

@@ -360,6 +360,14 @@ def check_sql_exercise(exercise: Exercise, user_sql: str) -> SqlCheckOutcome:
     ordered = bool(check.get("ordered", False))
     verify = str(check.get("verify") or "")
 
+    # Keywords the answer must contain (e.g. BEGIN / ROLLBACK in a transactions exercise).
+    compact_sql = " ".join(strip_comments(user_sql).upper().split())
+    missing = [text for text in check.get("require_text") or []
+               if " ".join(str(text).upper().split()) not in compact_sql]
+    if missing:
+        return SqlCheckOutcome(False, "Your SQL is missing something this exercise asks you to use.",
+                               [f"Use `{text}` in your answer." for text in missing])
+
     expected = expected_result(exercise)
     conn = fresh_connection(exercise.dataset)
     try:
