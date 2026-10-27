@@ -1,0 +1,37 @@
+# Titles and descriptions of the Python levels (shown in the Python Academy).
+- level: 0
+  title: Understanding computers and programming
+  description: What programs, code, files and terminals are - before writing real code. No previous knowledge needed.
+- level: 1
+  title: Python fundamentals
+  description: Your first programs - printing, comments, variables, types of values, arithmetic, input and reading error messages.
+- level: 2
+  title: Making decisions
+  description: True and False, comparisons, if / elif / else and combining conditions with and, or, not.
+- level: 3
+  title: Repeating instructions
+  description: Loops - for, while, range(), break and continue - and how to avoid loops that never end.
+- level: 4
+  title: Working with collections
+  description: Storing many values together - lists, tuples, sets and dictionaries - and choosing the right one.
+- level: 5
+  title: Strings and data processing
+  description: Working with text - methods, f-strings, searching, splitting, cleaning input - plus dates and numbers.
+- level: 6
+  title: Functions
+  description: Packaging code into reusable named blocks - parameters, return values, scope and problem decomposition.
+- level: 7
+  title: Files and errors
+  description: Reading and writing files, CSV and JSON, handling errors with try/except, and debugging.
+- level: 8
+  title: Intermediate Python
+  description: Modules and packages, the standard library, comprehensions, sorting, iterators, generators and context managers.
+- level: 9
+  title: Object-oriented programming
+  description: Classes and objects, methods, inheritance, composition - and when simpler functions are better.
+- level: 10
+  title: Practical Python
+  description: Packages and virtual environments, APIs and HTTP, automation, logging, testing, security and maintainable code.
+- level: 11
+  title: Advanced Python foundations
+  description: Decorators, advanced iteration, type hints, dataclasses, testing strategies, performance, concurrency and design principles.

@@ -1,0 +1,25 @@
+# Titles and descriptions of the SQL levels (shown in the SQL Academy).
+- level: 0
+  title: Database fundamentals
+  description: What databases, tables, rows and columns are, what SQL is, and how a query works. No previous knowledge needed.
+- level: 1
+  title: Basic queries
+  description: Asking questions with SELECT - choosing columns, filtering rows with WHERE, sorting, limiting and handling NULL.
+- level: 2
+  title: Calculations and aggregation
+  description: Counting, adding up and averaging - COUNT, SUM, AVG, MIN, MAX, GROUP BY and HAVING.
+- level: 3
+  title: Changing data and creating tables
+  description: INSERT, UPDATE and DELETE (safely), creating and changing tables, constraints and keys.
+- level: 4
+  title: Joining tables
+  description: Combining information from several tables with INNER JOIN, LEFT JOIN and friends.
+- level: 5
+  title: Intermediate SQL
+  description: CASE, text/date/number functions, subqueries, EXISTS, common table expressions and UNION.
+- level: 6
+  title: Advanced SQL
+  description: Window functions (ROW_NUMBER, RANK, LAG, LEAD, running totals), recursive queries and query decomposition.
+- level: 7
+  title: Database design and performance
+  description: Designing good schemas, normalisation, indexes, query plans, transactions and ACID.

@@ -1,0 +1,13 @@
+# Packages the app needs. The installer runs:  pip install -r requirements.txt
+# Versions are pinned (fixed) to the versions the app was tested with, so a future
+# release of a package cannot unexpectedly break your app.
+
+# The user interface (turns Python code into a web page on your own computer).
+# Also installs pandas, numpy, pyarrow and other helpers it needs.
+streamlit==1.66.1
+
+# Reads the lesson files (the parts written in YAML format).
+PyYAML==6.0.3
+
+# Only used by the OPTIONAL AI tutor when you choose Claude. The app works without it.
+anthropic==2.3.0

@@ -1,0 +1,8 @@
+# Your personal data - never committed to git (back it up with the app instead)
+data/
+backups/
+# Python's virtual environment and caches (re-created by the installer)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

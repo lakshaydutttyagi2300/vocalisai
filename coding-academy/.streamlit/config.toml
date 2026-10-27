@@ -1,0 +1,25 @@
+# Streamlit settings for My Personal Coding Academy.
+# (Streamlit reads this file automatically when you start the app from this folder.)
+
+[server]
+# Only YOUR computer can open the app. Without this line, other devices on the same
+# Wi-Fi could reach it - and the app can run code, so we keep it private.
+address = "localhost"
+# Do not ask for an email address in the terminal on first start.
+showEmailPrompt = false
+# Do not watch the code files for changes (saves computer resources).
+fileWatcherType = "none"
+# Largest backup file (in MB) that can be uploaded on the Restore page.
+maxUploadSize = 500
+
+[browser]
+# Do not send anonymous usage statistics to Streamlit. The app works fully offline.
+gatherUsageStats = false
+serverAddress = "localhost"
+
+[client]
+# Hide developer-only menu items.
+toolbarMode = "minimal"
+
+[theme]
+primaryColor = "#2563eb"

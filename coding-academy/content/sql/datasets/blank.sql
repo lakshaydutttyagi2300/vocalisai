@@ -1,0 +1,4 @@
+-- title: Empty database
+-- description: An empty database for creating your own tables from scratch.
+--
+-- Tables: none yet - create them with CREATE TABLE.
