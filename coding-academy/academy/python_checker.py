@@ -11,6 +11,10 @@ An exercise's ``check`` section can combine:
           Hello, Sam!
     contains: ["Hello"]         # printed output must contain these texts
     require_text: ["+"]         # the code itself must contain these texts
+    min_comments: 2             # the code must contain at least this many # comments
+    variants:                   # re-run with a changed line, to prove the code is general
+      - replace: ["minutes = 157", "minutes = 61"]
+        expected: "1 hours 1 minutes"
     forbid_text: ["15"]         # ...and must not contain these (e.g. a typed-in answer)
     tests:                      # Python checks run after your code
       - name: add(2, 3) gives 5
@@ -99,7 +103,24 @@ def _friendly(name: str) -> str:
         return f"the `.{name[7:]}()` method"
     return {"else": "an `else` branch", "elif": "an `elif` branch", "comment": "a comment (`# ...`)",
             "decorator": "a decorator (`@...`)", "type-hints": "type hints",
+            "inline-comment": "an inline comment (`code  # note`)",
+            "nested-if": "an `if` inside another `if` (a nested if)",
+            "nested-loop": "a loop inside another loop (nested loops)",
             "variable": "a variable"}.get(name, f"`{name}`")
+
+
+def count_comments(code: str, inline_only: bool = False) -> int:
+    """Number of # comments (inline_only: comments that follow code on the same line)."""
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(code).readline))
+    except (tokenize.TokenError, SyntaxError):
+        return 0
+    count = 0
+    for tok in tokens:
+        if tok.type == tokenize.COMMENT:
+            if not inline_only or tok.line[:tok.start[1]].strip():
+                count += 1
+    return count
 
 
 def uses_construct(tree: ast.AST, code: str, name: str) -> bool:
@@ -107,15 +128,22 @@ def uses_construct(tree: ast.AST, code: str, name: str) -> bool:
     if name in CONSTRUCTS:
         node_types = CONSTRUCTS[name][1]
         return any(isinstance(node, node_types) for node in ast.walk(tree))
+    if name == "nested-loop":
+        loops = (ast.For, ast.While)
+        return any(isinstance(node, loops) and any(isinstance(inner, loops) for child in node.body
+                                                   for inner in ast.walk(child))
+                   for node in ast.walk(tree))
+    if name == "nested-if":
+        return any(isinstance(node, ast.If) and any(isinstance(child, ast.If) for child in node.body)
+                   for node in ast.walk(tree))
     if name == "elif":
         return re.search(r"^\s*elif\b", code, re.M) is not None
     if name == "else":
         return re.search(r"^\s*else\s*:", code, re.M) is not None
     if name == "comment":
-        try:
-            return any(tok.type == tokenize.COMMENT for tok in tokenize.generate_tokens(io.StringIO(code).readline))
-        except (tokenize.TokenError, SyntaxError):
-            return "#" in code
+        return count_comments(code) > 0
+    if name == "inline-comment":
+        return count_comments(code, inline_only=True) > 0
     if name == "decorator":
         return any(getattr(node, "decorator_list", None) for node in ast.walk(tree))
     if name == "type-hints":
@@ -206,6 +234,11 @@ def check_python_exercise(exercise: Exercise, code: str, timeout: float | None =
         details.append(CheckDetail(f"Does not use {_friendly(name)}", not bad,
                                    "" if not bad else f"This exercise asks you to solve it without {_friendly(name)}."))
 
+    if check.get("min_comments"):
+        wanted = int(check["min_comments"])
+        found = count_comments(code)
+        details.append(CheckDetail(f"Has at least {wanted} comments", found >= wanted,
+                                   "" if found >= wanted else f"You have {found} comment(s); {wanted} are needed."))
     for text in check.get("require_text", []) or []:
         ok = str(text) in code
         details.append(CheckDetail(f"Code contains `{text}`", ok,
@@ -238,6 +271,22 @@ def check_python_exercise(exercise: Exercise, code: str, timeout: float | None =
             message = f"(with input {stdin.strip()!r}) " + problem
         details.append(CheckDetail(label, problem is None, message,
                                    expected=str(case.get("expected", "")), actual=run.stdout))
+
+    for number, variant in enumerate(check.get("variants") or [], 1):
+        old, new = (str(part) for part in variant["replace"])
+        label = f"Also works when `{old}` becomes `{new}`"
+        if old not in code:
+            details.append(CheckDetail(label, False, f"Keep the line `{old}` exactly as it is, so the checker can "
+                                                     "try your program with a different value."))
+            continue
+        run = run_python(code.replace(old, new, 1), str(variant.get("stdin", "") or ""), timeout=timeout)
+        if not run.ok:
+            details.append(_run_failed_detail(run, label))
+            continue
+        problem = compare_output(str(variant.get("expected", "")), run.stdout, ignore_case, ignore_spaces)
+        details.append(CheckDetail(label, problem is None,
+                                   problem or "", expected=str(variant.get("expected", "")), actual=run.stdout))
+        last_run = last_run or run
 
     if contains or tests or last_run is None:
         stdin = str(check.get("stdin", exercise.stdin) or "")
