@@ -48,6 +48,9 @@
 <label>Qualification / subject filter terms (comma separated)</label><input type="text" name="qualifications" value="{{ s.qualifications|join(', ') }}"></div>
 <div style="margin:-4px 0 18px"><button>Save settings</button></div></form>
 
+<div class="card" id="updates"><h2>&#11015;&#65039; App updates</h2><p>The app updates itself every time you start it (only changed files are downloaded; your data is never touched). You can also check now:</p>
+<form method="post" action="/update"><input type="hidden" name="csrf" value="{{csrf}}"><button class="sec">Update now</button></form></div>
+
 <div class="card" id="privacy"><h2>&#128274; Privacy</h2><p>The app only opens on this computer (127.0.0.1) and sends no usage data. Tickets aren't stored unless you save a draft.</p>
 <form method="post" action="/privacy/clear" class="row" onsubmit="return confirm('Delete?')"><input type="hidden" name="csrf" value="{{csrf}}"><button name="what" value="history" class="sec">Delete search history</button><button name="what" value="drafts" class="sec">Delete all drafts</button><button name="what" value="all" class="danger">Delete both</button></form></div>
 {% endblock %}

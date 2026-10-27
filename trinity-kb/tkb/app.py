@@ -388,6 +388,14 @@ def save_storage():
     return redirect(url_for("settings_page") + "#storage")
 
 
+@app.post("/update")
+def update_app():
+    from .update import check_and_update
+    r = check_and_update()
+    flash(r["message"] + (" Close the app window and start it again to use the new version." if r["status"] == "updated" else ""))
+    return redirect(url_for("settings_page"))
+
+
 @app.post("/backup")
 def make_backup():
     p = backup.create_backup(conn(), include_drafts=request.form.get("drafts") == "on")

@@ -6,6 +6,7 @@
   web-update [--refresh] [--max N]
   report                   print the document import report and website coverage
   backup | restore <zip> | export <out.jsonl>
+  update                   download the latest version of the app (only changed files)
   hardware                 inspect this computer and recommend a local AI model
 """
 import argparse
@@ -24,10 +25,14 @@ def main(argv=None):
     i = sub.add_parser("import"); i.add_argument("path"); i.add_argument("--category", choices=list("ABCDE"))
     q = sub.add_parser("search"); q.add_argument("query", nargs="+")
     w = sub.add_parser("web-update"); w.add_argument("--refresh", action="store_true"); w.add_argument("--max", type=int)
-    sub.add_parser("report"); sub.add_parser("backup"); sub.add_parser("hardware")
+    sub.add_parser("report"); sub.add_parser("backup"); sub.add_parser("hardware"); sub.add_parser("update")
     r = sub.add_parser("restore"); r.add_argument("zip")
     e = sub.add_parser("export"); e.add_argument("out")
     a = p.parse_args(argv)
+    if a.cmd == "update":
+        from .update import check_and_update
+        print("  Checking for updates... " + check_and_update()["message"])
+        return 0
     if a.cmd in (None, "serve"):
         from .app import main as serve
         return serve(getattr(a, "port", 8765))
