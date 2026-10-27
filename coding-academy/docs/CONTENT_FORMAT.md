@@ -202,6 +202,9 @@ summary: One sentence.
 internet: false
 dataset: shop            # SQL projects: which sample database
 skills: [py-1-5-arithmetic, py-2-2-if-elif-else]
+demo_input: |                # Python projects: answers fed to input() when the tests run the sample solution
+  12
+  +
 starter: |
   # starter code opened in the Python Lab
 stages:
@@ -209,13 +212,26 @@ stages:
     description: ...
     tasks:
       - {id: b1, text: The program asks for two numbers}
+  - name: Intermediate
+    tasks: [...]
   - name: Extension ideas
     required: false
     tasks: [...]
 ---
 
-Project description in Markdown: goal, example run, hints, sample solution in a collapsible block.
+## Goal
+...
+
+## Hints
+(shown in a collapsed "open only when you're stuck" box)
+
+## Sample solution
+(shown in a collapsed box; the first ```python block - or every ```sql block, in order, on the
+project's dataset - is run by the tests, so it must work)
 ```
+
+Projects are self-assessed: the learner ticks each task. Stages named Beginner and Intermediate are required to
+complete a project; mark extra stages `required: false`.
 
 ## After editing
 

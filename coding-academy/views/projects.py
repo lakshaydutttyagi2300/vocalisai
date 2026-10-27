@@ -3,7 +3,7 @@
 import streamlit as st
 
 from academy import personal
-from academy.content import TRACK_NAMES
+from academy.content import TRACK_NAMES, split_project_body
 from academy.ui.common import PAGES, get_library, lesson_link, page_link
 
 library = get_library()
@@ -50,7 +50,17 @@ if project.skills:
             if lesson:
                 lesson_link(lesson, icon="📖")
 
-st.markdown(project.body)
+for title, text in split_project_body(project.body):
+    if title.lower().startswith("hints"):
+        with st.expander("💡 Hints - open only when you're stuck"):
+            st.markdown(text)
+    elif title.lower().startswith("sample solution"):
+        with st.expander("🔑 Sample solution - try it on your own first"):
+            st.caption("This is one possible solution. Yours can look different and still be right - "
+                       "compare ideas, not exact text.")
+            st.markdown(text)
+    else:
+        st.markdown((f"## {title}\n\n" if title else "") + text)
 
 if project.starter and project.track == "python":
     if st.button("📝 Open the starter code in the Python Lab", type="primary"):

@@ -420,7 +420,7 @@ def inventory() -> str:
                  (2, "Lotus Traders", "India", "sales@lotus.example"),
                  (3, "Maple Wholesale", "Canada", None),
                  (4, "Sunrise Imports", "Singapore", "hello@sunrise.example")]
-    warehouses = [(1, "Central", "Manchester", 5000), (2, "East", "Delhi", 3000), (3, "Overflow", "Toronto", 1500)]
+    warehouse_info = [(1, "Central", "Manchester"), (2, "East", "Delhi"), (3, "Overflow", "Toronto")]
     names = ["Cardboard Box S", "Cardboard Box L", "Packing Tape", "Bubble Wrap Roll", "Label Printer Roll",
              "Pallet", "Shrink Film", "Safety Gloves", "Hand Truck", "Barcode Scanner", "Shelf Bin", "Marker Pen",
              "Zip Ties (100)", "Foam Inserts", "Shipping Envelope", "Desiccant Packs", "Stretch Wrap",
@@ -433,23 +433,38 @@ def inventory() -> str:
     stock = {}
     mid = 1
     day = date(2026, 1, 1)
+    reorder = {item[0]: item[5] for item in items}
     while day <= date(2026, 6, 30):
         for _ in range(rng.randint(1, 4)):
             item = rng.randint(1, len(items))
             wh = rng.choice([1, 1, 2, 3])
             current = stock.get((item, wh), 0)
-            if current < 40 or rng.random() < 0.35:
-                qty = rng.choice([50, 100, 150, 200])
+            # restock when a warehouse runs low (and now and then anyway); otherwise goods go out
+            if current < reorder[item] // 3 or rng.random() < 0.12:
+                qty = reorder[item] * rng.choice([1, 2])
                 movements.append((mid, item, wh, day.isoformat(), "in", qty, "purchase"))
                 stock[(item, wh)] = current + qty
             else:
-                qty = rng.randint(1, min(current, 60))
+                qty = rng.randint(1, max(1, min(current, reorder[item] // 2)))
                 reason = rng.choices(["sale", "damaged", "transfer"], [85, 5, 10])[0]
                 movements.append((mid, item, wh, day.isoformat(), "out", qty, reason))
                 stock[(item, wh)] = current - qty
             mid += 1
         day += timedelta(days=1)
+    # a late-June sales rush pushes a few items below their reorder level (for the reorder report)
+    for item in sorted(rng.sample(range(1, len(items) + 1), 5)):
+        for wh in (1, 2, 3):
+            current = stock.get((item, wh), 0)
+            target = rng.randint(0, reorder[item] // 5)
+            if current > target:
+                movements.append((mid, item, wh, "2026-06-30", "out", current - target, "sale"))
+                stock[(item, wh)] = target
+                mid += 1
     levels = [(item, wh, qty) for (item, wh), qty in sorted(stock.items())]
+    # capacities leave each warehouse partly empty (about 80%, 60% and 40% full)
+    units = {wh: sum(q for (_, w), q in stock.items() if w == wh) for wh, _, _ in warehouse_info}
+    warehouses = [(wh, name, city, round(units[wh] / fill / 100 + 0.5) * 100)
+                  for (wh, name, city), fill in zip(warehouse_info, [0.8, 0.6, 0.4])]
     sql = header("Inventory", "Warehouse stock: suppliers, items, warehouses, stock levels and daily stock "
                  "movements (January - June 2026).", "suppliers, warehouses, items, stock_levels, stock_movements")
     sql += """CREATE TABLE suppliers (

@@ -229,3 +229,58 @@ def test_python_examples_in_lessons_are_valid_python(lesson):
         except SyntaxError as exc:
             failures.append(f"line {exc.lineno}: {exc.msg} in {block.strip()[:60]!r}")
     assert not failures, f"{lesson.id}: invalid Python examples:\n" + "\n".join(failures)
+
+
+PROJECTS = sorted(LIBRARY.projects.values(), key=lambda p: p.id)
+
+
+def test_split_project_body_ignores_headings_inside_code():
+    from academy.content import split_project_body
+    body = "Intro\n\n## Goal\nBuild it.\n\n## Sample solution\n```python\n## not a heading\nprint(1)\n```\n"
+    parts = split_project_body(body)
+    assert [title for title, _ in parts] == ["", "Goal", "Sample solution"]
+    assert "## not a heading" in parts[2][1]
+
+
+def test_there_are_ten_projects_per_track():
+    for track in ("python", "sql"):
+        assert len([p for p in PROJECTS if p.track == track]) >= 10, track
+
+
+@pytest.mark.parametrize("project", PROJECTS, ids=lambda p: p.id)
+def test_project_structure_hints_and_working_sample_solution(project, tmp_path):
+    import re
+    from academy.content import split_front_matter, split_project_body
+    from academy.python_runner import run_python
+    from academy.sql_engine import execute, fresh_connection
+    parts = split_project_body(project.body)
+    titles = [title.lower() for title, _ in parts]
+    assert any(t.startswith("hints") for t in titles), f"{project.id}: needs a '## Hints' section"
+    solutions = [text for title, text in parts if title.lower().startswith("sample solution")]
+    assert solutions, f"{project.id}: needs a '## Sample solution' section"
+    names = [stage.name.lower() for stage in project.stages]
+    assert names[:2] == ["beginner", "intermediate"], f"{project.id}: stages should start Beginner, Intermediate"
+    assert any(not stage.required for stage in project.stages), f"{project.id}: needs an optional extension stage"
+    assert project.summary and project.skills
+
+    if project.track == "python":
+        meta, _ = split_front_matter(project.path.read_text(encoding="utf-8"))
+        blocks = re.findall(r"^```python[ \t]*\n(.*?)^```[ \t]*$", solutions[0], re.S | re.M)
+        assert blocks, f"{project.id}: the sample solution has no ```python block"
+        result = run_python(blocks[0], stdin_text=str(meta.get("demo_input") or ""), timeout=20,
+                            sandbox_dir=tmp_path)
+        assert result.ok, f"{project.id}: sample solution failed: {result.error or result.stderr[-500:]}"
+        assert result.stdout.strip(), f"{project.id}: sample solution printed nothing"
+        if project.starter:
+            compile(project.starter, "starter.py", "exec")
+    else:
+        assert project.dataset in list_datasets(), f"{project.id}: unknown dataset {project.dataset}"
+        blocks = re.findall(r"^```sql[ \t]*\n(.*?)^```[ \t]*$", solutions[0], re.S | re.M)
+        assert blocks, f"{project.id}: the sample solution has no ```sql block"
+        conn = fresh_connection(project.dataset)
+        try:
+            for block in blocks:  # run in order: later blocks may use tables made by earlier ones
+                errors = [r.error for r in execute(conn, block) if r.error]
+                assert not errors, f"{project.id}: sample SQL failed: {errors[0]}\n{block[:200]}"
+        finally:
+            conn.close()

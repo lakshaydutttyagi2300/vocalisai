@@ -265,6 +265,26 @@ def split_front_matter(text: str) -> tuple[dict, str]:
     return data, text[match.end():]
 
 
+def split_project_body(body: str) -> list[tuple[str, str]]:
+    """Split a project's Markdown into (heading, text) parts at its '## ' headings.
+
+    The text before the first heading has the heading "". Headings inside code blocks are ignored."""
+    parts: list[tuple[str, str]] = []
+    title, lines, in_code = "", [], False
+    for line in body.split("\n"):
+        if line.startswith("```"):
+            in_code = not in_code
+        if not in_code and line.startswith("## "):
+            if title or "".join(lines).strip():
+                parts.append((title, "\n".join(lines).strip()))
+            title, lines = line[3:].strip(), []
+        else:
+            lines.append(line)
+    if title or "".join(lines).strip():
+        parts.append((title, "\n".join(lines).strip()))
+    return parts
+
+
 def _as_list(value) -> list:
     if value is None:
         return []
