@@ -1,0 +1,4 @@
+# Windows batch files must keep Windows (CRLF) line endings exactly as committed.
+*.bat -text
+# Shell scripts must keep Unix (LF) line endings.
+*.sh text eol=lf
