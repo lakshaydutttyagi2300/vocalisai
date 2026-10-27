@@ -41,7 +41,7 @@ installers for Windows/macOS/Linux; and documentation. Everything listed as "Don
 | Works offline | Done | Network-isolated test: internet confirmed unreachable; all 14 pages, Python and SQL checking, search and backup worked; zero attempts to contact other hosts |
 | Optional AI tutor (Claude via `anthropic`; OpenAI-compatible for Ollama/LM Studio/others) | Done | OpenAI-compatible path tested against a local fake server; **real Claude/Ollama calls NOT tested** (no key/model in the build environment) |
 | Installers: `install_mac_linux.sh`, `start_mac_linux.sh` | Done | Fresh install from a clean copy: installed in 26 s, app started on localhost only, full test suite passed in the fresh copy |
-| Installers: `install_windows.bat`, `start_windows.bat` | Done | **NOT executed** - no Windows machine in the build environment (written carefully: CRLF line endings, tested commands mirror the Mac/Linux scripts) |
+| Installers: `install_windows.bat`, `start_windows.bat` | Done | **NOT executed** - no Windows machine in the build environment (written carefully: CRLF line endings, no brackets inside message blocks; the Python one-liner they run was tested on Linux) |
 
 ## Curriculum coverage
 
@@ -84,6 +84,10 @@ installers for Windows/macOS/Linux; and documentation. Everything listed as "Don
   restart persistence; projects (collapsed solutions, ticking tasks).
 - Offline test in an isolated network namespace (see Features).
 - Fresh install of a clean copy with `install_mac_linux.sh` + start with `start_mac_linux.sh`.
+- **Python versions:** full test suite and browser tests on Python 3.13 and 3.14 (Linux). Checked that every
+  pinned package has a Windows 64-bit wheel for Python 3.14; for Python 3.15 (still a beta in October 2026)
+  PyYAML has no Windows wheel yet, so the installers prefer 3.13/3.14 and explain what to do on 3.15.
+  Both installers rebuild `.venv` when it was made with a different Python version (tested on Linux).
 
 ## Known limitations (honest list)
 

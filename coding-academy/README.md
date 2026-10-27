@@ -57,7 +57,9 @@ The exact list of finished lessons and any unfinished parts are in
 ## 2. What you need
 
 - A computer running **Windows 10 or 11**, **macOS 12 or newer**, or **Linux**.
-- **Python 3.13** (free). Python 3.12, 3.14 and 3.15 also work; 3.13 is the version the app was tested with.
+- **Python 3.13 or 3.14** (free) - the app was tested with both. Python 3.12 also works. **If you already have
+  one of these, you don't need to install Python again.** (Python 3.15 is not supported yet: one package the
+  app needs isn't ready for it on Windows.)
 - About **600 MB** of free disk space.
 - An internet connection **only during installation**.
 - A web browser (Chrome, Edge, Firefox or Safari). The app shows its pages in your browser, but the pages come
@@ -85,21 +87,26 @@ The exact list of finished lessons and any unfinished parts are in
 
 ## 4. Installing - Windows
 
-### Step 1 - Install Python 3.13
+### Step 1 - Install Python 3.13 (skip if you already have 3.12, 3.13 or 3.14)
 
 **Why:** the app is written in Python, so your computer needs Python to run it.
 
+**Already have Python?** Press the Windows key, type `PowerShell`, press Enter, type `py --version` and press
+Enter. If it shows `Python 3.12.x`, `3.13.x` or `3.14.x`, skip to Step 2. If it shows 3.15 or newer, keep it
+and *also* install 3.14 or 3.13 as below - several versions can live side by side, and the installer picks a
+tested one automatically.
+
 1. Open your browser and go to **https://www.python.org/downloads/**.
 2. Find **Python 3.13** (for example "Python 3.13.9") and download the **Windows installer (64-bit)**.
-   (If the big yellow button offers a newer version, scroll down to "Looking for a specific release?" and pick
-   the newest 3.13 version - it is the tested one.)
+   (Python 3.14 is equally fine. If the big yellow button offers 3.15 or newer, scroll down to "Looking for a
+   specific release?" and pick the newest 3.14 or 3.13 version.)
 3. Open the downloaded file (it is in your *Downloads* folder).
 4. **Important:** on the first screen, tick the box **"Add python.exe to PATH"** at the bottom. This lets the
    installer script find Python.
 5. Click **Install Now** and wait. Click **Close** when it says "Setup was successful".
 
 **Check it worked (optional):** press the Windows key, type `PowerShell`, press Enter. In the window type
-`py --version` and press Enter. You should see `Python 3.13.x`. If you see *"not recognized"*, run the Python
+`py --version` and press Enter. You should see `Python 3.13.x` (or 3.14.x). If you see *"not recognized"*, run the Python
 installer again, choose **Modify**, and make sure "Add python.exe to PATH" is ticked.
 
 ### Step 2 - Put the app folder in a permanent place
@@ -130,8 +137,9 @@ folder to *Documents*.)
 **What can go wrong:**
 - *"Python was not found"* → go back to Step 1; make sure "Add python.exe to PATH" was ticked.
 - *"some packages could not be installed"* → check your internet connection and double-click the installer
-  again. If the messages mention "building wheel" or "pyarrow"/"numpy", you are probably on a very new Python -
-  install Python 3.13 and try again.
+  again. If the messages mention "building wheel", "PyYAML", "pyarrow" or "numpy", you are probably on a very
+  new Python - install Python 3.14 (you can keep your other Python) and run the installer again; it will switch
+  to 3.14 by itself.
 
 ### Step 4 - Start the app
 
@@ -143,9 +151,9 @@ Double-click **`start_windows.bat`**. See [section 7](#7-starting-stopping-and-r
 
 ## 5. Installing - Mac
 
-### Step 1 - Install Python 3.13
+### Step 1 - Install Python 3.13 (skip if you already have 3.12, 3.13 or 3.14)
 1. Go to **https://www.python.org/downloads/** and download the **macOS 64-bit universal2 installer** for the
-   newest **Python 3.13** release.
+   newest **Python 3.13** or **3.14** release.
 2. Open the downloaded `.pkg` file and click through the installer.
 
 ### Step 2 - Put the app folder in a permanent place
@@ -371,8 +379,8 @@ Open **AI Tutor → Set up**. Choose:
 
 | Problem | What to do |
 |---|---|
-| "Python was not found" | Install Python 3.13 with **"Add python.exe to PATH"** ticked, then run the installer again |
-| Installer fails downloading packages | Check the internet connection and run it again; use Python 3.13 if you have a newer one |
+| "Python was not found" | Install Python 3.14 or 3.13 with **"Add python.exe to PATH"** ticked, then run the installer again |
+| Installer fails downloading packages | Check the internet connection and run it again; if your Python is 3.15 or newer, also install 3.14 and run it again |
 | Start window opens and closes at once | Run the installer first. To read the message, open PowerShell in the folder and type `.\start_windows.bat` |
 | Browser does not open | Go to `http://localhost:8501` yourself (or the address printed in the terminal) |
 | "Port 8501 is already in use" | The app is already running in another window - use that, or close it |

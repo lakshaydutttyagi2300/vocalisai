@@ -37,6 +37,11 @@ echo "Found: $("$PY" --version)"
 echo
 
 echo "Step 2 of 3: creating the app's private Python folder (.venv)..."
+# A .venv made with a different Python version (e.g. after a failed install) is rebuilt.
+if [ -f ".venv/pyvenv.cfg" ] && ! "$PY" -c "import re, sys; t = open('.venv/pyvenv.cfg').read(); m = re.search(r'^version\w*\s*=\s*(\d+)\.(\d+)', t, re.M); sys.exit(0 if m and (int(m[1]), int(m[2])) == sys.version_info[:2] else 1)"; then
+    echo "The existing .venv folder was made with a different Python version - rebuilding it..."
+    rm -rf .venv
+fi
 if [ -x ".venv/bin/python" ]; then
     echo "The .venv folder already exists - reusing it."
 else
@@ -55,7 +60,8 @@ if ! .venv/bin/python -m pip install -r requirements.txt -c constraints.txt; the
     echo
     echo " PROBLEM: some packages could not be installed (see the messages above)."
     echo "  - Check your internet connection and run this script again."
-    echo "  - If you use a brand-new Python version, install Python 3.13 and try again."
+    echo "  - If you use a brand-new Python version, install Python 3.14 (you can keep your other"
+    echo "    Python) and run this script again."
     exit 1
 fi
 

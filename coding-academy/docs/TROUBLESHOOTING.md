@@ -6,11 +6,13 @@ section 14. This page adds technical detail for a maintainer.
 ## Installation
 
 - **`py` / `python` not found (Windows):** Python not installed or not on PATH. Reinstall with
-  "Add python.exe to PATH". The installer tries `py -3.13`, `py -3`, then `python`.
+  "Add python.exe to PATH". The installer tries `py -3.13`, `py -3.14`, `py -3.12`, `py -3`, then `python`, and rebuilds `.venv` if it
+  was made with a different Python version.
 - **Microsoft Store opens when typing `python`:** that is Windows' "App execution alias". Install Python from
   python.org, or disable the alias in *Settings → Apps → Advanced app settings → App execution aliases*.
-- **pip tries to build `pyarrow`/`numpy` from source:** no binary wheel for that Python version/platform. Use
-  Python 3.13 (wheels exist for 3.12-3.15 for the pinned versions as of October 2026).
+- **pip tries to build `PyYAML`/`pyarrow`/`numpy` from source:** no binary wheel for that Python
+  version/platform. Use Python 3.13 or 3.14 (both tested). As of October 2026 every pinned package has Windows
+  wheels for 3.14, but PyYAML 6.0.3 has none for 3.15 on Windows.
 - **Corporate proxy / no internet:** pip honours the `HTTPS_PROXY` environment variable. Offline installation
   is possible from a wheel folder: on a connected machine run
   `python -m pip download -r requirements.txt -c constraints.txt -d wheels`, copy `wheels/`, then

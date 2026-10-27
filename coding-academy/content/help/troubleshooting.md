@@ -17,7 +17,8 @@ is ticked. Close and reopen any terminal windows, then run the installer script 
 ## The installer says a package could not be installed
 Usually no internet connection, or a very new Python version for which some packages are not ready yet.
 **Fix:** check your internet connection and run the installer again. If the error mentions building
-"pyarrow" or "numpy", install **Python 3.13** (not a newer one) and run the installer again.
+"PyYAML", "pyarrow" or "numpy", your Python is probably too new: install **Python 3.14** (you can keep your other
+Python) and run the installer again - it switches to 3.14 by itself.
 
 ## The black window opens and closes immediately
 The start script hit an error before you could read it. **Fix:** open a terminal in the app folder and run the

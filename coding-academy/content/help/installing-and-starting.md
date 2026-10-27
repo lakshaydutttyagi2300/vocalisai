@@ -13,7 +13,8 @@ short version.
 ## What you need
 
 - A computer with Windows 10/11, macOS or Linux.
-- **Python 3.13** from python.org (3.12 also works). Install takes about 5 minutes.
+- **Python 3.13 or 3.14** from python.org (both tested; 3.12 also works). If you already have one of these,
+  you don't need to install Python again. Python 3.15 isn't supported yet.
 - About 600 MB of free disk space.
 - Internet **only** for the one-time installation. After that, the app works offline.
 
@@ -21,14 +22,15 @@ short version.
 
 **Windows**
 
-1. Install Python 3.13 from python.org. On the first installer screen, **tick "Add python.exe to PATH"**.
+1. Install Python 3.13 or 3.14 from python.org (skip if you already have one). On the first installer screen,
+   **tick "Add python.exe to PATH"**.
 2. Put the `coding-academy` folder somewhere permanent, e.g. `Documents\coding-academy`.
 3. Double-click **`install_windows.bat`**. A black window shows progress; wait for
    *"Installation finished successfully"*. It takes a few minutes.
 
 **Mac / Linux**
 
-1. Install Python 3.13 (python.org installer on Mac; your package manager on Linux).
+1. Install Python 3.13 or 3.14 (python.org installer on Mac; your package manager on Linux).
 2. Open Terminal, go into the folder (`cd ~/Documents/coding-academy`) and run `bash install_mac_linux.sh`.
 
 ## Start
