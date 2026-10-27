@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% from "_macros.html" import evidence, cat with context %}{% block body %}
 <h1>Ticket Assistant</h1>
-<p class="muted">Advisory only. Nothing is sent and the ticket is not stored or added to the knowledge base unless you choose to save it.</p>
+<p class="lead">Paste the customer's message. You'll get the evidence, any missing information, and a draft to edit and copy. Nothing is sent, and the ticket isn't stored unless you save it.</p>
 <form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}">
 <div class="two"><div><label>Customer email / ticket message</label><textarea name="ticket" style="min-height:170px">{{ form.ticket }}</textarea>
 <label>Previous correspondence (optional)</label><textarea name="previous">{{ form.previous }}</textarea></div>

@@ -54,16 +54,33 @@ def server_error(e):
 @app.route("/")
 def home():
     c = conn()
+    s = db.all_settings(c)
+    count = lambda sql: c.execute(sql).fetchone()[0]
     stats = {
-        "sources": c.execute("SELECT kind, COUNT(*) n FROM sources WHERE active=1 GROUP BY kind").fetchall(),
-        "passages": c.execute("SELECT COUNT(*) FROM passages").fetchone()[0],
-        "failed": c.execute("SELECT COUNT(*) FROM sources WHERE status='failed'").fetchone()[0],
+        "web": count("SELECT COUNT(*) FROM sources WHERE kind='web' AND active=1"),
+        "docs": count("SELECT COUNT(*) FROM sources WHERE kind IN ('file','note') AND active=1"),
+        "passages": count("SELECT COUNT(*) FROM passages"),
+        "failed": count("SELECT COUNT(*) FROM sources WHERE status='failed'"),
         "coverage": web.coverage_report(c),
-        "llm": llm.status(db.all_settings(c)),
+        "llm": llm.status(s),
+        "last_backup": (s.get("last_backup_at") or "")[:16].replace("T", " "),
     }
+    steps = [
+        {"title": "Allow website collection", "done": bool(s["web_terms_reviewed"]), "href": "/settings#website", "button": "Open settings",
+         "text": "Confirm you're happy for public Trinity pages to be stored privately on this computer."},
+        {"title": "Collect the Trinity website", "done": stats["web"] > 0, "href": "/official", "button": "Start collecting",
+         "text": "Downloads syllabuses and official pages. Run it a few times until nothing is waiting."},
+        {"title": "Import your own documents", "done": stats["docs"] > 0, "href": "/documents", "button": "Import files",
+         "text": "Training guides, Q&A sheets, the triage directory and procedures."},
+        {"title": "Back up to Google Drive", "done": bool(s.get("backup_folder")) and bool(stats["last_backup"]), "href": "/settings#storage", "button": "Set up",
+         "text": "Keeps a copy of everything in your Google Drive automatically."},
+        {"title": "Try the Ticket Assistant", "done": count("SELECT COUNT(*) FROM drafts") > 0, "href": "/ticket", "button": "Try it",
+         "text": "Paste a real ticket and save the draft you like."},
+    ]
+    next_step = next((i for i, x in enumerate(steps) if not x["done"]), None)
     recent = c.execute("SELECT query, at, result_count FROM search_history ORDER BY id DESC LIMIT 8").fetchall()
     drafts = c.execute("SELECT id,title,status,updated_at FROM drafts ORDER BY id DESC LIMIT 6").fetchall()
-    return render_template("home.html", stats=stats, recent=recent, drafts=drafts)
+    return render_template("home.html", stats=stats, recent=recent, drafts=drafts, steps=steps, next_step=next_step)
 
 
 @app.route("/search")
@@ -301,6 +318,10 @@ def web_update():
         except Exception as e:
             CRAWL["message"] = f"Update stopped: {type(e).__name__}. Run it again to continue where it stopped."
         finally:
+            try:
+                backup.auto_backup(c)
+            except Exception:
+                pass
             CRAWL["running"] = False
             c.close()
     threading.Thread(target=work, daemon=True).start()
@@ -346,9 +367,25 @@ def settings_page():
         flash("Settings saved.")
         return redirect(url_for("settings_page"))
     s = db.all_settings(c)
-    backups = sorted(config.backups_dir().glob("*.zip"), reverse=True)
-    return render_template("settings.html", s=s, data_dir=config.data_dir(), hw=llm.hardware(),
-                           llm=llm.status(s), backups=backups)
+    return render_template("settings.html", s=s, data_dir=config.data_dir(), hw=llm.hardware(), llm=llm.status(s),
+                           backups=backup.list_backups(c), target=backup.backup_target(c), drives=backup.find_google_drive())
+
+
+@app.post("/storage")
+def save_storage():
+    c = conn()
+    folder = request.form.get("backup_folder", "").strip().strip('"')
+    if folder and not Path(folder).is_dir():
+        flash(f"That folder doesn't exist on this computer: {folder}. Check Google Drive for desktop is running.")
+        return redirect(url_for("settings_page") + "#storage")
+    db.set_setting(c, "backup_folder", folder)
+    db.set_setting(c, "backup_keep", max(1, min(365, int(request.form.get("backup_keep") or 10))))
+    if folder:
+        p = backup.create_backup(c)
+        flash(f"Saved. A first backup was written to {p.parent}. From now on a backup is made there automatically once a day.")
+    else:
+        flash("Backups will be kept in the app's own data folder.")
+    return redirect(url_for("settings_page") + "#storage")
 
 
 @app.post("/backup")
@@ -360,8 +397,8 @@ def make_backup():
 
 @app.route("/backup/<name>")
 def download_backup(name):
-    p = config.backups_dir() / secure_filename(name)
-    if not p.exists():
+    p = next((b for b in backup.list_backups(conn()) if b.name == secure_filename(name)), None)
+    if not p:
         abort(404)
     return send_file(p, as_attachment=True)
 
@@ -390,7 +427,14 @@ def export():
 
 
 def main(port=8765):
-    db.connect().close()
+    c = db.connect()
+    try:
+        made = backup.auto_backup(c)
+        if made:
+            print(f"  Daily backup saved: {made}")
+    except Exception as e:
+        print(f"  Automatic backup skipped ({type(e).__name__}).")
+    c.close()
     print(f"\n  Trinity Support Knowledge Base is running.\n  Open http://127.0.0.1:{port} in your browser.\n"
           f"  Data folder: {config.data_dir()}\n  Close this window (or press Ctrl+C) to stop.\n")
     app.run(host="127.0.0.1", port=port, debug=False, threaded=True)

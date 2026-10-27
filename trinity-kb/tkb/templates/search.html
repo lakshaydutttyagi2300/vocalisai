@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% from "_macros.html" import evidence with context %}{% block body %}
-<h1>Search knowledge base</h1>
+<h1>Search</h1><p class="lead">Searches everything stored on this computer. Each result shows the exact passage and where it came from.</p>
 <form class="card"><div class="row"><input type="search" name="q" value="{{ q }}" style="flex:1" autofocus placeholder='Words, "exact phrase", an email address, a reference, or format:AB123456'><button>Search</button></div>
 <div class="grid" style="margin-top:8px">
  <div><label>Source type</label>{% for k,v in CATEGORIES.items() %}<label style="font-weight:400;margin:0"><input type="checkbox" name="cat" value="{{k}}" {% if k in cats %}checked{% endif %}> {{k}} - {{v}}</label>{% endfor %}</div>

@@ -81,6 +81,10 @@ Everything is in the `data` folder next to the app:
 To move to another computer, copy the whole `trinity-kb` folder, or make a backup and restore it there.
 
 ## Backup and restore
+- **Google Drive (free):** install *Google Drive for desktop*. Your Drive then appears as a folder such as `G:\My Drive`.
+  In **Settings & backup → Storage and Google Drive**, click **Use G:\My Drive** and save.
+  - A full backup is then written to `My Drive\TrinityKB-backups` once a day when the app starts, and after each website update. The newest 10 are kept.
+  - The live database stays on your PC, because syncing a database while it's being written can corrupt it. Drive holds the complete backup copies.
 - **Settings → Back up now** creates `data/backups/tkb-backup-<date>.zip`. It contains the database, your documents and
   `settings.json`; nothing secret is stored. You can leave saved drafts out.
 - **Restore from backup** first checks that the zip is valid and makes a safety backup of your current data.

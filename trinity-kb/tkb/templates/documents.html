@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}<h1>Internal documents</h1>
+{% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}<h1>My documents</h1><p class="lead">Your own guides, Q&amp;A sheets and procedures. They're labelled as internal, never as official Trinity policy.</p>
 <div class="card"><h2>Import documents</h2><form method="post" action="/documents/import" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{csrf}}">
 <div class="grid"><div><label>Files ({{ supported }})</label><input type="file" name="files" multiple></div>
 <div><label>...or a folder on this computer</label><input type="text" name="folder" placeholder="C:\Users\me\Documents\Trinity support"></div>

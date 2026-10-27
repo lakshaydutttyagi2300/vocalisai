@@ -1,22 +1,27 @@
 {% extends "base.html" %}{% block body %}
-<h1>Support knowledge base</h1>
-<div class="card"><form action="/search"><div class="row"><input type="search" name="q" placeholder="Search everything - e.g. how does a candidate confirm a digital exam booking?" style="flex:1"><button>Search</button></div></form></div>
+<h1>Good to see you</h1><p class="lead">Look something up, answer a ticket, or keep building your knowledge base.</p>
+<form action="/search" class="card"><div class="row"><input type="search" name="q" placeholder="Ask or search, e.g. how does a candidate confirm a digital exam booking?" style="flex:1;font-size:16px;padding:12px"><button style="padding:12px 22px">Search</button></div></form>
+
+{% if steps|selectattr('done','false')|list %}
+<div class="card"><h2>Getting started &middot; {{ steps|selectattr('done')|list|length }} of {{ steps|length }} done</h2>
+<table>{% for s in steps %}<tr><td style="width:34px;font-size:20px">{{ '&#9989;'|safe if s.done else '&#11036;'|safe }}</td>
+<td><b>{{ s.title }}</b><div class="muted">{{ s.text }}</div></td><td style="text-align:right;white-space:nowrap">{% if not s.done %}<a class="btn {{ '' if loop.index0 == next_step else 'sec' }}" href="{{ s.href }}">{{ s.button }}</a>{% endif %}</td></tr>{% endfor %}</table></div>
+{% endif %}
+
 <div class="grid">
- <a class="card btn sec" href="/ticket">Ticket Assistant<br><span class="muted">Paste a ticket, get evidence and a draft</span></a>
- <a class="card btn sec" href="/triage">Ticket Triage<br><span class="muted">Routing, tags, reference formats</span></a>
- <a class="card btn sec" href="/official">Browse official Trinity sources</a>
- <a class="card btn sec" href="/documents">Browse / import internal documents</a>
- <a class="card btn sec" href="/official#update">Update website index</a>
- <a class="card btn sec" href="/coverage">Source coverage report</a>
+ <a class="card" href="/ticket" style="text-decoration:none;color:inherit"><h2>&#128172; Answer a ticket</h2><div class="muted">Paste the customer's email. Get the evidence, missing information, and a draft reply to edit and copy.</div></a>
+ <a class="card" href="/triage" style="text-decoration:none;color:inherit"><h2>&#128256; Route a ticket</h2><div class="muted">Which team, priority and tags, from your internal procedures.</div></a>
+ <a class="card" href="/official" style="text-decoration:none;color:inherit"><h2>&#127760; Trinity website</h2><div class="muted">{{ stats.web }} official pages and documents collected. Update or browse them.</div></a>
+ <a class="card" href="/documents" style="text-decoration:none;color:inherit"><h2>&#128193; My documents</h2><div class="muted">{{ stats.docs }} internal documents. Import guides, Q&amp;A sheets and procedures.</div></a>
 </div>
+
 <div class="grid">
-<div class="card"><h2>Knowledge-base status</h2>
- {% for s in stats.sources %}<div>{{ {'file':'Internal documents','web':'Official web pages/PDFs','note':'Saved notes'}[s.kind] }}: <b>{{ s.n }}</b></div>{% else %}<div class="warn">The knowledge base is empty. Start by importing your documents.</div>{% endfor %}
- <div>Indexed passages: <b>{{ stats.passages }}</b></div>
- {% if stats.failed %}<div class="bad">{{ stats.failed }} document(s) failed to import - see <a href="/reports/imports">import report</a>.</div>{% endif %}
- <div>Website: {{ stats.coverage.verdict }} ({{ stats.coverage.processed }} processed, {{ stats.coverage.pending }} pending)</div>
- <div>AI: {{ stats.llm.reason }}</div></div>
+<div class="card"><h2>Knowledge base</h2>
+ <table><tr><td>Official Trinity items</td><td><b>{{ stats.web }}</b></td></tr><tr><td>Internal documents</td><td><b>{{ stats.docs }}</b></td></tr>
+ <tr><td>Searchable passages</td><td><b>{{ stats.passages }}</b></td></tr><tr><td>Website collection</td><td>{{ stats.coverage.verdict }}{% if stats.coverage.pending %} &middot; <a href="/official">{{ stats.coverage.pending }} waiting</a>{% endif %}</td></tr>
+ <tr><td>Last backup</td><td>{{ stats.last_backup or 'never' }}</td></tr><tr><td>AI writing</td><td>{{ stats.llm.reason }}</td></tr></table>
+ {% if stats.failed %}<div class="bad">{{ stats.failed }} document(s) could not be read. <a href="/reports/imports">See why</a></div>{% endif %}</div>
 <div class="card"><h2>Recent searches</h2>{% for r in recent %}<div><a href="/search?q={{ r.query|urlencode }}">{{ r.query }}</a> <span class="muted">{{ r.result_count }} results</span></div>{% else %}<div class="muted">None yet.</div>{% endfor %}
- <form method="post" action="/privacy/clear"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="what" value="history"><button class="sec" style="margin-top:8px">Clear search history</button></form></div>
+ {% if recent %}<form method="post" action="/privacy/clear"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="what" value="history"><button class="sec" style="margin-top:10px">Clear history</button></form>{% endif %}</div>
 <div class="card"><h2>Saved drafts</h2>{% for d in drafts %}<div><a href="/drafts/{{d.id}}">{{ d.title }}</a> <span class="badge">{{ d.status }}</span></div>{% else %}<div class="muted">None yet.</div>{% endfor %}</div>
 </div>{% endblock %}

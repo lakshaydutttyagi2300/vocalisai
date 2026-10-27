@@ -40,6 +40,9 @@ DEFAULT_SETTINGS = {
     "tag_profiles": [{"name": "Default", "count": 2, "format": "", "note": "Edit to match your current workflow."}],
     "active_tag_profile": "Default",
     "privacy_log_ticket_text": False,
+    # backups (point this at a Google Drive for desktop folder, e.g. G:\\My Drive)
+    "backup_folder": "",
+    "backup_keep": 10,
 }
 
 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block body %}<h1>Website coverage report</h1>
+{% extends "base.html" %}{% block body %}<h1>Website coverage report</h1><p class="lead">What has and hasn't been collected from the Trinity website, and why. <a href="/official">Back to Trinity website</a></p>
 <div class="card"><b>{{ r.verdict }}</b><table style="margin-top:8px"><tr><th>Pages discovered</th><td>{{ r.discovered }}</td></tr><tr><th>Successfully processed</th><td>{{ r.processed }}</td></tr>
 <tr><th>Skipped</th><td>{{ r.skipped }}</td></tr><tr><th>Failed</th><td>{{ r.failed }}</td></tr><tr><th>Requiring manual review</th><td>{{ r.manual }}</td></tr>
 <tr><th>Duplicates identified</th><td>{{ r.duplicate }}</td></tr><tr><th>Awaiting indexing</th><td>{{ r.pending }}</td></tr><tr><th>URLs listed in sitemaps</th><td>{{ r.sitemap_urls if r.sitemap_urls is not none else 'not read yet' }}</td></tr>

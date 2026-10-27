@@ -313,3 +313,19 @@ def test_trinity_style_resources_and_noindex(conn):
     web.run_update(conn, FakeSite(pages), sleep=lambda s: None)
     cov = web.coverage_report(conn)
     assert cov["processed"] == 2 and cov["duplicate"] == 1 and search(conn, "piano grade exams overview")
+
+
+def test_backup_to_drive_folder(conn, files, tmp_path):
+    drive = tmp_path / "My Drive"; drive.mkdir()
+    imp(conn, files)
+    assert backup.auto_backup(conn) is None  # no folder chosen: nothing automatic
+    db.set_setting(conn, "backup_folder", str(drive)); db.set_setting(conn, "backup_keep", 2)
+    first = backup.auto_backup(conn)
+    assert first and first.parent == drive / "TrinityKB-backups"
+    assert backup.auto_backup(conn) is None  # at most once a day
+    for _ in range(3):
+        backup.create_backup(conn)
+        import time; time.sleep(1.1)
+    db.set_setting(conn, "last_backup_at", "2000-01-01")
+    backup.auto_backup(conn)
+    assert len(list((drive / "TrinityKB-backups").glob("*.zip"))) == 2  # old copies pruned

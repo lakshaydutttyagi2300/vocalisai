@@ -2,27 +2,52 @@
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{% block title %}Support Knowledge Base{% endblock %}</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5d6676;--line:#dde1e7;--brand:#1f4e8c;--warn:#fff4d6;--warnline:#e2b33c;--bad:#fde8e8;--badline:#d46a6a;--ok:#e6f4ea}
-*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-nav{background:var(--brand);padding:0 16px;display:flex;flex-wrap:wrap;gap:2px}nav a{color:#fff;text-decoration:none;padding:12px 10px;font-weight:500}nav a:hover{background:#ffffff22}
-main{max-width:1300px;margin:0 auto;padding:16px}h1{font-size:22px;margin:8px 0 14px}h2{font-size:17px;margin:18px 0 8px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.two{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
-@media(max-width:900px){.two{grid-template-columns:1fr}}
-input[type=text],input[type=search],input[type=number],input[type=date],select,textarea{width:100%;padding:8px;border:1px solid #b9c0cb;border-radius:6px;font:inherit}
-textarea{min-height:110px}label{font-weight:600;display:block;margin:8px 0 4px}
-button,.btn{background:var(--brand);color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer;text-decoration:none;display:inline-block}
-.btn.sec,button.sec{background:#e8edf5;color:var(--brand)}button.danger{background:#a33}
-.badge{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:600;background:#e8edf5;color:#203a63}
+:root{--bg:#f3f5f9;--card:#fff;--ink:#1b2230;--muted:#5d6676;--line:#dfe3ea;--brand:#1f4e8c;--brand2:#163a6a;--soft:#e9eff8;--warn:#fff6dc;--warnline:#e2b33c;--bad:#fdeaea;--badline:#d46a6a;--ok:#e7f5ec;--okline:#3a8a52}
+*{box-sizing:border-box}body{margin:0;font:15px/1.55 "Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand)}
+.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+aside{background:var(--brand2);color:#dbe5f3;padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+.brandname{color:#fff;font-weight:700;font-size:16px;padding:0 10px 14px;line-height:1.3}.brandname small{display:block;font-weight:400;color:#a9bdd8;font-size:12px}
+.group{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8fa7c8;margin:16px 10px 6px}
+aside a{display:flex;gap:10px;align-items:flex-start;color:#e4ecf7;text-decoration:none;padding:8px 10px;border-radius:8px;margin-bottom:2px}
+aside a:hover{background:#ffffff14}aside a.on{background:#fff;color:var(--brand2)}
+aside a svg{flex:none;width:18px;height:18px;margin-top:2px}aside a span{display:block;font-weight:600;font-size:14px}aside a em{display:block;font-style:normal;font-size:12px;opacity:.75;font-weight:400}
+main{padding:24px 28px;max-width:1250px;width:100%;min-width:0}
+h1{font-size:24px;margin:0 0 4px}.lead{color:var(--muted);margin:0 0 18px}h2{font-size:17px;margin:4px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 2px #0000000a}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.two{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+input[type=text],input[type=search],input[type=number],input[type=date],select,textarea{width:100%;padding:9px 10px;border:1px solid #b9c0cb;border-radius:8px;font:inherit;background:#fff}
+input:focus,textarea:focus,select:focus{outline:2px solid #9bb8e3;border-color:var(--brand)}
+textarea{min-height:110px}label{font-weight:600;display:block;margin:10px 0 4px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{background:var(--brand2)}
+.btn.sec,button.sec{background:var(--soft);color:var(--brand)}.btn.sec:hover,button.sec:hover{background:#dbe5f3}button.danger{background:#a33}
+.badge{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:600;background:var(--soft);color:#203a63}
 .cat-A{background:#dff3e4;color:#145a2a}.cat-B{background:#e3ecfb;color:#1f4e8c}.cat-C{background:#efe6fb;color:#5b2d91}.cat-D{background:#fbefe0;color:#7a4b10}.cat-E{background:#f3e1e1;color:#8a1f1f}
-.warn{background:var(--warn);border-left:4px solid var(--warnline);padding:8px 12px;margin:8px 0;border-radius:4px}
-.bad{background:var(--bad);border-left:4px solid var(--badline);padding:8px 12px;margin:8px 0;border-radius:4px}
-.okbox{background:var(--ok);border-left:4px solid #3a8a52;padding:8px 12px;margin:8px 0;border-radius:4px}
-.muted{color:var(--muted);font-size:13px}mark{background:#ffe58a}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top;font-size:14px}
-.passage{white-space:pre-wrap;font-size:14px}.flash{background:#e3ecfb;padding:8px 12px;border-radius:6px;margin-bottom:10px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ev{border-left:3px solid var(--line);padding-left:10px;margin:10px 0}
+.warn{background:var(--warn);border-left:4px solid var(--warnline);padding:9px 12px;margin:8px 0;border-radius:6px}
+.bad{background:var(--bad);border-left:4px solid var(--badline);padding:9px 12px;margin:8px 0;border-radius:6px}
+.okbox{background:var(--ok);border-left:4px solid var(--okline);padding:9px 12px;margin:8px 0;border-radius:6px}
+.muted{color:var(--muted);font-size:13px}mark{background:#ffe58a}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top;font-size:14px}
+.passage{white-space:pre-wrap;font-size:14px}.flash{background:#e3ecfb;border:1px solid #c7d7ef;padding:10px 14px;border-radius:8px;margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ev{border-left:3px solid var(--line);padding-left:12px;margin:12px 0}
+details summary{cursor:pointer}.card{overflow-x:auto}code{overflow-wrap:anywhere}
+@media(max-width:900px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;padding:10px}.group,aside a em{display:none}
+ aside nav{display:flex;flex-wrap:wrap;gap:4px}aside a{padding:6px 10px;margin:0}.brandname{padding:4px 10px 8px}main{padding:16px}.two{grid-template-columns:1fr}}
 </style></head><body>
-<nav><a href="/">Home</a><a href="/search">Search</a><a href="/ticket">Ticket Assistant</a><a href="/triage">Ticket Triage</a>
-<a href="/official">Official sources</a><a href="/documents">Internal documents</a><a href="/drafts">Drafts</a><a href="/coverage">Coverage</a><a href="/settings">Settings</a></nav>
+{% set p = request.path %}
+{% macro item(href, label, hint, icon, active) %}<a href="{{href}}" class="{{ 'on' if active }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ icon|safe }}</svg><div><span>{{label}}</span><em>{{hint}}</em></div></a>{% endmacro %}
+<div class="shell"><aside><div class="brandname">Support Knowledge Base<small>Trinity College London &middot; private, on this computer</small></div><nav>
+{{ item('/', 'Home', 'Start here', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', p=='/') }}
+<div class="group">Answer tickets</div>
+{{ item('/ticket', 'Ticket Assistant', 'Paste a ticket, get a draft', '<path d="M4 4h16v12H7l-3 3z"/><path d="M8 9h8M8 12h5"/>', p.startswith('/ticket')) }}
+{{ item('/triage', 'Ticket Triage', 'Which team, tags, priority', '<path d="M3 6h18M6 12h12M10 18h4"/>', p.startswith('/triage')) }}
+{{ item('/search', 'Search', 'Look anything up', '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>', p.startswith('/search')) }}
+{{ item('/drafts', 'Saved drafts', 'Replies you kept', '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/>', p.startswith('/drafts')) }}
+<div class="group">Knowledge</div>
+{{ item('/official', 'Trinity website', 'Collect & browse official pages', '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>', p.startswith('/official') or p.startswith('/coverage')) }}
+{{ item('/documents', 'My documents', 'Import guides, Q&A, procedures', '<path d="M3 7h6l2 2h10v10H3z"/>', p.startswith('/documents') or p.startswith('/reports')) }}
+<div class="group">System</div>
+{{ item('/settings', 'Settings & backup', 'Storage, Google Drive, AI', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>', p.startswith('/settings')) }}
+</nav></aside>
 <main>{% with m = get_flashed_messages() %}{% for x in m %}<div class="flash">{{ x }}</div>{% endfor %}{% endwith %}
-{% block body %}{% endblock %}</main></body></html>
+{% block body %}{% endblock %}</main></div></body></html>

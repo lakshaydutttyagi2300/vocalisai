@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% from "_macros.html" import cat with context %}{% block body %}
-<h1>Ticket Triage</h1><p class="muted">Recommendations come only from your internal procedures (categories B, C, D). Nothing is invented: if the directory does not cover the ticket, it says so.</p>
+<h1>Ticket Triage</h1><p class="lead">Recommendations come only from your internal procedures (categories B, C, D). Nothing is invented: if the directory does not cover the ticket, it says so.</p>
 <form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><label>Ticket text</label><textarea name="ticket">{{ form.ticket }}</textarea>
 <label>Question / summary (optional)</label><input type="text" name="question" value="{{ form.question }}"><div style="margin-top:8px"><button>Triage</button></div></form>
 {% if res %}{% set a = res.analysis %}

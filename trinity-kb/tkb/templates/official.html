@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block body %}<h1>Official Trinity College London sources</h1>
+{% extends "base.html" %}{% block body %}<h1>Trinity website</h1><p class="lead">Collect official pages and syllabus PDFs from www.trinitycollege.com, then browse what's stored. <a href="/coverage">See the coverage report</a>.</p>
 <div class="card" id="update"><h2>Update website index</h2>
 {% if not settings.web_terms_reviewed %}<div class="warn">Website collection is switched off. Read the site's terms of use and robots.txt, then tick the confirmation in <a href="/settings">Settings</a>.</div>{% endif %}
 <form method="post" action="/web/update" class="row"><input type="hidden" name="csrf" value="{{csrf}}"><button name="mode" value="continue">Continue / incremental update</button>

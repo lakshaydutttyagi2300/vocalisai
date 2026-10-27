@@ -12,10 +12,52 @@ from . import config, db
 SECRET_KEYS = ("token", "password", "secret", "api_key")
 
 
+def backup_target(conn) -> Path:
+    """The chosen backup folder (e.g. inside Google Drive), or data/backups if none is set or reachable."""
+    folder = db.get_setting(conn, "backup_folder")
+    if folder and Path(folder).is_dir():
+        d = Path(folder) / "TrinityKB-backups"
+        d.mkdir(exist_ok=True)
+        return d
+    return config.backups_dir()
+
+
+def find_google_drive() -> list[str]:
+    """Folders where Google Drive for desktop usually appears. Nothing is contacted online."""
+    import os
+    import string
+    home = Path.home()
+    cands = [home / "Google Drive", home / "My Drive", home / "Google Drive" / "My Drive"]
+    if os.name == "nt":
+        cands += [Path(f"{d}:\\My Drive") for d in string.ascii_uppercase]
+    cands += sorted((home / "Library" / "CloudStorage").glob("GoogleDrive-*/My Drive"))
+    return [str(c) for c in cands if c.is_dir()]
+
+
+def list_backups(conn) -> list[Path]:
+    return sorted(set(backup_target(conn).glob("tkb-backup-*.zip")) | set(config.backups_dir().glob("tkb-backup-*.zip")),
+                  key=lambda p: p.name, reverse=True)
+
+
+def auto_backup(conn) -> Path | None:
+    """Daily automatic backup into the chosen folder; keeps the newest `backup_keep` copies there."""
+    folder = db.get_setting(conn, "backup_folder")
+    if not folder or not Path(folder).is_dir():
+        return None
+    last = db.get_setting(conn, "last_backup_at") or ""
+    if last[:10] == datetime.now().strftime("%Y-%m-%d"):
+        return None
+    out = create_backup(conn)
+    keep = int(db.get_setting(conn, "backup_keep") or 10)
+    for old in sorted(backup_target(conn).glob("tkb-backup-*.zip"), reverse=True)[keep:]:
+        old.unlink(missing_ok=True)
+    return out
+
+
 def create_backup(conn, include_drafts=True) -> Path:
     """Zip containing knowledge.db (consistent snapshot), documents/ and settings.json."""
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    out = config.backups_dir() / f"tkb-backup-{stamp}.zip"
+    out = backup_target(conn) / f"tkb-backup-{stamp}.zip"
     with tempfile.TemporaryDirectory() as tmp:
         snap = Path(tmp) / "knowledge.db"
         dest = sqlite3.connect(snap)
@@ -32,6 +74,7 @@ def create_backup(conn, include_drafts=True) -> Path:
             for f in config.docs_dir().iterdir():
                 if f.is_file():
                     z.write(f, f"documents/{f.name}")
+    db.set_setting(conn, "last_backup_at", datetime.now().isoformat(timespec="minutes"))
     return out
 
 
