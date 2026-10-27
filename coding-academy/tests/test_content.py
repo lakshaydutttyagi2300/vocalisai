@@ -159,3 +159,20 @@ def test_ordered_sql_exercises_have_no_ties(exercise):
     keys = [tuple(row[i] for i in positions) for row in result.rows]
     duplicates = {k for k in keys if keys.count(k) > 1}
     assert not duplicates, f"{exercise.key}: rows tie on the ORDER BY columns {terms}: {sorted(duplicates)[:3]}"
+
+
+@pytest.mark.parametrize("lesson", LESSONS, ids=lambda ls: ls.id)
+def test_quiz_options_and_answers_are_text_in_the_source(lesson):
+    """Unquoted words like NULL, Yes or False would be read by YAML as None/True/False instead of text."""
+    import re
+    import yaml
+    text = lesson.path.read_text(encoding="utf-8") if getattr(lesson, "path", None) else None
+    if text is None:
+        pytest.skip("lesson has no source file path")
+    for block in re.findall(r"^```quiz[ \t]*\n(.*?)^```[ \t]*$", text, re.S | re.M):
+        for question in yaml.safe_load(block):
+            values = list(question.get("options") or [])
+            answer = question.get("answer")
+            values += answer if isinstance(answer, list) else [answer]
+            bad = [v for v in values if not isinstance(v, (str, int, float)) or isinstance(v, bool)]
+            assert not bad, f"{lesson.id} {question.get('id')}: quote these values in the quiz: {bad}"

@@ -307,7 +307,7 @@ check:
   question: You INSERT a row and leave out a column that has DEFAULT 0. What value does it get?
   options:
     - '0'
-    - NULL
+    - 'NULL'
     - An error is raised
     - The value from the previous row
   answer: '0'

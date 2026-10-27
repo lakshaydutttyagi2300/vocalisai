@@ -323,6 +323,7 @@ check:
     - name: a matching environment is ready
       code: |
         assert report({"a": "1.0"}, {"a": "1.0", "b": "2"}) == ["a: ok"]
+```
 
 ```exercise
 id: satisfies-spec

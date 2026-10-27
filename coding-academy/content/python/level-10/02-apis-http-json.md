@@ -408,7 +408,7 @@ check:
     - None
     - 0
     - '"null"'
-    - False
+    - 'False'
   answer: None
   explanation: true/false become True/False, and null becomes None.
 ```
