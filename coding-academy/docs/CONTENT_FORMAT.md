@@ -110,8 +110,8 @@ yield lambda f-string list-comprehension dict-comprehension set-comprehension ge
 tuple set slice assert raise global augmented-assignment boolean-operator comment inline-comment nested-if
 nested-loop decorator type-hints variable call:NAME method:NAME`.
 
-Inside `tests`, the variable `OUTPUT` holds everything printed, and `capture_output(func, *args)` returns
-`(return_value, printed_text)`.
+Inside `tests`, the variable `OUTPUT` holds everything printed, `SOURCE` holds the learner's code as text, and
+`capture_output(func, *args)` returns `(return_value, printed_text)`.
 
 **Expected output with `input()`:** the lab shows the prompt *and* the typed answer, like a terminal. So
 `name = input("Name? ")` with input `Sam` prints `Name? Sam` followed by a new line.

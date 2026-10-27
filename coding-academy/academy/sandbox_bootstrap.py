@@ -332,6 +332,7 @@ def main() -> int:
             return value, "".join(pieces)
 
         namespace["OUTPUT"] = "".join(captured)
+        namespace["SOURCE"] = code
         namespace["capture_output"] = capture_output
         for test in tests:
             entry = {"name": test.get("name", "check"), "passed": False, "message": ""}
