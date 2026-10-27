@@ -176,3 +176,56 @@ def test_quiz_options_and_answers_are_text_in_the_source(lesson):
             values += answer if isinstance(answer, list) else [answer]
             bad = [v for v in values if not isinstance(v, (str, int, float)) or isinstance(v, bool)]
             assert not bad, f"{lesson.id} {question.get('id')}: quote these values in the quiz: {bad}"
+
+
+SQL_LESSONS = [lesson for lesson in LESSONS if lesson.track == "sql"]
+
+
+@pytest.mark.parametrize("lesson", SQL_LESSONS, ids=lambda ls: ls.id)
+def test_sql_examples_in_lessons_run_on_a_sample_database(lesson):
+    """Every ```sql example in a lesson's text must run without error on at least one sample database.
+
+    Examples that deliberately show an error say so in a comment (they contain the word "error")."""
+    import re
+    from academy.sql_engine import execute, fresh_connection
+    text = lesson.path.read_text(encoding="utf-8")
+    text = re.sub(r"^```(exercise|quiz)[ \t]*\n.*?^```[ \t]*$", "", text, flags=re.S | re.M)
+    failures = []
+    for block in re.findall(r"^```sql[ \t]*\n(.*?)^```[ \t]*$", text, re.S | re.M):
+        if "error" in block.lower():
+            continue
+        errors = []
+        for dataset in list_datasets():
+            conn = fresh_connection(dataset)
+            try:
+                results = execute(conn, block)
+            finally:
+                conn.close()
+            problems = [r.error for r in results if r.error]
+            if not problems:
+                break
+            errors.append(f"{dataset}: {problems[0]}")
+        else:
+            failures.append(f"{block.strip()[:80]!r} -> {errors[:3]}")
+    assert not failures, f"{lesson.id}: examples that don't run anywhere:\n" + "\n".join(failures)
+
+
+@pytest.mark.parametrize("lesson", [ls for ls in LESSONS if ls.track == "python"], ids=lambda ls: ls.id)
+def test_python_examples_in_lessons_are_valid_python(lesson):
+    """Every ```python example must at least be valid Python.
+
+    Deliberate examples of syntax errors are recognised by the error name in or just after the block."""
+    import ast
+    import re
+    text = lesson.path.read_text(encoding="utf-8")
+    text = re.sub(r"^```(exercise|quiz)[ \t]*\n.*?^```[ \t]*$", "", text, flags=re.S | re.M)
+    failures = []
+    for match in re.finditer(r"^```python[ \t]*\n(.*?)^```[ \t]*$", text, re.S | re.M):
+        block, after = match.group(1), text[match.end():match.end() + 400]
+        if re.search(r"SyntaxError|IndentationError", block + after):
+            continue
+        try:
+            ast.parse(block)
+        except SyntaxError as exc:
+            failures.append(f"line {exc.lineno}: {exc.msg} in {block.strip()[:60]!r}")
+    assert not failures, f"{lesson.id}: invalid Python examples:\n" + "\n".join(failures)

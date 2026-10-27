@@ -378,6 +378,13 @@ def check_sql_exercise(exercise: Exercise, user_sql: str) -> SqlCheckOutcome:
                                    [f"Error: {errors[0].error}"], None, expected, statements)
         if verify:
             verify_results = execute(conn, verify, max_rows=100_000)
+            verify_errors = [r for r in verify_results if r.error]
+            if verify_errors:
+                return SqlCheckOutcome(
+                    False, "Your SQL ran, but the database it left behind is not what the exercise asks for.",
+                    ["The checking query could not run on your tables: " + verify_errors[0].error,
+                     "Check that the table and column names are exactly as given in the instructions."],
+                    None, expected, statements)
             user_result = _final_query(verify_results)
         else:
             user_result = _final_query(statements)

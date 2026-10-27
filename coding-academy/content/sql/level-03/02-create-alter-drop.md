@@ -95,9 +95,11 @@ GROUP BY order_id
 HAVING value > 500;
 ```
 
-**Example 4 - rename and drop**
+**Example 4 - rename and drop** (run it together with Example 3, which creates `big_orders`)
 
 ```sql
+CREATE TABLE big_orders AS
+SELECT order_id, SUM(quantity * unit_price) AS value FROM order_items GROUP BY order_id HAVING value > 500;
 ALTER TABLE big_orders RENAME TO large_orders;
 DROP TABLE IF EXISTS large_orders;
 ```

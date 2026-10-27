@@ -94,6 +94,17 @@ def test_check_with_verify_query_for_changes():
     assert not sql_engine.check_sql_exercise(exercise, "DELETE FROM courses WHERE id = 1;").passed
 
 
+def test_verify_query_that_cannot_run_gives_a_clear_message():
+    exercise = sql_exercise("CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT);",
+                            {"verify": "SELECT name FROM pragma_table_info('books');"}, dataset="blank")
+    outcome = sql_engine.check_sql_exercise(exercise, "CREATE TABLE book (id INTEGER PRIMARY KEY, title TEXT);")
+    assert not outcome.passed  # wrong table name: the verify query returns no rows
+    exercise = sql_exercise("CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT);",
+                            {"verify": "SELECT id, title FROM books;"}, dataset="blank")
+    outcome = sql_engine.check_sql_exercise(exercise, "CREATE TABLE book (id INTEGER PRIMARY KEY, title TEXT);")
+    assert not outcome.passed and "no such table: books" in " ".join(outcome.details)
+
+
 def test_required_text_in_sql_answer():
     exercise = sql_exercise("BEGIN; UPDATE courses SET credits = 99; ROLLBACK;",
                             {"verify": "SELECT SUM(credits) FROM courses;", "require_text": ["BEGIN", "ROLLBACK"]})
